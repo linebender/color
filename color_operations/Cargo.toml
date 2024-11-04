@@ -9,6 +9,9 @@ categories = []
 repository.workspace = true
 rust-version.workspace = true
 
+# Whilst we prepare the initial release
+publish = false
+
 [features]
 default = ["std"]
 std = []
