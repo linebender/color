@@ -1,3 +1,6 @@
+// Copyright 2024 the Color Authors
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 //! CSS-compatible string serializations of colors.
 
 use core::fmt::{Formatter, Result};

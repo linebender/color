@@ -1,3 +1,6 @@
+// Copyright 2024 the Color Authors
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 //! Parse CSS4 color
 
 use core::f64;

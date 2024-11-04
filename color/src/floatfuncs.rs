@@ -1,3 +1,6 @@
+// Copyright 2024 the Color Authors
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 //! Shims for math functions that ordinarily come from std.
 
 /// Defines a trait that chooses between libstd or libm implementations of float methods.

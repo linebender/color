@@ -1,3 +1,6 @@
+// Copyright 2024 the Color Authors
+// SPDX-License-Identifier: Apache-2.0 OR MIT
+
 use crate::{Colorspace, ColorspaceTag, CssColor, HueDirection, Interpolator, Oklab, PremulColor};
 
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
