@@ -14,8 +14,8 @@ publish = false
 
 [features]
 default = ["std"]
-std = []
-libm = []
+std = ["color/std"]
+libm = ["color/libm"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -24,7 +24,7 @@ default-target = "x86_64-unknown-linux-gnu"
 targets = []
 
 [dependencies]
-color = { workspace = true }
+color = { workspace = true, default-features = false }
 
 [lints]
 workspace = true

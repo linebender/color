@@ -25,7 +25,7 @@ pub trait Colorspace: Clone + Copy + 'static {
     /// Whether the colorspace is linear.
     ///
     /// Calculations in linear colorspaces can sometimes be simplified,
-    /// for example it is not necessary to undo premultiplcation when
+    /// for example it is not necessary to undo premultiplication when
     /// converting.
     const IS_LINEAR: bool = false;
 
