@@ -1,23 +1,23 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Colors with runtime choice of colorspace.
+//! Colors with runtime choice of color space.
 
 use crate::{
     color::{add_alpha, split_alpha},
-    AlphaColor, Bitset, Colorspace, ColorspaceLayout, DisplayP3, LinearSrgb, Oklab, Oklch, Srgb,
+    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, DisplayP3, LinearSrgb, Oklab, Oklch, Srgb,
     XyzD65,
 };
 
-/// The colorspace tag for tagged colors.
+/// The colo rspace tag for tagged colors.
 ///
-/// This represents a fixed set of known colorspaces. The set is
+/// This represents a fixed set of known color spaces. The set is
 /// based on the CSS Color 4 spec, but might also extend to a small
-/// set of colorspaces used in 3D graphics.
+/// set of color spaces used in 3D graphics.
 ///
 /// Note: this has some tags not yet implemented.
 ///
-/// Note: when adding an RGB-like colorspace, add to `same_analogous`.
+/// Note: when adding an RGB-like color space, add to `same_analogous`.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[non_exhaustive]
 pub enum ColorspaceTag {
@@ -33,7 +33,7 @@ pub enum ColorspaceTag {
     XyzD65,
 }
 
-/// A color with a runtime colorspace tag. This type will likely get merged with
+/// A color with a runtime color space tag. This type will likely get merged with
 /// [`CssColor`][crate::css::CssColor].
 #[derive(Clone, Copy, Debug)]
 pub struct TaggedColor {
@@ -42,15 +42,15 @@ pub struct TaggedColor {
 }
 
 impl ColorspaceTag {
-    pub(crate) fn layout(self) -> ColorspaceLayout {
+    pub(crate) fn layout(self) -> ColorSpaceLayout {
         match self {
-            Self::Lch | Self::Oklch => ColorspaceLayout::HueThird,
-            Self::Hsl | Self::Hwb => ColorspaceLayout::HueFirst,
-            _ => ColorspaceLayout::Rectangular,
+            Self::Lch | Self::Oklch => ColorSpaceLayout::HueThird,
+            Self::Hsl | Self::Hwb => ColorSpaceLayout::HueFirst,
+            _ => ColorSpaceLayout::Rectangular,
         }
     }
 
-    // Note: if colorspaces are the same, then they're also analogous, but
+    // Note: if color spaces are the same, then they're also analogous, but
     // in that case we wouldn't do the conversion, so this function is not
     // guaranteed to return the correct answer in those cases.
     pub(crate) fn same_analogous(self, other: Self) -> bool {
@@ -170,8 +170,8 @@ impl TaggedColor {
         Self { cs, components }
     }
 
-    pub fn from_alpha_color<T: Colorspace>(color: AlphaColor<T>) -> Self {
-        if let Some(cs) = T::CS_TAG {
+    pub fn from_alpha_color<CS: ColorSpace>(color: AlphaColor<CS>) -> Self {
+        if let Some(cs) = CS::TAG {
             Self {
                 cs,
                 components: color.components,
@@ -185,13 +185,13 @@ impl TaggedColor {
         }
     }
 
-    pub fn to_alpha_color<T: Colorspace>(&self) -> AlphaColor<T> {
-        if T::CS_TAG == Some(self.cs) {
+    pub fn to_alpha_color<CS: ColorSpace>(&self) -> AlphaColor<CS> {
+        if CS::TAG == Some(self.cs) {
             AlphaColor::new(self.components)
         } else {
             let (opaque, alpha) = split_alpha(self.components);
             let rgb = self.cs.to_linear_srgb(opaque);
-            let components = add_alpha(T::from_linear_srgb(rgb), alpha);
+            let components = add_alpha(CS::from_linear_srgb(rgb), alpha);
             AlphaColor::new(components)
         }
     }

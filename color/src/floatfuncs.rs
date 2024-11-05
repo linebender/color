@@ -7,7 +7,7 @@
 macro_rules! define_float_funcs {
     ($(
         fn $name:ident(self $(,$arg:ident: $arg_ty:ty)*) -> $ret:ty
-        => $lname:ident/$lfname:ident;
+        => $lfname:ident;
     )+) => {
 
         /// Since core doesn't depend upon libm, this provides libm implementations
@@ -35,17 +35,17 @@ macro_rules! define_float_funcs {
 }
 
 define_float_funcs! {
-    fn abs(self) -> Self => fabs/fabsf;
-    fn atan2(self, other: Self) -> Self => atan2/atan2f;
-    fn cbrt(self) -> Self => cbrt/cbrtf;
-    fn ceil(self) -> Self => ceil/ceilf;
-    fn copysign(self, sign: Self) -> Self => copysign/copysignf;
-    fn floor(self) -> Self => floor/floorf;
-    fn hypot(self, other: Self) -> Self => hypot/hypotf;
+    fn abs(self) -> Self => fabsf;
+    fn atan2(self, other: Self) -> Self => atan2f;
+    fn cbrt(self) -> Self => cbrtf;
+    fn ceil(self) -> Self => ceilf;
+    fn copysign(self, sign: Self) -> Self => copysignf;
+    fn floor(self) -> Self => floorf;
+    fn hypot(self, other: Self) -> Self => hypotf;
     // Note: powi is missing because its libm implementation is not efficient
-    fn powf(self, n: Self) -> Self => pow/powf;
-    fn round(self) -> Self => round/roundf;
-    fn sin_cos(self) -> (Self, Self) => sincos/sincosf;
-    fn sqrt(self) -> Self => sqrt/sqrtf;
-    fn trunc(self) -> Self => trunc/truncf;
+    fn powf(self, n: Self) -> Self => powf;
+    fn round(self) -> Self => roundf;
+    fn sin_cos(self) -> (Self, Self) => sincosf;
+    fn sqrt(self) -> Self => sqrtf;
+    fn trunc(self) -> Self => truncf;
 }

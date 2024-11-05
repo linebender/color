@@ -1,10 +1,10 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{Colorspace, ColorspaceTag, CssColor, HueDirection, Interpolator, Oklab, PremulColor};
+use crate::{ColorSpace, ColorspaceTag, CssColor, HueDirection, Interpolator, Oklab, PremulColor};
 
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
-pub struct GradientIter<CS: Colorspace> {
+pub struct GradientIter<CS: ColorSpace> {
     interpolator: Interpolator,
     // This is in deltaEOK units
     tolerance: f32,
@@ -16,7 +16,7 @@ pub struct GradientIter<CS: Colorspace> {
     end_color: PremulColor<CS>,
 }
 
-pub fn gradient<CS: Colorspace>(
+pub fn gradient<CS: ColorSpace>(
     mut color0: CssColor,
     mut color1: CssColor,
     interp_cs: ColorspaceTag,
@@ -44,7 +44,7 @@ pub fn gradient<CS: Colorspace>(
     }
 }
 
-impl<CS: Colorspace> Iterator for GradientIter<CS> {
+impl<CS: ColorSpace> Iterator for GradientIter<CS> {
     type Item = (f32, PremulColor<CS>);
 
     fn next(&mut self) -> Option<Self::Item> {

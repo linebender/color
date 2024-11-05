@@ -5,7 +5,7 @@
 
 use crate::{
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
-    AlphaColor, Bitset, Colorspace, ColorspaceLayout, ColorspaceTag, HueDirection, TaggedColor,
+    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, ColorspaceTag, HueDirection, TaggedColor,
 };
 
 #[derive(Clone, Copy, Debug)]
@@ -24,7 +24,7 @@ pub struct CssColor {
 pub struct Interpolator {
     premul1: [f32; 3],
     alpha1: f32,
-    premul2: [f32; 3],
+    delta_premul: [f32; 3],
     alpha2: f32,
     cs: ColorspaceTag,
     missing: Bitset,
@@ -48,12 +48,12 @@ impl CssColor {
         }
     }
 
-    pub fn to_alpha_color<CS: Colorspace>(self) -> AlphaColor<CS> {
+    pub fn to_alpha_color<CS: ColorSpace>(self) -> AlphaColor<CS> {
         self.to_tagged_color().to_alpha_color()
     }
 
     #[must_use]
-    pub fn from_alpha_color<T: Colorspace>(color: AlphaColor<T>) -> Self {
+    pub fn from_alpha_color<CS: ColorSpace>(color: AlphaColor<CS>) -> Self {
         TaggedColor::from_alpha_color(color).into()
     }
 
@@ -140,7 +140,7 @@ impl CssColor {
         // and there is some controversy in discussion threads. For example,
         // in Lab-like spaces, if L is 0 do the other components become powerless?
         const POWERLESS_EPSILON: f32 = 1e-6;
-        if self.cs.layout() != ColorspaceLayout::Rectangular
+        if self.cs.layout() != ColorSpaceLayout::Rectangular
             && self.components[1] < POWERLESS_EPSILON
         {
             self.cs
@@ -175,10 +175,15 @@ impl CssColor {
         let (premul1, alpha1) = a.premultiply_split();
         let (mut premul2, alpha2) = b.premultiply_split();
         fixup_hues_for_interpolate(premul1, &mut premul2, cs.layout(), direction);
+        let delta_premul = [
+            premul2[0] - premul1[0],
+            premul2[1] - premul1[1],
+            premul2[2] - premul1[2],
+        ];
         Interpolator {
             premul1,
             alpha1,
-            premul2,
+            delta_premul,
             alpha2,
             cs,
             missing,
@@ -202,9 +207,9 @@ impl CssColor {
 impl Interpolator {
     pub fn eval(&self, t: f32) -> CssColor {
         let premul = [
-            self.premul1[0] + t * (self.premul2[0] - self.premul1[0]),
-            self.premul1[1] + t * (self.premul2[1] - self.premul1[1]),
-            self.premul1[2] + t * (self.premul2[2] - self.premul1[2]),
+            self.premul1[0] + t * self.delta_premul[0],
+            self.premul1[1] + t * self.delta_premul[1],
+            self.premul1[2] + t * self.delta_premul[2],
         ];
         let alpha = self.alpha1 + t * (self.alpha2 - self.alpha1);
         let opaque = if alpha == 0.0 || alpha == 1.0 {
