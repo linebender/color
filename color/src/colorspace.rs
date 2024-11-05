@@ -24,7 +24,7 @@ use crate::floatfuncs::FloatFuncs;
 pub trait ColorSpace: Clone + Copy + 'static {
     /// Whether the color space is linear.
     ///
-    /// Calculations in linear colors paces can sometimes be simplified,
+    /// Calculations in linear color spaces can sometimes be simplified,
     /// for example it is not necessary to undo premultiplication when
     /// converting.
     const IS_LINEAR: bool = false;
