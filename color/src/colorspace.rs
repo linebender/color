@@ -264,6 +264,17 @@ impl ColorSpace for Oklab {
     fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
         [src[0], src[1] * scale, src[2] * scale]
     }
+
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklch>() {
+            lab_to_lch(src)
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
+    }
 }
 
 /// Rectangular to cylindrical conversion.
@@ -302,5 +313,16 @@ impl ColorSpace for Oklch {
 
     fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
         [src[0], src[1] * scale, src[2]]
+    }
+
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklab>() {
+            lch_to_lab(src)
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
     }
 }
