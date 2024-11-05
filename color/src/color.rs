@@ -174,7 +174,7 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
 
     /// Scale the chroma by the given amount.
     ///
-    /// See [`Colorspace::scale_chroma`] for more details.
+    /// See [`ColorSpace::scale_chroma`] for more details.
     #[must_use]
     pub fn scale_chroma(self, scale: f32) -> Self {
         Self::new(CS::scale_chroma(self.components, scale))
@@ -252,7 +252,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 
     /// Scale the chroma by the given amount.
     ///
-    /// See [`Colorspace::scale_chroma`] for more details.
+    /// See [`ColorSpace::scale_chroma`] for more details.
     #[must_use]
     pub fn scale_chroma(self, scale: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);

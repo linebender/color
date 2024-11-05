@@ -6,7 +6,7 @@
 use core::f64;
 use core::str::FromStr;
 
-use crate::{AlphaColor, Bitset, ColorspaceTag, CssColor, Srgb, TaggedColor};
+use crate::{AlphaColor, Bitset, ColorSpaceTag, CssColor, Srgb, TaggedColor};
 
 // TODO: proper error type, maybe include string offset
 pub type Error = &'static str;
@@ -30,7 +30,7 @@ enum Value<'a> {
     clippy::cast_possible_truncation,
     reason = "deliberate choice of f32 for colors"
 )]
-fn color_from_components(components: [Option<f64>; 4], cs: ColorspaceTag) -> CssColor {
+fn color_from_components(components: [Option<f64>; 4], cs: ColorSpaceTag) -> CssColor {
     let mut missing = Bitset::default();
     for (i, component) in components.iter().enumerate() {
         if component.is_none() {
@@ -285,7 +285,7 @@ impl<'a> Parser<'a> {
         if !self.ch(b')') {
             return Err("expected closing parenthesis");
         }
-        Ok(color_from_components([r, g, b, alpha], ColorspaceTag::Srgb))
+        Ok(color_from_components([r, g, b, alpha], ColorSpaceTag::Srgb))
     }
 
     fn optional_alpha(&mut self) -> Result<Option<f64>, Error> {
@@ -311,7 +311,7 @@ impl<'a> Parser<'a> {
         }
         Ok(color_from_components(
             [l, a, b, alpha],
-            ColorspaceTag::Oklab,
+            ColorSpaceTag::Oklab,
         ))
     }
 
@@ -328,7 +328,7 @@ impl<'a> Parser<'a> {
         }
         Ok(color_from_components(
             [l, c, h, alpha],
-            ColorspaceTag::Oklch,
+            ColorSpaceTag::Oklch,
         ))
     }
 
@@ -341,10 +341,10 @@ impl<'a> Parser<'a> {
             return Err("expected identifier for colorspace");
         };
         let cs = match id {
-            "srgb" => ColorspaceTag::Srgb,
-            "srgb-linear" => ColorspaceTag::LinearSrgb,
-            "display-p3" => ColorspaceTag::DisplayP3,
-            "xyz" | "xyz-d65" => ColorspaceTag::XyzD65,
+            "srgb" => ColorSpaceTag::Srgb,
+            "srgb-linear" => ColorSpaceTag::LinearSrgb,
+            "display-p3" => ColorSpaceTag::DisplayP3,
+            "xyz" | "xyz-d65" => ColorSpaceTag::XyzD65,
             _ => return Err("unknown colorspace"),
         };
         let r = self.scaled_component(1., 0.01)?;
@@ -377,7 +377,7 @@ pub fn parse_color(s: &str) -> Result<CssColor, Error> {
             "rgb" | "rgba" => parser.rgb(),
             "oklab" => parser.oklab(),
             "oklch" => parser.oklch(),
-            "transparent" => Ok(color_from_components([Some(0.); 4], ColorspaceTag::Srgb)),
+            "transparent" => Ok(color_from_components([Some(0.); 4], ColorSpaceTag::Srgb)),
             "color" => parser.color(),
             _ => Err("unknown identifier"),
         }
@@ -425,7 +425,7 @@ const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb> {
     AlphaColor::from_rgba8(r0 << 4 | r1, g0 << 4 | g1, b0 << 4 | b1, a0 << 4 | a1)
 }
 
-impl FromStr for ColorspaceTag {
+impl FromStr for ColorSpaceTag {
     type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {

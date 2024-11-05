@@ -5,12 +5,12 @@
 
 use crate::{
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
-    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, ColorspaceTag, HueDirection, TaggedColor,
+    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, ColorSpaceTag, HueDirection, TaggedColor,
 };
 
 #[derive(Clone, Copy, Debug)]
 pub struct CssColor {
-    pub cs: ColorspaceTag,
+    pub cs: ColorSpaceTag,
     /// A bitmask of missing components.
     pub missing: Bitset,
     pub components: [f32; 4],
@@ -26,7 +26,7 @@ pub struct Interpolator {
     alpha1: f32,
     delta_premul: [f32; 3],
     alpha2: f32,
-    cs: ColorspaceTag,
+    cs: ColorSpaceTag,
     missing: Bitset,
 }
 
@@ -58,7 +58,7 @@ impl CssColor {
     }
 
     #[must_use]
-    pub fn convert(self, cs: ColorspaceTag) -> Self {
+    pub fn convert(self, cs: ColorSpaceTag) -> Self {
         if self.cs == cs {
             // Note: §12 suggests that changing powerless to missing happens
             // even when the color is already in the interpolation color space,
@@ -105,7 +105,7 @@ impl CssColor {
 
     /// Scale the chroma by the given amount.
     ///
-    /// See [`Colorspace::scale_chroma`] for more details.
+    /// See [`ColorSpace::scale_chroma`] for more details.
     #[must_use]
     pub fn scale_chroma(self, scale: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
@@ -157,7 +157,7 @@ impl CssColor {
     pub fn interpolate(
         self,
         other: Self,
-        cs: ColorspaceTag,
+        cs: ColorSpaceTag,
         direction: HueDirection,
     ) -> Interpolator {
         let mut a = self.convert(cs);
@@ -199,7 +199,7 @@ impl CssColor {
     /// Blending semi-transparent colors will reduce contrast, and that
     /// should also be taken into account.
     pub fn relative_luminance(self) -> f32 {
-        let rgb = self.convert(ColorspaceTag::LinearSrgb).components;
+        let rgb = self.convert(ColorSpaceTag::LinearSrgb).components;
         0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
     }
 }

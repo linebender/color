@@ -41,7 +41,7 @@ pub use colorspace::{
 pub use css::{CssColor, Interpolator};
 pub use gradient::{gradient, GradientIter};
 pub use parse::{parse_color, Error};
-pub use tagged::{ColorspaceTag, TaggedColor};
+pub use tagged::{ColorSpaceTag, TaggedColor};
 
 const fn u8_to_f32(x: u32) -> f32 {
     x as f32 * (1.0 / 255.0)

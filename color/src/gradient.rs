@@ -1,7 +1,7 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{ColorSpace, ColorspaceTag, CssColor, HueDirection, Interpolator, Oklab, PremulColor};
+use crate::{ColorSpace, ColorSpaceTag, CssColor, HueDirection, Interpolator, Oklab, PremulColor};
 
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
 pub struct GradientIter<CS: ColorSpace> {
@@ -19,7 +19,7 @@ pub struct GradientIter<CS: ColorSpace> {
 pub fn gradient<CS: ColorSpace>(
     mut color0: CssColor,
     mut color1: CssColor,
-    interp_cs: ColorspaceTag,
+    interp_cs: ColorSpaceTag,
     direction: HueDirection,
     tolerance: f32,
 ) -> GradientIter<CS> {

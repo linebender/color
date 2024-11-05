@@ -5,7 +5,7 @@
 
 use core::fmt::{Formatter, Result};
 
-use crate::{ColorspaceTag, CssColor};
+use crate::{ColorSpaceTag, CssColor};
 
 fn write_scaled_component(
     color: &CssColor,
@@ -57,7 +57,7 @@ fn write_color_function(color: &CssColor, name: &str, f: &mut Formatter<'_>) -> 
 impl core::fmt::Display for CssColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.cs {
-            ColorspaceTag::Srgb => {
+            ColorSpaceTag::Srgb => {
                 // A case can be made this isn't the best serialization in general,
                 // because CSS parsing of out-of-gamut components will clamp.
                 let opt_a = if self.components[3] < 1.0 { "a" } else { "" };
@@ -74,13 +74,13 @@ impl core::fmt::Display for CssColor {
                 }
                 write!(f, ")")
             }
-            ColorspaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
-            ColorspaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
-            ColorspaceTag::XyzD65 => write_color_function(self, "xyz", f),
-            ColorspaceTag::Lab => write_modern_function(self, "lab", f),
-            ColorspaceTag::Lch => write_modern_function(self, "lch", f),
-            ColorspaceTag::Oklab => write_modern_function(self, "oklab", f),
-            ColorspaceTag::Oklch => write_modern_function(self, "oklch", f),
+            ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
+            ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
+            ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
+            ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
+            ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
+            ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
+            ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
             _ => todo!(),
         }
     }

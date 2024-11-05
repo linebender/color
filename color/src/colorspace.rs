@@ -3,7 +3,7 @@
 
 use core::f32;
 
-use crate::{matmul, tagged::ColorspaceTag};
+use crate::{matmul, tagged::ColorSpaceTag};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -36,7 +36,7 @@ pub trait ColorSpace: Clone + Copy + 'static {
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::Rectangular;
 
     /// The tag corresponding to this color space, if a matching tag exists.
-    const TAG: Option<ColorspaceTag> = None;
+    const TAG: Option<ColorSpaceTag> = None;
 
     /// Convert an opaque color to linear sRGB.
     ///
@@ -101,7 +101,7 @@ pub struct LinearSrgb;
 impl ColorSpace for LinearSrgb {
     const IS_LINEAR: bool = true;
 
-    const TAG: Option<ColorspaceTag> = Some(ColorspaceTag::LinearSrgb);
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::LinearSrgb);
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         src
@@ -145,7 +145,7 @@ fn lin_to_srgb(x: f32) -> f32 {
 }
 
 impl ColorSpace for Srgb {
-    const TAG: Option<ColorspaceTag> = Some(ColorspaceTag::Srgb);
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Srgb);
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         src.map(srgb_to_lin)
@@ -160,7 +160,7 @@ impl ColorSpace for Srgb {
 pub struct DisplayP3;
 
 impl ColorSpace for DisplayP3 {
-    const TAG: Option<ColorspaceTag> = Some(ColorspaceTag::DisplayP3);
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::DisplayP3);
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         const LINEAR_DISPLAYP3_TO_SRGB: [[f32; 3]; 3] = [
@@ -187,7 +187,7 @@ pub struct XyzD65;
 impl ColorSpace for XyzD65 {
     const IS_LINEAR: bool = true;
 
-    const TAG: Option<ColorspaceTag> = Some(ColorspaceTag::XyzD65);
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::XyzD65);
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         const XYZ_TO_LINEAR_SRGB: [[f32; 3]; 3] = [
@@ -239,7 +239,7 @@ const OKLAB_LMS_TO_LAB: [[f32; 3]; 3] = [
 ];
 
 impl ColorSpace for Oklab {
-    const TAG: Option<ColorspaceTag> = Some(ColorspaceTag::Oklab);
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Oklab);
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         let lms = matmul(&OKLAB_LAB_TO_LMS, src).map(|x| x * x * x);
@@ -260,7 +260,7 @@ impl ColorSpace for Oklab {
 pub struct Oklch;
 
 impl ColorSpace for Oklch {
-    const TAG: Option<ColorspaceTag> = Some(ColorspaceTag::Oklch);
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Oklch);
 
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueThird;
 
