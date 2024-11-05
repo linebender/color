@@ -34,7 +34,7 @@ pub enum ColorspaceTag {
 }
 
 /// A color with a runtime colorspace tag. This type will likely get merged with
-/// [`CssColor`].
+/// [`CssColor`][crate::css::CssColor].
 #[derive(Clone, Copy, Debug)]
 pub struct TaggedColor {
     pub cs: ColorspaceTag,
