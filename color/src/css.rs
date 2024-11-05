@@ -127,6 +127,20 @@ impl CssColor {
         }
     }
 
+    /// Clip the color's components to the range allowed by the colorspace.
+    ///
+    /// See [`Colorspace::clip`] for more details.
+    #[must_use]
+    pub fn clip(self) -> Self {
+        let (opaque, alpha) = split_alpha(self.components);
+        let components = self.cs.clip(opaque);
+        Self {
+            cs: self.cs,
+            missing: self.missing,
+            components: add_alpha(components, alpha),
+        }
+    }
+
     fn premultiply_split(self) -> ([f32; 3], f32) {
         // Reference: §12.3 of Color 4 spec
         let (opaque, alpha) = split_alpha(self.components);

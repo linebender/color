@@ -178,6 +178,21 @@ impl ColorSpaceTag {
             }
         }
     }
+
+    /// Clip the color's components to the range allowed by the colorspace.
+    ///
+    /// See [`Colorspace::clip`] for more details.
+    pub fn clip(self, src: [f32; 3]) -> [f32; 3] {
+        match self {
+            Self::Srgb => Srgb::clip(src),
+            Self::LinearSrgb => LinearSrgb::clip(src),
+            Self::Oklab => Oklab::clip(src),
+            Self::Oklch => Oklch::clip(src),
+            Self::DisplayP3 => DisplayP3::clip(src),
+            Self::XyzD65 => XyzD65::clip(src),
+            _ => todo!(),
+        }
+    }
 }
 
 impl TaggedColor {
