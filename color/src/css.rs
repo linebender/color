@@ -41,6 +41,7 @@ impl From<TaggedColor> for CssColor {
 }
 
 impl CssColor {
+    #[must_use]
     pub fn to_tagged_color(self) -> TaggedColor {
         TaggedColor {
             cs: self.cs,
@@ -48,6 +49,7 @@ impl CssColor {
         }
     }
 
+    #[must_use]
     pub fn to_alpha_color<CS: ColorSpace>(self) -> AlphaColor<CS> {
         self.to_tagged_color().to_alpha_color()
     }
@@ -58,6 +60,7 @@ impl CssColor {
     }
 
     #[must_use]
+    /// Convert to a different color space.
     pub fn convert(self, cs: ColorSpaceTag) -> Self {
         if self.cs == cs {
             // Note: §12 suggests that changing powerless to missing happens

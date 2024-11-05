@@ -1,7 +1,7 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use core::f32;
+use core::{any::TypeId, f32};
 
 use crate::{matmul, tagged::ColorSpaceTag};
 
@@ -57,6 +57,16 @@ pub trait ColorSpace: Clone + Copy + 'static {
         let rgb = Self::to_linear_srgb(src);
         let scaled = LinearSrgb::scale_chroma(rgb, scale);
         Self::from_linear_srgb(scaled)
+    }
+
+    /// Convert to a different color space.
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
     }
 }
 
@@ -256,6 +266,24 @@ impl ColorSpace for Oklab {
     }
 }
 
+/// Rectangular to cylindrical conversion.
+fn lab_to_lch([l, a, b]: [f32; 3]) -> [f32; 3] {
+    let mut h = b.atan2(a) * (180. / f32::consts::PI);
+    if h < 0.0 {
+        h += 360.0;
+    }
+    let c = b.hypot(a);
+    [l, c, h]
+}
+
+/// Cylindrical to rectangular conversion.
+fn lch_to_lab([l, c, h]: [f32; 3]) -> [f32; 3] {
+    let (sin, cos) = (h * (f32::consts::PI / 180.)).sin_cos();
+    let a = c * cos;
+    let b = c * sin;
+    [l, a, b]
+}
+
 #[derive(Clone, Copy, Debug)]
 pub struct Oklch;
 
@@ -265,22 +293,11 @@ impl ColorSpace for Oklch {
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueThird;
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
-        let lab = Oklab::from_linear_srgb(src);
-        let l = lab[0];
-        let mut h = lab[2].atan2(lab[1]) * (180. / f32::consts::PI);
-        if h < 0.0 {
-            h += 360.0;
-        }
-        let c = lab[2].hypot(lab[1]);
-        [l, c, h]
+        lab_to_lch(Oklab::from_linear_srgb(src))
     }
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
-        let l = src[0];
-        let (sin, cos) = (src[2] * (f32::consts::PI / 180.)).sin_cos();
-        let a = src[1] * cos;
-        let b = src[1] * sin;
-        Oklab::to_linear_srgb([l, a, b])
+        Oklab::to_linear_srgb(lch_to_lab(src))
     }
 
     fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {

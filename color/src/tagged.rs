@@ -145,6 +145,15 @@ impl ColorSpaceTag {
         }
     }
 
+    pub fn convert(self, target: Self, src: [f32; 3]) -> [f32; 3] {
+        match (self, target) {
+            _ if self == target => src,
+            (Self::Oklab, Self::Oklch) | (Self::Lab, Self::Lch) => Oklab::convert::<Oklch>(src),
+            (Self::Oklch, Self::Oklab) | (Self::Lch, Self::Lab) => Oklch::convert::<Oklab>(src),
+            _ => target.from_linear_srgb(self.to_linear_srgb(src)),
+        }
+    }
+
     /// Scale the chroma by the given amount.
     ///
     /// See [`ColorSpace::scale_chroma`] for more details.
@@ -163,46 +172,29 @@ impl ColorSpaceTag {
 }
 
 impl TaggedColor {
-    pub fn from_linear_srgb(rgba: [f32; 4], cs: ColorSpaceTag) -> Self {
-        let (rgb, alpha) = split_alpha(rgba);
-        let opaque = cs.from_linear_srgb(rgb);
-        let components = add_alpha(opaque, alpha);
-        Self { cs, components }
-    }
-
+    #[must_use]
     pub fn from_alpha_color<CS: ColorSpace>(color: AlphaColor<CS>) -> Self {
         if let Some(cs) = CS::TAG {
-            Self {
-                cs,
-                components: color.components,
-            }
+            let components = color.components;
+            Self { cs, components }
         } else {
-            let components = color.convert::<LinearSrgb>().components;
-            Self {
-                cs: ColorSpaceTag::LinearSrgb,
-                components,
-            }
+            Self::from_alpha_color(color.convert::<LinearSrgb>())
         }
     }
 
+    #[must_use]
     pub fn to_alpha_color<CS: ColorSpace>(&self) -> AlphaColor<CS> {
-        if CS::TAG == Some(self.cs) {
-            AlphaColor::new(self.components)
+        if let Some(cs) = CS::TAG {
+            AlphaColor::new(self.convert(cs).components)
         } else {
-            let (opaque, alpha) = split_alpha(self.components);
-            let rgb = self.cs.to_linear_srgb(opaque);
-            let components = add_alpha(CS::from_linear_srgb(rgb), alpha);
-            AlphaColor::new(components)
+            self.to_alpha_color::<LinearSrgb>().convert()
         }
     }
 
     #[must_use]
     pub fn convert(self, cs: ColorSpaceTag) -> Self {
-        if self.cs == cs {
-            self
-        } else {
-            let linear = self.to_alpha_color::<LinearSrgb>();
-            Self::from_linear_srgb(linear.components, cs)
-        }
+        let (opaque, alpha) = split_alpha(self.components);
+        let components = add_alpha(self.cs.convert(cs, opaque), alpha);
+        Self { components, cs }
     }
 }

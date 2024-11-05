@@ -119,13 +119,8 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
         Self { components, cs }
     }
 
-    pub fn convert<U: ColorSpace>(self) -> OpaqueColor<U> {
-        if TypeId::of::<CS>() == TypeId::of::<U>() {
-            OpaqueColor::new(self.components)
-        } else {
-            let lin_rgb = CS::to_linear_srgb(self.components);
-            OpaqueColor::new(U::from_linear_srgb(lin_rgb))
-        }
+    pub fn convert<TargetCS: ColorSpace>(self) -> OpaqueColor<TargetCS> {
+        OpaqueColor::new(CS::convert::<TargetCS>(self.components))
     }
 
     /// Add an alpha channel.
@@ -214,14 +209,10 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     }
 
     #[must_use]
-    pub fn convert<U: ColorSpace>(self) -> AlphaColor<U> {
-        if TypeId::of::<CS>() == TypeId::of::<U>() {
-            AlphaColor::new(self.components)
-        } else {
-            let (opaque, alpha) = split_alpha(self.components);
-            let lin_rgb = CS::to_linear_srgb(opaque);
-            AlphaColor::new(add_alpha(U::from_linear_srgb(lin_rgb), alpha))
-        }
+    pub fn convert<TargetCs: ColorSpace>(self) -> AlphaColor<TargetCs> {
+        let (opaque, alpha) = split_alpha(self.components);
+        let components = CS::convert::<TargetCs>(opaque);
+        AlphaColor::new(add_alpha(components, alpha))
     }
 
     #[must_use]
@@ -272,8 +263,8 @@ impl<CS: ColorSpace> PremulColor<CS> {
             PremulColor::new(self.components)
         } else if TargetCS::IS_LINEAR && CS::IS_LINEAR {
             let (multiplied, alpha) = split_alpha(self.components);
-            let lin_rgb = CS::to_linear_srgb(multiplied);
-            PremulColor::new(add_alpha(TargetCS::from_linear_srgb(lin_rgb), alpha))
+            let components = CS::convert::<TargetCS>(multiplied);
+            PremulColor::new(add_alpha(components, alpha))
         } else {
             self.un_premultiply().convert().premultiply()
         }
