@@ -6,7 +6,7 @@
 use core::any::TypeId;
 use core::marker::PhantomData;
 
-use crate::{ColorSpace, ColorSpaceLayout};
+use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -179,9 +179,40 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     ///
     /// This can be useful for choosing contrasting colors, and follows the
     /// WCAG 2.1 spec.
+    #[must_use]
     pub fn relative_luminance(self) -> f32 {
-        let rgb = CS::to_linear_srgb(self.components);
-        0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+        let [r, g, b] = CS::to_linear_srgb(self.components);
+        0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+
+    /// Map components.
+    #[must_use]
+    pub fn map(self, f: impl Fn(f32, f32, f32) -> [f32; 3]) -> Self {
+        let [x, y, z] = self.components;
+        Self::new(f(x, y, z))
+    }
+
+    /// Map components in a given color space.
+    #[must_use]
+    pub fn map_in<TargetCS: ColorSpace>(self, f: impl Fn(f32, f32, f32) -> [f32; 3]) -> Self {
+        self.convert::<TargetCS>().map(f).convert()
+    }
+
+    /// Map the lightness of the color.
+    ///
+    /// In a color space that naturally has a lightness component, map that value.
+    /// Otherwise, do the mapping in Oklab. The lightness range is normalized so
+    /// that 1.0 is white.
+    #[must_use]
+    pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
+        match CS::TAG {
+            Some(ColorSpaceTag::Oklab)
+            | Some(ColorSpaceTag::Oklch)
+            | Some(ColorSpaceTag::Lab)
+            | Some(ColorSpaceTag::Lch) => self.map(|l, c1, c2| [f(l), c1, c2]),
+            Some(ColorSpaceTag::Hsl) => self.map(|h, s, l| [h, s, 100.0 * f(l * 0.01)]),
+            _ => self.map_in::<Oklab>(|l, a, b| [f(l), a, b]),
+        }
     }
 }
 
@@ -248,6 +279,36 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     pub fn scale_chroma(self, scale: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
         Self::new(add_alpha(CS::scale_chroma(opaque, scale), alpha))
+    }
+
+    /// Map components.
+    #[must_use]
+    pub fn map(self, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+        let [x, y, z, a] = self.components;
+        Self::new(f(x, y, z, a))
+    }
+
+    /// Map components in a given color space.
+    #[must_use]
+    pub fn map_in<TargetCS: ColorSpace>(self, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+        self.convert::<TargetCS>().map(f).convert()
+    }
+
+    /// Map the lightness of the color.
+    ///
+    /// In a color space that naturally has a lightness component, map that value.
+    /// Otherwise, do the mapping in Oklab. The lightness range is normalized so
+    /// that 1.0 is white.
+    #[must_use]
+    pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
+        match CS::TAG {
+            Some(ColorSpaceTag::Oklab)
+            | Some(ColorSpaceTag::Oklch)
+            | Some(ColorSpaceTag::Lab)
+            | Some(ColorSpaceTag::Lch) => self.map(|l, c1, c2, a| [f(l), c1, c2, a]),
+            Some(ColorSpaceTag::Hsl) => self.map(|h, s, l, a| [h, s, 100.0 * f(l * 0.01), a]),
+            _ => self.map_in::<Oklab>(|l, a, b, alpha| [f(l), a, b, alpha]),
+        }
     }
 }
 

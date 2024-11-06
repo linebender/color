@@ -106,25 +106,30 @@ impl CssColor {
         }
     }
 
+    fn zero_missing_components(mut self) -> Self {
+        if self.missing.any() {
+            for (i, component) in self.components.iter_mut().enumerate() {
+                if self.missing.contains(i) {
+                    *component = 0.0;
+                }
+            }
+        }
+        self
+    }
+
     /// Scale the chroma by the given amount.
     ///
     /// See [`ColorSpace::scale_chroma`] for more details.
     #[must_use]
     pub fn scale_chroma(self, scale: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
-        let mut components = self.cs.scale_chroma(opaque, scale);
-        if self.missing.any() {
-            for (i, component) in components.iter_mut().enumerate() {
-                if self.missing.contains(i) {
-                    *component = 0.0;
-                }
-            }
-        }
+        let components = self.cs.scale_chroma(opaque, scale);
         Self {
             cs: self.cs,
             missing: self.missing,
             components: add_alpha(components, alpha),
         }
+        .zero_missing_components()
     }
 
     /// Clip the color's components to fit within the natural gamut of the color space, and clamp
@@ -217,9 +222,45 @@ impl CssColor {
     /// Note that this method only considers the opaque color, not the alpha.
     /// Blending semi-transparent colors will reduce contrast, and that
     /// should also be taken into account.
+    #[must_use]
     pub fn relative_luminance(self) -> f32 {
-        let rgb = self.convert(ColorSpaceTag::LinearSrgb).components;
-        0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+        let [r, g, b, _] = self.convert(ColorSpaceTag::LinearSrgb).components;
+        0.2126 * r + 0.7152 * g + 0.0722 * b
+    }
+
+    /// Map components.
+    #[must_use]
+    pub fn map(self, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+        let [x, y, z, a] = self.components;
+        Self {
+            cs: self.cs,
+            missing: self.missing,
+            components: f(x, y, z, a),
+        }
+        .zero_missing_components()
+    }
+
+    /// Map components in a given color space.
+    #[must_use]
+    pub fn map_in(self, cs: ColorSpaceTag, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+        self.convert(cs).map(f).convert(self.cs)
+    }
+
+    /// Map the lightness of the color.
+    ///
+    /// In a color space that naturally has a lightness component, map that value.
+    /// Otherwise, do the mapping in Oklab. The lightness range is normalized so
+    /// that 1.0 is white.
+    #[must_use]
+    pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
+        match self.cs {
+            ColorSpaceTag::Oklab
+            | ColorSpaceTag::Oklch
+            | ColorSpaceTag::Lab
+            | ColorSpaceTag::Lch => self.map(|l, c1, c2, a| [f(l), c1, c2, a]),
+            ColorSpaceTag::Hsl => self.map(|h, s, l, a| [h, s, 100.0 * f(l * 0.01), a]),
+            _ => self.map_in(ColorSpaceTag::Oklab, |l, a, b, alpha| [f(l), a, b, alpha]),
+        }
     }
 }
 
