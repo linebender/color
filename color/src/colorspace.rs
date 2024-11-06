@@ -76,10 +76,15 @@ pub trait ColorSpace: Clone + Copy + 'static {
         }
     }
 
-    /// Clip the color's components to the range allowed by the color space.
+    /// Clip the color's components to fit within the natural gamut of the color space.
     ///
-    /// The resultant color is guaranteed to be inside the bounds (and thus gamut) of the color
-    /// space, but may be perceptually quite distinct from the original color.
+    /// There are many possible ways to map colors outside of a color space's gamut to colors
+    /// inside the gamut. Some methods are perceptually better than others (for example, preserving
+    /// the mapped color's hue is usually preferred over preserving saturation). This method will
+    /// generally do the mathematically simplest thing, namely clamping the individual color
+    /// components' values to the color space's natural limits of those components, bringing
+    /// out-of-gamut colors just onto the gamut boundary. The resultant color may be perceptually
+    /// quite distinct from the original color.
     ///
     /// # Examples
     ///

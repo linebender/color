@@ -127,7 +127,7 @@ impl CssColor {
         }
     }
 
-    /// Clip the color's components to the range allowed by the color space.
+    /// Clip the color's components to fit within the natural gamut of the color space.
     ///
     /// See [`ColorSpace::clip`] for more details.
     #[must_use]
