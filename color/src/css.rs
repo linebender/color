@@ -127,13 +127,15 @@ impl CssColor {
         }
     }
 
-    /// Clip the color's components to fit within the natural gamut of the color space.
+    /// Clip the color's components to fit within the natural gamut of the color space, and clamp
+    /// the color's alpha to be in the range `[0, 1]`.
     ///
     /// See [`ColorSpace::clip`] for more details.
     #[must_use]
     pub fn clip(self) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
         let components = self.cs.clip(opaque);
+        let alpha = alpha.clamp(0., 1.);
         Self {
             cs: self.cs,
             missing: self.missing,
