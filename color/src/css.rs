@@ -127,9 +127,9 @@ impl CssColor {
         }
     }
 
-    /// Clip the color's components to the range allowed by the colorspace.
+    /// Clip the color's components to the range allowed by the color space.
     ///
-    /// See [`Colorspace::clip`] for more details.
+    /// See [`ColorSpace::clip`] for more details.
     #[must_use]
     pub fn clip(self) -> Self {
         let (opaque, alpha) = split_alpha(self.components);

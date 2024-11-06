@@ -76,15 +76,15 @@ pub trait ColorSpace: Clone + Copy + 'static {
         }
     }
 
-    /// Clip the color's components to the range allowed by the colorspace.
+    /// Clip the color's components to the range allowed by the color space.
     ///
-    /// The resultant color is guaranteed to be inside the bounds (and thus gamut) of the
-    /// colorspace, but may be perceptually quite distinct from the original color.
+    /// The resultant color is guaranteed to be inside the bounds (and thus gamut) of the color
+    /// space, but may be perceptually quite distinct from the original color.
     ///
     /// # Examples
     ///
     /// ```rust
-    /// use color::{Colorspace, Srgb, XyzD65};
+    /// use color::{ColorSpace, Srgb, XyzD65};
     ///
     /// assert_eq!(Srgb::clip([0.4, -0.2, 1.2]), [0.4, 0., 1.]);
     /// assert_eq!(XyzD65::clip([0.4, -0.2, 1.2]), [0.4, -0.2, 1.2]);
@@ -155,12 +155,8 @@ impl ColorSpace for LinearSrgb {
         matmul(&OKLAB_LMS_TO_SRGB, lms_scaled.map(|x| x * x * x))
     }
 
-    fn clip(src: [f32; 3]) -> [f32; 3] {
-        [
-            src[0].clamp(0., 1.),
-            src[1].clamp(0., 1.),
-            src[2].clamp(0., 1.),
-        ]
+    fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
+        [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
     }
 }
 
@@ -195,12 +191,8 @@ impl ColorSpace for Srgb {
         src.map(lin_to_srgb)
     }
 
-    fn clip(src: [f32; 3]) -> [f32; 3] {
-        [
-            src[0].clamp(0., 1.),
-            src[1].clamp(0., 1.),
-            src[2].clamp(0., 1.),
-        ]
+    fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
+        [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
     }
 }
 
@@ -228,12 +220,8 @@ impl ColorSpace for DisplayP3 {
         matmul(&LINEAR_SRGB_TO_DISPLAYP3, src).map(lin_to_srgb)
     }
 
-    fn clip(src: [f32; 3]) -> [f32; 3] {
-        [
-            src[0].clamp(0., 1.),
-            src[1].clamp(0., 1.),
-            src[2].clamp(0., 1.),
-        ]
+    fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
+        [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
     }
 }
 
@@ -263,8 +251,8 @@ impl ColorSpace for XyzD65 {
         matmul(&LINEAR_SRGB_TO_XYZ, src)
     }
 
-    fn clip(src: [f32; 3]) -> [f32; 3] {
-        src
+    fn clip([x, y, z]: [f32; 3]) -> [f32; 3] {
+        [x, y, z]
     }
 }
 
@@ -326,8 +314,8 @@ impl ColorSpace for Oklab {
         }
     }
 
-    fn clip(src: [f32; 3]) -> [f32; 3] {
-        [src[0].clamp(0., 1.), src[1], src[2]]
+    fn clip([l, a, b]: [f32; 3]) -> [f32; 3] {
+        [l.clamp(0., 1.), a, b]
     }
 }
 
@@ -380,7 +368,7 @@ impl ColorSpace for Oklch {
         }
     }
 
-    fn clip(src: [f32; 3]) -> [f32; 3] {
-        [src[0].clamp(0., 1.), src[1].max(0.), src[2]]
+    fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
+        [l.clamp(0., 1.), c.max(0.), h]
     }
 }

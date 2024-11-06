@@ -179,9 +179,9 @@ impl ColorSpaceTag {
         }
     }
 
-    /// Clip the color's components to the range allowed by the colorspace.
+    /// Clip the color's components to the range allowed by the color space.
     ///
-    /// See [`Colorspace::clip`] for more details.
+    /// See [`ColorSpace::clip`] for more details.
     pub fn clip(self, src: [f32; 3]) -> [f32; 3] {
         match self {
             Self::Srgb => Srgb::clip(src),
