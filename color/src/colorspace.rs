@@ -60,6 +60,13 @@ pub trait ColorSpace: Clone + Copy + 'static {
     }
 
     /// Convert to a different color space.
+    ///
+    /// The default implementation is a no-op if the color spaces
+    /// are the same, otherwise converts from the source to linear
+    /// sRGB, then from that to the target. Implementations are
+    /// encouraged to specialize further (using the [`TypeId`] of
+    /// the color spaces), effectively finding a shortest path in
+    /// the conversion graph.
     fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
         if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
             src

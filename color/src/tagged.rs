@@ -121,6 +121,9 @@ impl ColorSpaceTag {
         }
     }
 
+    /// Convert an opaque color from linear sRGB.
+    ///
+    /// This is the tagged counterpart of [`ColorSpace::to_linear_srgb`].
     pub fn from_linear_srgb(self, rgb: [f32; 3]) -> [f32; 3] {
         match self {
             Self::Srgb => Srgb::from_linear_srgb(rgb),
@@ -133,6 +136,9 @@ impl ColorSpaceTag {
         }
     }
 
+    /// Convert an opaque color to linear sRGB.
+    ///
+    /// This is the tagged counterpart of [`ColorSpace::to_linear_srgb`].
     pub fn to_linear_srgb(self, src: [f32; 3]) -> [f32; 3] {
         match self {
             Self::Srgb => Srgb::to_linear_srgb(src),
@@ -145,6 +151,9 @@ impl ColorSpaceTag {
         }
     }
 
+    /// Convert the color components into the target color space.
+    ///
+    /// This is the tagged counterpart of [`ColorSpace::convert`].
     pub fn convert(self, target: Self, src: [f32; 3]) -> [f32; 3] {
         match (self, target) {
             _ if self == target => src,
@@ -156,7 +165,7 @@ impl ColorSpaceTag {
 
     /// Scale the chroma by the given amount.
     ///
-    /// See [`ColorSpace::scale_chroma`] for more details.
+    /// This is the tagged counterpart of [`ColorSpace::scale_chroma`].
     pub fn scale_chroma(self, src: [f32; 3], scale: f32) -> [f32; 3] {
         match self {
             Self::LinearSrgb => LinearSrgb::scale_chroma(src, scale),
