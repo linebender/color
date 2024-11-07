@@ -286,7 +286,7 @@ impl ColorSpace for XyzD65 {
 ///
 /// Its components are `[L, a, b]` with
 /// - `L` - the lightness with a natural bound between 0 and 1, where 0 represents pure black and 1
-/// represents the lightness of reference white (CIE D65);
+///    represents the lightness of reference white (CIE D65);
 /// - `a` - how green/red the color is; and
 /// - `b` - how blue/yellow the color is.
 ///
@@ -377,7 +377,7 @@ fn lch_to_lab([l, c, h]: [f32; 3]) -> [f32; 3] {
 /// Its components are `[L, C, h]` with
 /// - `L` - the lightness as in [`Oklab`];
 /// - `C` - the chromatic intensity, the natural lower bound of 0 being achromatic, usually not
-/// exceeding 0.5; and
+///    exceeding 0.5; and
 /// - `h` - the hue angle in degrees.
 #[derive(Clone, Copy, Debug)]
 pub struct Oklch;
