@@ -21,15 +21,29 @@ use crate::{
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[non_exhaustive]
 pub enum ColorSpaceTag {
+    /// The [`Srgb`] color space.
     Srgb,
+    /// The [`LinearSrgb`] color space.
     LinearSrgb,
+    // TODO: link
+    /// The `Lab` color space.
     Lab,
+    // TODO: link
+    /// The `Lch` color space.
     Lch,
+    // TODO: link
+    /// The `Hsl` color space.
     Hsl,
+    // TODO: link
+    /// The `Hsl` color space.
     Hwb,
+    /// The [`Oklab`] color space.
     Oklab,
+    /// The [`Oklch`] color space.
     Oklch,
+    /// The [`DisplayP3`] color space.
     DisplayP3,
+    /// The [`XyzD65`] color space.
     XyzD65,
 }
 

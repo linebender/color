@@ -132,6 +132,8 @@ impl ColorSpaceLayout {
     }
 }
 
+/// The linear-light RGB color space. This color space is similar to [sRGB](Srgb), having the same
+/// components and color primaries, except that the transfer function is linear.
 #[derive(Clone, Copy, Debug)]
 pub struct LinearSrgb;
 
@@ -165,6 +167,12 @@ impl ColorSpace for LinearSrgb {
     }
 }
 
+/// The standard RGB color space (IEC 61966-2-1).
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black, and `[1, 1, 1]` reference white (CIE D65).
+///
+/// The natural bounds of the channels are `[0, 1]`.
 // It might be a better idea to write custom debug impls for AlphaColor and friends
 #[derive(Clone, Copy, Debug)]
 pub struct Srgb;
@@ -201,6 +209,15 @@ impl ColorSpace for Srgb {
     }
 }
 
+/// A variant of the DCI-P3 color space often used for wide-gamut displays.
+///
+/// Display-P3 is similar to [sRGB](Srgb) but has higher red and, especially, green chromaticities,
+/// thereby extending its gamut over sRGB.
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black, and `[1, 1, 1]` reference white (CIE D65).
+///
+/// The natural bounds of the channels are `[0, 1]`.
 #[derive(Clone, Copy, Debug)]
 pub struct DisplayP3;
 
@@ -230,6 +247,10 @@ impl ColorSpace for DisplayP3 {
     }
 }
 
+/// The CIE 1931 XYZ color space under CIE D65 illumination.
+///
+/// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.
+/// Reference white (CIE D65) has a luminance `Y` of 1.
 #[derive(Clone, Copy, Debug)]
 pub struct XyzD65;
 
@@ -261,6 +282,15 @@ impl ColorSpace for XyzD65 {
     }
 }
 
+/// The Oklab color space, intended to be a perceptually uniform color space.
+///
+/// Its components are `[L, a, b]` with
+/// - `L` - the lightness with a natural bound between 0 and 1, where 0 represents pure black and 1
+/// represents the lightness of reference white (CIE D65);
+/// - `a` - how green/red the color is; and
+/// - `b` - how blue/yellow the color is.
+///
+/// `a` and `b` are unbounded, but are usually between -0.5 and 0.5.
 #[derive(Clone, Copy, Debug)]
 pub struct Oklab;
 
@@ -342,6 +372,13 @@ fn lch_to_lab([l, c, h]: [f32; 3]) -> [f32; 3] {
     [l, a, b]
 }
 
+/// The cylindrical version of the [Oklab] color space.
+///
+/// Its components are `[L, C, h]` with
+/// - `L` - the lightness as in [`Oklab`];
+/// - `C` - the chromatic intensity, the natural lower bound of 0 being achromatic, usually not
+/// exceeding 0.5; and
+/// - `h` - the hue angle in degrees.
 #[derive(Clone, Copy, Debug)]
 pub struct Oklch;
 
