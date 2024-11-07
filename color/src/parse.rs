@@ -6,7 +6,7 @@
 use core::f64;
 use core::str::FromStr;
 
-use crate::{AlphaColor, Bitset, ColorSpaceTag, CssColor, Srgb, TaggedColor};
+use crate::{AlphaColor, Bitset, ColorSpaceTag, CssColor, Srgb};
 
 // TODO: proper error type, maybe include string offset
 pub type Error = &'static str;
@@ -368,7 +368,7 @@ impl<'a> Parser<'a> {
 pub fn parse_color(s: &str) -> Result<CssColor, Error> {
     if let Some(stripped) = s.strip_prefix('#') {
         let color = color_from_4bit_hex(get_4bit_hex_channels(stripped)?);
-        return Ok(TaggedColor::from_alpha_color(color).into());
+        return Ok(CssColor::from_alpha_color(color));
     }
     // TODO: the named x11 colors (steal from peniko)
     let mut parser = Parser::new(s);
@@ -379,7 +379,14 @@ pub fn parse_color(s: &str) -> Result<CssColor, Error> {
             "oklch" => parser.oklch(),
             "transparent" => Ok(color_from_components([Some(0.); 4], ColorSpaceTag::Srgb)),
             "color" => parser.color(),
-            _ => Err("unknown identifier"),
+            _ => {
+                if let Some([r, g, b, a]) = crate::x11_colors::lookup_palette(id) {
+                    let color = AlphaColor::from_rgba8(r, g, b, a);
+                    Ok(CssColor::from_alpha_color(color))
+                } else {
+                    Err("unknown color identifier")
+                }
+            }
         }
         // TODO: should we validate that the parser is at eof?
     } else {
@@ -440,5 +447,30 @@ impl FromStr for ColorSpaceTag {
             "xyz" | "xyz-d65" => Ok(Self::XyzD65),
             _ => Err("unknown colorspace name"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::CssColor;
+
+    use super::parse_color;
+
+    fn assert_close_color(c1: CssColor, c2: CssColor) {
+        const EPSILON: f32 = 1e-4;
+        assert_eq!(c1.cs, c2.cs);
+        for i in 0..4 {
+            assert!((c1.components[i] - c2.components[i]).abs() < EPSILON);
+        }
+    }
+
+    #[test]
+    fn x11_color_names() {
+        let red = parse_color("red").unwrap();
+        assert_close_color(red, parse_color("rgb(255, 0, 0)").unwrap());
+        let lgy = parse_color("lightgoldenrodyellow").unwrap();
+        assert_close_color(lgy, parse_color("rgb(250, 250, 210)").unwrap());
+        let transparent = parse_color("transparent").unwrap();
+        assert_close_color(transparent, parse_color("rgba(0, 0, 0, 0)").unwrap());
     }
 }

@@ -25,10 +25,11 @@ mod color;
 mod colorspace;
 mod css;
 mod gradient;
-// Note: this will be feature-gated, but not bothering for now
+// Note: this may become feature-gated; we'll decide this soon
 mod parse;
 mod serialize;
 mod tagged;
+mod x11_colors;
 
 #[cfg(all(not(feature = "std"), not(test)))]
 mod floatfuncs;
