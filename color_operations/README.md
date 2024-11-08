@@ -4,7 +4,7 @@
 
 **TODO: Add tagline**
 
-<!-- TODO: Fix [![Linebender Zulip, #kurbo stream](https://img.shields.io/badge/Linebender-%23kurbo-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/stream/260979-kurbo) -->
+[![Linebender Zulip, #color channel](https://img.shields.io/badge/Linebender-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
 [![dependency status](https://deps.rs/repo/github/linebender/color/status.svg)](https://deps.rs/repo/github/linebender/color)
 [![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](#license)
 [![Build status](https://github.com/linebender/color/workflows/CI/badge.svg)](https://github.com/linebender/color/actions)
@@ -36,11 +36,9 @@ cargo update -p package_name --precise 0.1.1
 
 ## Community
 
-**TODO: Fix Zulip stream**
+[![Linebender Zulip](https://img.shields.io/badge/Xi%20Zulip-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
 
-[![Xi Zulip](https://img.shields.io/badge/Xi%20Zulip-%23kurbo-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/stream/260979-kurbo)
-
-Discussion of Color development happens in the [Linebender Zulip](https://xi.zulipchat.com/), specifically the [#kurbo stream](https://xi.zulipchat.com/#narrow/stream/260979-kurbo).
+Discussion of Color development happens in the [Linebender Zulip](https://xi.zulipchat.com/), specifically the [#color channel](https://xi.zulipchat.com/#narrow/channel/466849-color).
 All public content can be read without logging in.
 
 ## License
