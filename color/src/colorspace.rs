@@ -13,10 +13,10 @@ use crate::floatfuncs::FloatFuncs;
 /// This can be implemented by clients for conversions in and out of
 /// new color spaces. It is expected to be a zero-sized type.
 ///
-/// The linear [sRGB](`Srgb`) color space is central, and other color
-/// spaces are defined as conversions in and out of that. A color space
-/// does not explicitly define a gamut, so generally conversions will
-/// succeed and round-trip, subject to numerical precision.
+/// The [linear sRGB](`LinearSrgb`) color space is central, and other
+/// color spaces are defined as conversions in and out of that. A color
+/// space does not explicitly define a gamut, so generally conversions
+/// will succeed and round-trip, subject to numerical precision.
 ///
 /// White point is not explicitly represented. For color spaces with a
 /// white point other than D65 (the native white point for sRGB), use
