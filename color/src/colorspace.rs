@@ -490,7 +490,7 @@ impl ColorSpace for Oklch {
 
 /// 🌌 The CIELAB color space
 ///
-/// The CIE L*a*b* color space was created in 1976 to be more perceptually
+/// The CIE L\*a\*b\* color space was created in 1976 to be more perceptually
 /// uniform than RGB color spaces, and is both widely used and the basis of
 /// other efforts to express colors, including [FreieFarbe].
 ///
@@ -503,9 +503,10 @@ impl ColorSpace for Oklch {
 /// `a` and `b` are unbounded, but are usually between -160 and 160.
 ///
 /// The color space has poor hue linearity and hue uniformity compared with
-/// [Oklab], though superior lightness uniformity.
+/// [Oklab], though superior lightness uniformity. Note that the lightness
+/// range differs from Oklab as well; in Oklab white has a lightness of 1.
 ///
-/// The CIE La*b* color space is defined in terms of a D50 white point. For
+/// The CIE L\*a\*b\* color space is defined in terms of a D50 white point. For
 /// conversion between color spaces with other illuminants (especially D65
 /// as in sRGB), the standard Bradform linear chromatic adaptation transform
 /// is used.
@@ -547,6 +548,7 @@ impl ColorSpace for Lab {
         let f0 = a * (1. / 500.) + f1;
         let f2 = f1 - b * (1. / 200.);
         let xyz = [f0, f1, f2].map(|value| {
+            // This is EPSILON.cbrt() but that function isn't const (yet)
             const EPSILON_CBRT: f32 = 0.206_896_56;
             if value > EPSILON_CBRT {
                 value * value * value
@@ -599,6 +601,8 @@ impl ColorSpace for Lab {
 /// - `C` - the chromatic intensity, the natural lower bound of 0 being achromatic, usually not
 ///    exceeding 160; and
 /// - `h` - the hue angle in degrees.
+///
+/// See [`Oklch`] for a similar color space but with better hue linearity.
 #[derive(Clone, Copy, Debug)]
 pub struct Lch;
 
