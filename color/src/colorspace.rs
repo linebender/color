@@ -135,7 +135,7 @@ impl ColorSpaceLayout {
     }
 }
 
-/// The linear-light RGB color space with [sRGB](`Srgb`) primaries.
+/// 🌌 The linear-light RGB color space with [sRGB](`Srgb`) primaries.
 ///
 /// This color space is identical to sRGB, having the same components and natural gamut, except
 /// that the transfer function is linear.
@@ -179,7 +179,7 @@ impl ColorSpace for LinearSrgb {
     }
 }
 
-/// The standard RGB color space.
+/// 🌌 The standard RGB color space.
 ///
 /// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
 /// pure black and `[1, 1, 1]` white. The natural bounds of the components are `[0, 1]`.
@@ -223,7 +223,7 @@ impl ColorSpace for Srgb {
     }
 }
 
-/// The Display P3 color space, often used for wide-gamut displays.
+/// 🌌 The Display P3 color space, often used for wide-gamut displays.
 ///
 /// Display P3 is similar to [sRGB](`Srgb`) but has higher red and, especially, green
 /// chromaticities, thereby extending its gamut over sRGB on those components.
@@ -267,7 +267,7 @@ impl ColorSpace for DisplayP3 {
     }
 }
 
-/// The CIE XYZ color space with a 2° observer and a reference white of D65.
+/// 🌌 The CIE XYZ color space with a 2° observer and a reference white of D65.
 ///
 /// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.
 /// Reference white has a luminance `Y` of 1.
@@ -345,7 +345,7 @@ impl ColorSpace for XyzD65 {
     }
 }
 
-/// The Oklab color space, intended to be a perceptually uniform color space.
+/// 🌌 The Oklab color space, intended to be a perceptually uniform color space.
 ///
 /// Its components are `[L, a, b]` with
 /// - `L` - the lightness with a natural bound between 0 and 1, where 0 represents pure black and 1
@@ -356,7 +356,8 @@ impl ColorSpace for XyzD65 {
 /// `a` and `b` are unbounded, but are usually between -0.5 and 0.5.
 ///
 /// This corresponds to the color space in [CSS Color Module Level 4 § 9.2 ][css-sec]. It is
-/// defined on [Björn Ottosson's blog][bjorn]. It is similar to the CIELAB color space.
+/// defined on [Björn Ottosson's blog][bjorn]. It is similar to the CIELAB color space but with
+/// improved hue constancy.
 ///
 /// Oklab has a cylindrical counterpart: [Oklch](`Oklch`).
 ///
@@ -444,7 +445,7 @@ fn lch_to_lab([l, c, h]: [f32; 3]) -> [f32; 3] {
     [l, a, b]
 }
 
-/// The cylindrical version of the [Oklab] color space.
+/// 🌌 The cylindrical version of the [Oklab] color space.
 ///
 /// Its components are `[L, C, h]` with
 /// - `L` - the lightness as in [`Oklab`];
