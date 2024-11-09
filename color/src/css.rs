@@ -254,10 +254,12 @@ impl CssColor {
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match self.cs {
-            ColorSpaceTag::Oklab
-            | ColorSpaceTag::Oklch
-            | ColorSpaceTag::Lab
-            | ColorSpaceTag::Lch => self.map(|l, c1, c2, a| [f(l), c1, c2, a]),
+            ColorSpaceTag::Lab | ColorSpaceTag::Lch => {
+                self.map(|l, c1, c2, a| [100.0 * f(l * 0.01), c1, c2, a])
+            }
+            ColorSpaceTag::Oklab | ColorSpaceTag::Oklch => {
+                self.map(|l, c1, c2, a| [f(l), c1, c2, a])
+            }
             ColorSpaceTag::Hsl => self.map(|h, s, l, a| [h, s, 100.0 * f(l * 0.01), a]),
             _ => self.map_in(ColorSpaceTag::Oklab, |l, a, b, alpha| [f(l), a, b, alpha]),
         }

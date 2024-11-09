@@ -298,38 +298,36 @@ impl<'a> Parser<'a> {
         Ok(alpha)
     }
 
-    fn oklab(&mut self) -> Result<CssColor, Error> {
+    fn lab(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<CssColor, Error> {
         if !self.raw_ch(b'(') {
             return Err("expected arguments");
         }
-        let l = self.scaled_component(1., 0.01)?.map(|x| x.clamp(0., 1.));
-        let a = self.scaled_component(1., 0.004)?;
-        let b = self.scaled_component(1., 0.004)?;
+        let l = self
+            .scaled_component(1., 0.01 * lmax)?
+            .map(|x| x.clamp(0., lmax));
+        let a = self.scaled_component(1., c)?;
+        let b = self.scaled_component(1., c)?;
         let alpha = self.optional_alpha()?;
         if !self.ch(b')') {
             return Err("expected closing parenthesis");
         }
-        Ok(color_from_components(
-            [l, a, b, alpha],
-            ColorSpaceTag::Oklab,
-        ))
+        Ok(color_from_components([l, a, b, alpha], tag))
     }
 
-    fn oklch(&mut self) -> Result<CssColor, Error> {
+    fn lch(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<CssColor, Error> {
         if !self.raw_ch(b'(') {
             return Err("expected arguments");
         }
-        let l = self.scaled_component(1., 0.01)?.map(|x| x.clamp(0., 1.));
-        let c = self.scaled_component(1., 0.004)?.map(|x| x.max(0.));
+        let l = self
+            .scaled_component(1., 0.01 * lmax)?
+            .map(|x| x.clamp(0., lmax));
+        let c = self.scaled_component(1., c)?.map(|x| x.max(0.));
         let h = self.angle()?;
         let alpha = self.optional_alpha()?;
         if !self.ch(b')') {
             return Err("expected closing parenthesis");
         }
-        Ok(color_from_components(
-            [l, c, h, alpha],
-            ColorSpaceTag::Oklch,
-        ))
+        Ok(color_from_components([l, c, h, alpha], tag))
     }
 
     fn color(&mut self) -> Result<CssColor, Error> {
@@ -375,8 +373,10 @@ pub fn parse_color(s: &str) -> Result<CssColor, Error> {
     if let Some(id) = parser.ident() {
         match id {
             "rgb" | "rgba" => parser.rgb(),
-            "oklab" => parser.oklab(),
-            "oklch" => parser.oklch(),
+            "lab" => parser.lab(100.0, 1.25, ColorSpaceTag::Lab),
+            "lch" => parser.lch(100.0, 1.25, ColorSpaceTag::Lch),
+            "oklab" => parser.lab(1.0, 0.004, ColorSpaceTag::Oklab),
+            "oklch" => parser.lch(1.0, 0.004, ColorSpaceTag::Oklch),
             "transparent" => Ok(color_from_components([Some(0.); 4], ColorSpaceTag::Srgb)),
             "color" => parser.color(),
             _ => {

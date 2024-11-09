@@ -37,7 +37,7 @@ mod floatfuncs;
 pub use bitset::Bitset;
 pub use color::{AlphaColor, HueDirection, OpaqueColor, PremulColor};
 pub use colorspace::{
-    ColorSpace, ColorSpaceLayout, DisplayP3, LinearSrgb, Oklab, Oklch, Srgb, XyzD65,
+    ColorSpace, ColorSpaceLayout, DisplayP3, Lab, Lch, LinearSrgb, Oklab, Oklch, Srgb, XyzD65,
 };
 pub use css::{CssColor, Interpolator};
 pub use gradient::{gradient, GradientIter};
