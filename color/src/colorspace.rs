@@ -3,7 +3,7 @@
 
 use core::{any::TypeId, f32};
 
-use crate::{matmul, tagged::ColorSpaceTag};
+use crate::{matmul, tag::ColorSpaceTag};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;

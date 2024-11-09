@@ -5,14 +5,15 @@
 
 use crate::{
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
-    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, ColorSpaceTag, HueDirection, TaggedColor,
+    AlphaColor, ColorSpace, ColorSpaceLayout, ColorSpaceTag, HueDirection, LinearSrgb, Missing,
 };
 
+/// A color with a color space tag decided at runtime.
 #[derive(Clone, Copy, Debug)]
-pub struct CssColor {
+pub struct DynamicColor {
     pub cs: ColorSpaceTag,
     /// A bitmask of missing components.
-    pub missing: Bitset,
+    pub missing: Missing,
     pub components: [f32; 4],
 }
 
@@ -27,36 +28,30 @@ pub struct Interpolator {
     delta_premul: [f32; 3],
     alpha2: f32,
     cs: ColorSpaceTag,
-    missing: Bitset,
+    missing: Missing,
 }
 
-impl From<TaggedColor> for CssColor {
-    fn from(value: TaggedColor) -> Self {
-        Self {
-            cs: value.cs,
-            missing: Bitset::default(),
-            components: value.components,
-        }
-    }
-}
-
-impl CssColor {
-    #[must_use]
-    pub fn to_tagged_color(self) -> TaggedColor {
-        TaggedColor {
-            cs: self.cs,
-            components: self.components,
-        }
-    }
-
+impl DynamicColor {
     #[must_use]
     pub fn to_alpha_color<CS: ColorSpace>(self) -> AlphaColor<CS> {
-        self.to_tagged_color().to_alpha_color()
+        if let Some(cs) = CS::TAG {
+            AlphaColor::new(self.convert(cs).components)
+        } else {
+            self.to_alpha_color::<LinearSrgb>().convert()
+        }
     }
 
     #[must_use]
     pub fn from_alpha_color<CS: ColorSpace>(color: AlphaColor<CS>) -> Self {
-        TaggedColor::from_alpha_color(color).into()
+        if let Some(cs) = CS::TAG {
+            Self {
+                cs,
+                missing: Missing::default(),
+                components: color.components,
+            }
+        } else {
+            Self::from_alpha_color(color.convert::<LinearSrgb>())
+        }
     }
 
     #[must_use]
@@ -68,11 +63,10 @@ impl CssColor {
             // but Chrome and color.js don't seem do to that.
             self
         } else {
-            let tagged = self.to_tagged_color();
-            let converted = tagged.convert(cs);
-            let mut components = converted.components;
+            let (opaque, alpha) = split_alpha(self.components);
+            let mut components = add_alpha(self.cs.convert(cs, opaque), alpha);
             // Reference: §12.2 of Color 4 spec
-            let missing = if self.missing.any() {
+            let missing = if !self.missing.is_empty() {
                 if self.cs.same_analogous(cs) {
                     for (i, component) in components.iter_mut().enumerate() {
                         if self.missing.contains(i) {
@@ -81,7 +75,7 @@ impl CssColor {
                     }
                     self.missing
                 } else {
-                    let mut missing = self.missing & Bitset::single(3);
+                    let mut missing = self.missing & Missing::singleton(3);
                     if self.cs.h_missing(self.missing) {
                         cs.set_h_missing(&mut missing, &mut components);
                     }
@@ -94,7 +88,7 @@ impl CssColor {
                     missing
                 }
             } else {
-                Bitset::default()
+                Missing::default()
             };
             let mut result = Self {
                 cs,
@@ -107,7 +101,7 @@ impl CssColor {
     }
 
     fn zero_missing_components(mut self) -> Self {
-        if self.missing.any() {
+        if !self.missing.is_empty() {
             for (i, component) in self.components.iter_mut().enumerate() {
                 if self.missing.contains(i) {
                     *component = 0.0;
@@ -254,12 +248,10 @@ impl CssColor {
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match self.cs {
-            ColorSpaceTag::Lab | ColorSpaceTag::Lch => {
-                self.map(|l, c1, c2, a| [100.0 * f(l * 0.01), c1, c2, a])
-            }
-            ColorSpaceTag::Oklab | ColorSpaceTag::Oklch => {
-                self.map(|l, c1, c2, a| [f(l), c1, c2, a])
-            }
+            ColorSpaceTag::Oklab
+            | ColorSpaceTag::Oklch
+            | ColorSpaceTag::Lab
+            | ColorSpaceTag::Lch => self.map(|l, c1, c2, a| [f(l), c1, c2, a]),
             ColorSpaceTag::Hsl => self.map(|h, s, l, a| [h, s, 100.0 * f(l * 0.01), a]),
             _ => self.map_in(ColorSpaceTag::Oklab, |l, a, b, alpha| [f(l), a, b, alpha]),
         }
@@ -267,7 +259,7 @@ impl CssColor {
 }
 
 impl Interpolator {
-    pub fn eval(&self, t: f32) -> CssColor {
+    pub fn eval(&self, t: f32) -> DynamicColor {
         let premul = [
             self.premul1[0] + t * self.delta_premul[0],
             self.premul1[1] + t * self.delta_premul[1],
@@ -280,7 +272,7 @@ impl Interpolator {
             self.cs.layout().scale(premul, 1.0 / alpha)
         };
         let components = add_alpha(opaque, alpha);
-        CssColor {
+        DynamicColor {
             cs: self.cs,
             missing: self.missing,
             components,

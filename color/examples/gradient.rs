@@ -11,7 +11,7 @@
 //! cargo run --example gradient 'oklab(0.5 0.2 0)' 'rgb(0, 200, 0, 0.8)' oklab
 //! ```
 
-use color::{gradient, ColorSpaceTag, CssColor, GradientIter, HueDirection, Srgb};
+use color::{gradient, ColorSpaceTag, DynamicColor, GradientIter, HueDirection, Srgb};
 
 fn main() {
     let mut args = std::env::args().skip(1);
@@ -33,7 +33,7 @@ fn main() {
     for (t, stop) in gradient {
         print!(
             ", {} {}%",
-            CssColor::from_alpha_color(stop.un_premultiply()),
+            DynamicColor::from_alpha_color(stop.un_premultiply()),
             t * 100.0
         );
     }

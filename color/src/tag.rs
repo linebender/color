@@ -1,12 +1,11 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! Colors with runtime choice of color space.
+//! The color space tag enum.
 
 use crate::{
-    color::{add_alpha, split_alpha},
-    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, DisplayP3, Lab, Lch, LinearSrgb, Oklab,
-    Oklch, Srgb, XyzD65,
+    ColorSpace, ColorSpaceLayout, DisplayP3, Lab, Lch, LinearSrgb, Missing, Oklab, Oklch, Srgb,
+    XyzD65,
 };
 
 /// The color space tag for tagged colors.
@@ -47,14 +46,6 @@ pub enum ColorSpaceTag {
     XyzD65,
 }
 
-/// A color with a runtime color space tag. This type will likely get merged with
-/// [`CssColor`][crate::css::CssColor].
-#[derive(Clone, Copy, Debug)]
-pub struct TaggedColor {
-    pub cs: ColorSpaceTag,
-    pub components: [f32; 4],
-}
-
 impl ColorSpaceTag {
     pub(crate) fn layout(self) -> ColorSpaceLayout {
         match self {
@@ -79,7 +70,7 @@ impl ColorSpaceTag {
         )
     }
 
-    pub(crate) fn l_missing(self, missing: Bitset) -> bool {
+    pub(crate) fn l_missing(self, missing: Missing) -> bool {
         use ColorSpaceTag::*;
         match self {
             Lab | Lch | Oklab | Oklch => missing.contains(0),
@@ -88,22 +79,22 @@ impl ColorSpaceTag {
         }
     }
 
-    pub(crate) fn set_l_missing(self, missing: &mut Bitset, components: &mut [f32; 4]) {
+    pub(crate) fn set_l_missing(self, missing: &mut Missing, components: &mut [f32; 4]) {
         use ColorSpaceTag::*;
         match self {
             Lab | Lch | Oklab | Oklch => {
-                missing.set(0);
+                missing.insert(0);
                 components[0] = 0.0;
             }
             Hsl => {
-                missing.set(2);
+                missing.insert(2);
                 components[2] = 0.0;
             }
             _ => (),
         }
     }
 
-    pub(crate) fn c_missing(self, missing: Bitset) -> bool {
+    pub(crate) fn c_missing(self, missing: Missing) -> bool {
         use ColorSpaceTag::*;
         match self {
             Lab | Lch | Oklab | Oklch | Hsl => missing.contains(1),
@@ -111,26 +102,26 @@ impl ColorSpaceTag {
         }
     }
 
-    pub(crate) fn set_c_missing(self, missing: &mut Bitset, components: &mut [f32; 4]) {
+    pub(crate) fn set_c_missing(self, missing: &mut Missing, components: &mut [f32; 4]) {
         use ColorSpaceTag::*;
         match self {
             Lab | Lch | Oklab | Oklch | Hsl => {
-                missing.set(1);
+                missing.insert(1);
                 components[1] = 0.0;
             }
             _ => (),
         }
     }
 
-    pub(crate) fn h_missing(self, missing: Bitset) -> bool {
+    pub(crate) fn h_missing(self, missing: Missing) -> bool {
         self.layout()
             .hue_channel()
             .is_some_and(|ix| missing.contains(ix))
     }
 
-    pub(crate) fn set_h_missing(self, missing: &mut Bitset, components: &mut [f32; 4]) {
+    pub(crate) fn set_h_missing(self, missing: &mut Missing, components: &mut [f32; 4]) {
         if let Some(ix) = self.layout().hue_channel() {
-            missing.set(ix);
+            missing.insert(ix);
             components[ix] = 0.0;
         }
     }
@@ -212,33 +203,5 @@ impl ColorSpaceTag {
             Self::XyzD65 => XyzD65::clip(src),
             _ => todo!(),
         }
-    }
-}
-
-impl TaggedColor {
-    #[must_use]
-    pub fn from_alpha_color<CS: ColorSpace>(color: AlphaColor<CS>) -> Self {
-        if let Some(cs) = CS::TAG {
-            let components = color.components;
-            Self { cs, components }
-        } else {
-            Self::from_alpha_color(color.convert::<LinearSrgb>())
-        }
-    }
-
-    #[must_use]
-    pub fn to_alpha_color<CS: ColorSpace>(&self) -> AlphaColor<CS> {
-        if let Some(cs) = CS::TAG {
-            AlphaColor::new(self.convert(cs).components)
-        } else {
-            self.to_alpha_color::<LinearSrgb>().convert()
-        }
-    }
-
-    #[must_use]
-    pub fn convert(self, cs: ColorSpaceTag) -> Self {
-        let (opaque, alpha) = split_alpha(self.components);
-        let components = add_alpha(self.cs.convert(cs, opaque), alpha);
-        Self { components, cs }
     }
 }

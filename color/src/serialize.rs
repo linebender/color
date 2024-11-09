@@ -5,10 +5,10 @@
 
 use core::fmt::{Formatter, Result};
 
-use crate::{ColorSpaceTag, CssColor};
+use crate::{ColorSpaceTag, DynamicColor};
 
 fn write_scaled_component(
-    color: &CssColor,
+    color: &DynamicColor,
     ix: usize,
     f: &mut Formatter<'_>,
     scale: f32,
@@ -24,7 +24,7 @@ fn write_scaled_component(
     }
 }
 
-fn write_modern_function(color: &CssColor, name: &str, f: &mut Formatter<'_>) -> Result {
+fn write_modern_function(color: &DynamicColor, name: &str, f: &mut Formatter<'_>) -> Result {
     write!(f, "{name}(")?;
     write_scaled_component(color, 0, f, 1.0)?;
     write!(f, " ")?;
@@ -39,7 +39,7 @@ fn write_modern_function(color: &CssColor, name: &str, f: &mut Formatter<'_>) ->
     write!(f, ")")
 }
 
-fn write_color_function(color: &CssColor, name: &str, f: &mut Formatter<'_>) -> Result {
+fn write_color_function(color: &DynamicColor, name: &str, f: &mut Formatter<'_>) -> Result {
     write!(f, "color({name} ")?;
     write_scaled_component(color, 0, f, 1.0)?;
     write!(f, " ")?;
@@ -54,7 +54,7 @@ fn write_color_function(color: &CssColor, name: &str, f: &mut Formatter<'_>) -> 
     write!(f, ")")
 }
 
-impl core::fmt::Display for CssColor {
+impl core::fmt::Display for DynamicColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.cs {
             ColorSpaceTag::Srgb => {

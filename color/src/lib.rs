@@ -20,29 +20,29 @@
 //! TODO: need to write a treatise on the nature of color and how to model
 //! a reasonable fragment of it in the Rust type system.
 
-mod bitset;
 mod color;
 mod colorspace;
-mod css;
 mod gradient;
+mod missing;
 // Note: this may become feature-gated; we'll decide this soon
+mod dynamic;
 mod parse;
 mod serialize;
-mod tagged;
+mod tag;
 mod x11_colors;
 
 #[cfg(all(not(feature = "std"), not(test)))]
 mod floatfuncs;
 
-pub use bitset::Bitset;
 pub use color::{AlphaColor, HueDirection, OpaqueColor, PremulColor};
 pub use colorspace::{
     ColorSpace, ColorSpaceLayout, DisplayP3, Lab, Lch, LinearSrgb, Oklab, Oklch, Srgb, XyzD65,
 };
-pub use css::{CssColor, Interpolator};
+pub use dynamic::{DynamicColor, Interpolator};
 pub use gradient::{gradient, GradientIter};
+pub use missing::Missing;
 pub use parse::{parse_color, Error};
-pub use tagged::{ColorSpaceTag, TaggedColor};
+pub use tag::ColorSpaceTag;
 
 const fn u8_to_f32(x: u32) -> f32 {
     x as f32 * (1.0 / 255.0)

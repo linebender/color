@@ -1,7 +1,9 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{ColorSpace, ColorSpaceTag, CssColor, HueDirection, Interpolator, Oklab, PremulColor};
+use crate::{
+    ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator, Oklab, PremulColor,
+};
 
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
 pub struct GradientIter<CS: ColorSpace> {
@@ -17,18 +19,18 @@ pub struct GradientIter<CS: ColorSpace> {
 }
 
 pub fn gradient<CS: ColorSpace>(
-    mut color0: CssColor,
-    mut color1: CssColor,
+    mut color0: DynamicColor,
+    mut color1: DynamicColor,
     interp_cs: ColorSpaceTag,
     direction: HueDirection,
     tolerance: f32,
 ) -> GradientIter<CS> {
     let interpolator = color0.interpolate(color1, interp_cs, direction);
-    if color0.missing.any() {
+    if !color0.missing.is_empty() {
         color0 = interpolator.eval(0.0);
     }
     let target0 = color0.to_alpha_color().premultiply();
-    if color1.missing.any() {
+    if !color1.missing.is_empty() {
         color1 = interpolator.eval(1.0);
     }
     let target1 = color1.to_alpha_color().premultiply();

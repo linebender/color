@@ -6,7 +6,7 @@
 use core::f64;
 use core::str::FromStr;
 
-use crate::{AlphaColor, Bitset, ColorSpaceTag, CssColor, Srgb};
+use crate::{AlphaColor, ColorSpaceTag, DynamicColor, Missing, Srgb};
 
 // TODO: proper error type, maybe include string offset
 pub type Error = &'static str;
@@ -30,14 +30,14 @@ enum Value<'a> {
     clippy::cast_possible_truncation,
     reason = "deliberate choice of f32 for colors"
 )]
-fn color_from_components(components: [Option<f64>; 4], cs: ColorSpaceTag) -> CssColor {
-    let mut missing = Bitset::default();
+fn color_from_components(components: [Option<f64>; 4], cs: ColorSpaceTag) -> DynamicColor {
+    let mut missing = Missing::default();
     for (i, component) in components.iter().enumerate() {
         if component.is_none() {
-            missing.set(i);
+            missing.insert(i);
         }
     }
-    CssColor {
+    DynamicColor {
         cs,
         missing,
         components: components.map(|x| x.unwrap_or(0.0) as f32),
@@ -259,7 +259,7 @@ impl<'a> Parser<'a> {
         self.ch(if comma { b',' } else { b'/' })
     }
 
-    fn rgb(&mut self) -> Result<CssColor, Error> {
+    fn rgb(&mut self) -> Result<DynamicColor, Error> {
         if !self.raw_ch(b'(') {
             return Err("expected arguments");
         }
@@ -298,7 +298,7 @@ impl<'a> Parser<'a> {
         Ok(alpha)
     }
 
-    fn lab(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<CssColor, Error> {
+    fn lab(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<DynamicColor, Error> {
         if !self.raw_ch(b'(') {
             return Err("expected arguments");
         }
@@ -314,7 +314,7 @@ impl<'a> Parser<'a> {
         Ok(color_from_components([l, a, b, alpha], tag))
     }
 
-    fn lch(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<CssColor, Error> {
+    fn lch(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<DynamicColor, Error> {
         if !self.raw_ch(b'(') {
             return Err("expected arguments");
         }
@@ -330,7 +330,7 @@ impl<'a> Parser<'a> {
         Ok(color_from_components([l, c, h, alpha], tag))
     }
 
-    fn color(&mut self) -> Result<CssColor, Error> {
+    fn color(&mut self) -> Result<DynamicColor, Error> {
         if !self.raw_ch(b'(') {
             return Err("expected arguments");
         }
@@ -363,10 +363,10 @@ impl<'a> Parser<'a> {
 ///
 /// Tries to return a suitable error for any invalid string, but may be
 /// a little lax on some details.
-pub fn parse_color(s: &str) -> Result<CssColor, Error> {
+pub fn parse_color(s: &str) -> Result<DynamicColor, Error> {
     if let Some(stripped) = s.strip_prefix('#') {
         let color = color_from_4bit_hex(get_4bit_hex_channels(stripped)?);
-        return Ok(CssColor::from_alpha_color(color));
+        return Ok(DynamicColor::from_alpha_color(color));
     }
     // TODO: the named x11 colors (steal from peniko)
     let mut parser = Parser::new(s);
@@ -382,7 +382,7 @@ pub fn parse_color(s: &str) -> Result<CssColor, Error> {
             _ => {
                 if let Some([r, g, b, a]) = crate::x11_colors::lookup_palette(id) {
                     let color = AlphaColor::from_rgba8(r, g, b, a);
-                    Ok(CssColor::from_alpha_color(color))
+                    Ok(DynamicColor::from_alpha_color(color))
                 } else {
                     Err("unknown color identifier")
                 }
@@ -452,11 +452,11 @@ impl FromStr for ColorSpaceTag {
 
 #[cfg(test)]
 mod tests {
-    use crate::CssColor;
+    use crate::DynamicColor;
 
     use super::parse_color;
 
-    fn assert_close_color(c1: CssColor, c2: CssColor) {
+    fn assert_close_color(c1: DynamicColor, c2: DynamicColor) {
         const EPSILON: f32 = 1e-4;
         assert_eq!(c1.cs, c2.cs);
         for i in 0..4 {
