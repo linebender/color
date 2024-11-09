@@ -488,7 +488,7 @@ impl ColorSpace for Oklch {
     }
 }
 
-/// The CIELAB color space
+/// 🌌 The CIELAB color space
 ///
 /// The CIE L*a*b* color space was created in 1976 to be more perceptually
 /// uniform than RGB color spaces, and is both widely used and the basis of
@@ -592,7 +592,7 @@ impl ColorSpace for Lab {
     }
 }
 
-/// The cylindrical version of the [Lab] color space.
+/// 🌌 The cylindrical version of the [Lab] color space.
 ///
 /// Its components are `[L, C, h]` with
 /// - `L` - the lightness as in [`Lab`];
