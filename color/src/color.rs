@@ -206,10 +206,12 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match CS::TAG {
-            Some(ColorSpaceTag::Oklab)
-            | Some(ColorSpaceTag::Oklch)
-            | Some(ColorSpaceTag::Lab)
-            | Some(ColorSpaceTag::Lch) => self.map(|l, c1, c2| [f(l), c1, c2]),
+            Some(ColorSpaceTag::Lab) | Some(ColorSpaceTag::Lch) => {
+                self.map(|l, c1, c2| [100.0 * f(l * 0.01), c1, c2])
+            }
+            Some(ColorSpaceTag::Oklab) | Some(ColorSpaceTag::Oklch) => {
+                self.map(|l, c1, c2| [f(l), c1, c2])
+            }
             Some(ColorSpaceTag::Hsl) => self.map(|h, s, l| [h, s, 100.0 * f(l * 0.01)]),
             _ => self.map_in::<Oklab>(|l, a, b| [f(l), a, b]),
         }
@@ -302,10 +304,12 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match CS::TAG {
-            Some(ColorSpaceTag::Oklab)
-            | Some(ColorSpaceTag::Oklch)
-            | Some(ColorSpaceTag::Lab)
-            | Some(ColorSpaceTag::Lch) => self.map(|l, c1, c2, a| [f(l), c1, c2, a]),
+            Some(ColorSpaceTag::Lab) | Some(ColorSpaceTag::Lch) => {
+                self.map(|l, c1, c2, a| [100.0 * f(l * 0.01), c1, c2, a])
+            }
+            Some(ColorSpaceTag::Oklab) | Some(ColorSpaceTag::Oklch) => {
+                self.map(|l, c1, c2, a| [f(l), c1, c2, a])
+            }
             Some(ColorSpaceTag::Hsl) => self.map(|h, s, l, a| [h, s, 100.0 * f(l * 0.01), a]),
             _ => self.map_in::<Oklab>(|l, a, b, alpha| [f(l), a, b, alpha]),
         }

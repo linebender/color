@@ -407,8 +407,8 @@ impl ColorSpace for Oklab {
         matmul(&OKLAB_LMS_TO_LAB, lms)
     }
 
-    fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
-        [src[0], src[1] * scale, src[2] * scale]
+    fn scale_chroma([l, a, b]: [f32; 3], scale: f32) -> [f32; 3] {
+        [l, a * scale, b * scale]
     }
 
     fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
@@ -468,8 +468,8 @@ impl ColorSpace for Oklch {
         Oklab::to_linear_srgb(lch_to_lab(src))
     }
 
-    fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
-        [src[0], src[1] * scale, src[2]]
+    fn scale_chroma([l, c, h]: [f32; 3], scale: f32) -> [f32; 3] {
+        [l, c * scale, h]
     }
 
     fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
@@ -485,5 +485,152 @@ impl ColorSpace for Oklch {
 
     fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
         [l.clamp(0., 1.), c.max(0.), h]
+    }
+}
+
+/// The CIELAB color space
+///
+/// The CIE L*a*b* color space was created in 1976 to be more perceptually
+/// uniform than RGB color spaces, and is both widely used and the basis of
+/// other efforts to express colors, including [FreieFarbe].
+///
+/// Its components are `[L, a, b]` with
+/// - `L` - the lightness with a natural bound between 0 and 100, where 0 represents pure black and 100
+///    represents the lightness of white;
+/// - `a` - how green/red the color is; and
+/// - `b` - how blue/yellow the color is.
+///
+/// `a` and `b` are unbounded, but are usually between -160 and 160.
+///
+/// The color space has poor hue linearity and hue uniformity compared with
+/// [Oklab], though superior lightness uniformity.
+///
+/// The CIE La*b* color space is defined in terms of a D50 white point. For
+/// conversion between color spaces with other illuminants (especially D65
+/// as in sRGB), the standard Bradform linear chromatic adaptation transform
+/// is used.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 9.1 ][css-sec].
+///
+/// Lab has a cylindrical counterpart: [Lch].
+///
+/// [FreieFarbe]: https://freiefarbe.de/en/
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#cie-lab
+#[derive(Clone, Copy, Debug)]
+pub struct Lab;
+
+// Matrices computed from CSS Color 4 spec, then used `cargo clippy --fix`
+// to reduce precision to f32 and add underscores.
+
+// This is D65_to_D50 * lin_sRGB_to_XYZ, then rows scaled by 1 / D50[i].
+const LAB_SRGB_TO_XYZ: [[f32; 3]; 3] = [
+    [0.452_211_65, 0.399_412_24, 0.148_376_09],
+    [0.222_493_17, 0.716_887, 0.060_619_81],
+    [0.016_875_342, 0.117_659_41, 0.865_465_2],
+];
+
+// This is XYZ_to_lin_sRGB * D50_to_D65, then columns scaled by D50[i].
+const LAB_XYZ_TO_SRGB: [[f32; 3]; 3] = [
+    [3.022_233_7, -1.617_386, -0.404_847_65],
+    [-0.943_848_25, 1.916_254_4, 0.027_593_868],
+    [0.069_386_27, -0.228_976_76, 1.159_590_5],
+];
+
+const EPSILON: f32 = 216. / 24389.;
+const KAPPA: f32 = 24389. / 27.;
+
+impl ColorSpace for Lab {
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Lab);
+
+    fn to_linear_srgb([l, a, b]: [f32; 3]) -> [f32; 3] {
+        let f1 = l * (1. / 116.) + (16. / 116.);
+        let f0 = a * (1. / 500.) + f1;
+        let f2 = f1 - b * (1. / 200.);
+        let xyz = [f0, f1, f2].map(|value| {
+            const EPSILON_CBRT: f32 = 0.206_896_56;
+            if value > EPSILON_CBRT {
+                value * value * value
+            } else {
+                (116. / KAPPA) * value - (16. / KAPPA)
+            }
+        });
+        matmul(&LAB_XYZ_TO_SRGB, xyz)
+    }
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        let xyz = matmul(&LAB_SRGB_TO_XYZ, src);
+        let f = xyz.map(|value| {
+            if value > EPSILON {
+                value.cbrt()
+            } else {
+                (KAPPA / 116.) * value + (16. / 116.)
+            }
+        });
+        let l = 116. * f[1] - 16.;
+        let a = 500. * (f[0] - f[1]);
+        let b = 200. * (f[1] - f[2]);
+        [l, a, b]
+    }
+
+    fn scale_chroma([l, a, b]: [f32; 3], scale: f32) -> [f32; 3] {
+        [l, a * scale, b * scale]
+    }
+
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Lch>() {
+            lab_to_lch(src)
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
+    }
+
+    fn clip([l, a, b]: [f32; 3]) -> [f32; 3] {
+        [l.clamp(0., 100.), a, b]
+    }
+}
+
+/// The cylindrical version of the [Lab] color space.
+///
+/// Its components are `[L, C, h]` with
+/// - `L` - the lightness as in [`Lab`];
+/// - `C` - the chromatic intensity, the natural lower bound of 0 being achromatic, usually not
+///    exceeding 160; and
+/// - `h` - the hue angle in degrees.
+#[derive(Clone, Copy, Debug)]
+pub struct Lch;
+
+impl ColorSpace for Lch {
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Lch);
+
+    const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueThird;
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        lab_to_lch(Lab::from_linear_srgb(src))
+    }
+
+    fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        Lab::to_linear_srgb(lch_to_lab(src))
+    }
+
+    fn scale_chroma([l, c, h]: [f32; 3], scale: f32) -> [f32; 3] {
+        [l, c * scale, h]
+    }
+
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Lab>() {
+            lch_to_lab(src)
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
+    }
+
+    fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
+        [l.clamp(0., 100.), c.max(0.), h]
     }
 }

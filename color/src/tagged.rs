@@ -5,8 +5,8 @@
 
 use crate::{
     color::{add_alpha, split_alpha},
-    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, DisplayP3, LinearSrgb, Oklab, Oklch, Srgb,
-    XyzD65,
+    AlphaColor, Bitset, ColorSpace, ColorSpaceLayout, DisplayP3, Lab, Lch, LinearSrgb, Oklab,
+    Oklch, Srgb, XyzD65,
 };
 
 /// The color space tag for tagged colors.
@@ -142,6 +142,8 @@ impl ColorSpaceTag {
         match self {
             Self::Srgb => Srgb::from_linear_srgb(rgb),
             Self::LinearSrgb => rgb,
+            Self::Lab => Lab::from_linear_srgb(rgb),
+            Self::Lch => Lch::from_linear_srgb(rgb),
             Self::Oklab => Oklab::from_linear_srgb(rgb),
             Self::Oklch => Oklch::from_linear_srgb(rgb),
             Self::DisplayP3 => DisplayP3::from_linear_srgb(rgb),
@@ -157,6 +159,8 @@ impl ColorSpaceTag {
         match self {
             Self::Srgb => Srgb::to_linear_srgb(src),
             Self::LinearSrgb => src,
+            Self::Lab => Lab::to_linear_srgb(src),
+            Self::Lch => Lch::to_linear_srgb(src),
             Self::Oklab => Oklab::to_linear_srgb(src),
             Self::Oklch => Oklch::to_linear_srgb(src),
             Self::DisplayP3 => DisplayP3::to_linear_srgb(src),
@@ -200,6 +204,8 @@ impl ColorSpaceTag {
         match self {
             Self::Srgb => Srgb::clip(src),
             Self::LinearSrgb => LinearSrgb::clip(src),
+            Self::Lab => Lab::clip(src),
+            Self::Lch => Lch::clip(src),
             Self::Oklab => Oklab::clip(src),
             Self::Oklch => Oklch::clip(src),
             Self::DisplayP3 => DisplayP3::clip(src),
