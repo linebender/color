@@ -13,14 +13,17 @@ use crate::floatfuncs::FloatFuncs;
 /// This can be implemented by clients for conversions in and out of
 /// new color spaces. It is expected to be a zero-sized type.
 ///
-/// The linear sRGB color space is central, and other color spaces are
-/// defined as conversions in and out of that. A color space does not
-/// explicitly define a gamut, so generally conversions will succeed
-/// and round-trip, subject to numerical precision.
+/// The [linear sRGB](`LinearSrgb`) color space is central, and other
+/// color spaces are defined as conversions in and out of that. A color
+/// space does not explicitly define a gamut, so generally conversions
+/// will succeed and round-trip, subject to numerical precision.
 ///
 /// White point is not explicitly represented. For color spaces with a
 /// white point other than D65 (the native white point for sRGB), use
 /// a linear Bradford chromatic adaptation, following CSS Color 4.
+///
+/// See the [XYZ-D65 color space](`XyzD65`) documentation for some
+/// background information on color spaces.
 pub trait ColorSpace: Clone + Copy + 'static {
     /// Whether the color space is linear.
     ///
@@ -132,6 +135,17 @@ impl ColorSpaceLayout {
     }
 }
 
+/// The linear-light RGB color space with [sRGB](`Srgb`) primaries.
+///
+/// This color space is identical to sRGB, having the same components and natural gamut, except
+/// that the transfer function is linear.
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black and `[1, 1, 1]` white. The natural bounds of the channels are `[0, 1]`.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 10.3][css-sec].
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-sRGB-linear
 #[derive(Clone, Copy, Debug)]
 pub struct LinearSrgb;
 
@@ -165,7 +179,15 @@ impl ColorSpace for LinearSrgb {
     }
 }
 
-// It might be a better idea to write custom debug impls for AlphaColor and friends
+/// The standard RGB color space.
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black and `[1, 1, 1]` white. The natural bounds of the components are `[0, 1]`.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 10.2][css-sec]. It is
+/// defined in IEC 61966-2-1.
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-sRGB
 #[derive(Clone, Copy, Debug)]
 pub struct Srgb;
 
@@ -201,6 +223,21 @@ impl ColorSpace for Srgb {
     }
 }
 
+/// The Display-P3 color space, often used for wide-gamut displays.
+///
+/// Display-P3 is similar to [sRGB](`Srgb`) but has higher red and, especially, green
+/// chromaticities, thereby extending its gamut over sRGB on those components.
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black and `[1, 1, 1]` white. The natural bounds of the channels are `[0, 1]`.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 10.4][css-sec] and is
+/// [characterized by the ICC][icc]. Display-P3 is a variant of the DCI-P3 color space
+/// described in [SMPTE EG 432-1:2010][smpte].
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-display-p3
+/// [icc]: https://www.color.org/chardata/rgb/DisplayP3.xalter
+/// [smpte]: https://pub.smpte.org/doc/eg432-1/20101110-pub/eg0432-1-2010.pdf
 #[derive(Clone, Copy, Debug)]
 pub struct DisplayP3;
 
@@ -230,6 +267,53 @@ impl ColorSpace for DisplayP3 {
     }
 }
 
+/// The CIE XYZ color space with a 2° observer and a reference white of D65.
+///
+/// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.
+/// Reference white has a luminance `Y` of 1.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 10.8][css-sec]. It is
+/// defined in CIE 015:2018.
+///
+/// # Human color vision and color spaces
+///
+/// Human color vision uses three types of photoreceptive cell in the eye that are sensitive to
+/// light. These cells have their peak sensitivity at different wavelengths of light: roughly 570
+/// nm, 535 nm and 430 nm, usually named Long, Medium and Short (LMS) respectively. The cells'
+/// sensitivities to light taper off as the wavelength moves away from their peaks, but all three
+/// cells overlap in wavelength sensitivity.
+///
+/// Visible light with a combination of wavelengths at specific intensities (the light's *spectral
+/// density*), causes excitation of these three cell types in varying amounts. The human brain
+/// interprets this as a specific color at a certain luminosity. Importantly, humans do not
+/// directly perceive the light's wavelength: for example, monochromatic light with a wavelength of
+/// 580 nm is perceived as "yellow," and light made up of two wavelengths at roughly 550nm
+/// ("green") and 610 nm ("red") is also perceived as "yellow."
+///
+/// The CIE XYZ color space is an experimentally-obtained mapping of monochromatic light at a
+/// specific wavelength to the response of human L, M and S photoreceptive cells (with some
+/// additional mathematically desirable properties). Light of a specific spectral density maps onto
+/// a specific coordinate in the XYZ color space. Light of a different spectral density that maps
+/// onto the same XYZ coordinate is predicted by the color space to be perceived as the same
+/// color and luminosity.
+///
+/// The XYZ color space is often used in the characterization of other color spaces.
+///
+/// ## White point
+///
+/// An important concept in color spaces is the *white point*. Whereas pure black is the absence of
+/// illumination and has a natural representation in additive color spaces, white is more difficult
+/// to define. CIE D65 defines white as the perceived color of diffuse standard noon daylight
+/// perfectly reflected off a surface observed under some foveal angle; here 2°.
+///
+/// In many color spaces, their white point is the brightest illumination they can naturally
+/// represent.
+///
+/// For further reading, the [Wikipedia article on the CIE XYZ color space][wikipedia-cie] provides
+/// a good introduction to color theory as relevant to color spaces.
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-xyz
+/// [wikipedia-cie]: https://en.wikipedia.org/wiki/CIE_1931_color_space
 #[derive(Clone, Copy, Debug)]
 pub struct XyzD65;
 
@@ -261,6 +345,24 @@ impl ColorSpace for XyzD65 {
     }
 }
 
+/// The Oklab color space, intended to be a perceptually uniform color space.
+///
+/// Its components are `[L, a, b]` with
+/// - `L` - the lightness with a natural bound between 0 and 1, where 0 represents pure black and 1
+///    represents the lightness of white;
+/// - `a` - how green/red the color is; and
+/// - `b` - how blue/yellow the color is.
+///
+/// `a` and `b` are unbounded, but are usually between -0.5 and 0.5.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 9.2 ][css-sec]. It is
+/// defined on [Björn Ottosson's blog][bjorn]. It is similar to the CIELAB color space.
+///
+/// Oklab has a cylindrical counterpart: [Oklch](`Oklch`).
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#ok-lab
+/// [bjorn]: https://bottosson.github.io/posts/oklab/
+// todo: link to the CIELAB color space.
 #[derive(Clone, Copy, Debug)]
 pub struct Oklab;
 
@@ -342,6 +444,13 @@ fn lch_to_lab([l, c, h]: [f32; 3]) -> [f32; 3] {
     [l, a, b]
 }
 
+/// The cylindrical version of the [Oklab] color space.
+///
+/// Its components are `[L, C, h]` with
+/// - `L` - the lightness as in [`Oklab`];
+/// - `C` - the chromatic intensity, the natural lower bound of 0 being achromatic, usually not
+///    exceeding 0.5; and
+/// - `h` - the hue angle in degrees.
 #[derive(Clone, Copy, Debug)]
 pub struct Oklch;
 
