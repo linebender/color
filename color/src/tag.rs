@@ -8,7 +8,7 @@ use crate::{
     XyzD65,
 };
 
-/// The color space tag for tagged colors.
+/// The color space tag for dynamic colors.
 ///
 /// This represents a fixed set of known color spaces. The set is
 /// based on the CSS Color 4 spec, but might also extend to a small
@@ -128,7 +128,7 @@ impl ColorSpaceTag {
 
     /// Convert an opaque color from linear sRGB.
     ///
-    /// This is the tagged counterpart of [`ColorSpace::to_linear_srgb`].
+    /// This is the tagged counterpart of [`ColorSpace::from_linear_srgb`].
     pub fn from_linear_srgb(self, rgb: [f32; 3]) -> [f32; 3] {
         match self {
             Self::Srgb => Srgb::from_linear_srgb(rgb),
