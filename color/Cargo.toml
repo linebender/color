@@ -23,6 +23,10 @@ default = ["std"]
 std = []
 libm = ["dep:libm"]
 
+# Makes mapping functions available for fitting colors into the natural gamuts
+# of color spaces.
+gamut_map = []
+
 [dependencies]
 
 [dependencies.libm]
