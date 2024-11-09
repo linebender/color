@@ -223,16 +223,16 @@ impl ColorSpace for Srgb {
     }
 }
 
-/// The Display-P3 color space, often used for wide-gamut displays.
+/// The Display P3 color space, often used for wide-gamut displays.
 ///
-/// Display-P3 is similar to [sRGB](`Srgb`) but has higher red and, especially, green
+/// Display P3 is similar to [sRGB](`Srgb`) but has higher red and, especially, green
 /// chromaticities, thereby extending its gamut over sRGB on those components.
 ///
 /// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
 /// pure black and `[1, 1, 1]` white. The natural bounds of the channels are `[0, 1]`.
 ///
 /// This corresponds to the color space in [CSS Color Module Level 4 § 10.4][css-sec] and is
-/// [characterized by the ICC][icc]. Display-P3 is a variant of the DCI-P3 color space
+/// [characterized by the ICC][icc]. Display P3 is a variant of the DCI-P3 color space
 /// described in [SMPTE EG 432-1:2010][smpte].
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-display-p3
