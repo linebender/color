@@ -27,12 +27,21 @@ use crate::{
 /// [Oklch]: crate::Oklch
 #[derive(Clone, Copy, Debug)]
 pub struct DynamicColor {
+    /// The color space.
     pub cs: ColorSpaceTag,
     /// A bitmask of missing components.
     pub missing: Missing,
+    /// The components.
+    ///
+    /// The first three components are interpreted according to the
+    /// color space tag. The fourth component is alpha, interpreted
+    /// as separate alpha.
     pub components: [f32; 4],
 }
 
+/// An intermediate struct used for interpolating between colors.
+///
+/// This is the return value of [`DynamicColor::interpolate`].
 #[derive(Clone, Copy)]
 #[expect(
     missing_debug_implementations,
@@ -42,12 +51,15 @@ pub struct Interpolator {
     premul1: [f32; 3],
     alpha1: f32,
     delta_premul: [f32; 3],
-    alpha2: f32,
+    delta_alpha: f32,
     cs: ColorSpaceTag,
     missing: Missing,
 }
 
 impl DynamicColor {
+    /// Convert to `AlphaColor` with a static color space.
+    ///
+    /// Missing components are interpreted as 0.
     #[must_use]
     pub fn to_alpha_color<CS: ColorSpace>(self) -> AlphaColor<CS> {
         if let Some(cs) = CS::TAG {
@@ -57,6 +69,7 @@ impl DynamicColor {
         }
     }
 
+    /// Convert from `AlphaColor`.
     #[must_use]
     pub fn from_alpha_color<CS: ColorSpace>(color: AlphaColor<CS>) -> Self {
         if let Some(cs) = CS::TAG {
@@ -116,6 +129,11 @@ impl DynamicColor {
         }
     }
 
+    /// Set any missing components to zero.
+    ///
+    /// We have a soft invariant that any bit set in the missing bitflag has
+    /// a corresponding component which is 0. This method restores that
+    /// invariant after manipulation which might invalidate it.
     fn zero_missing_components(mut self) -> Self {
         if !self.missing.is_empty() {
             for (i, component) in self.components.iter_mut().enumerate() {
@@ -218,7 +236,7 @@ impl DynamicColor {
             premul1,
             alpha1,
             delta_premul,
-            alpha2,
+            delta_alpha: alpha2 - alpha1,
             cs,
             missing,
         }
@@ -277,13 +295,17 @@ impl DynamicColor {
 }
 
 impl Interpolator {
+    /// Evaluate the color ramp at the given point.
+    ///
+    /// Typically `t` ranges between 0 and 1, but that is not enforced,
+    /// so extrapolation is also possible.
     pub fn eval(&self, t: f32) -> DynamicColor {
         let premul = [
             self.premul1[0] + t * self.delta_premul[0],
             self.premul1[1] + t * self.delta_premul[1],
             self.premul1[2] + t * self.delta_premul[2],
         ];
-        let alpha = self.alpha1 + t * (self.alpha2 - self.alpha1);
+        let alpha = self.alpha1 + t * self.delta_alpha;
         let opaque = if alpha == 0.0 || alpha == 1.0 {
             premul
         } else {

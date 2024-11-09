@@ -23,7 +23,11 @@ use crate::floatfuncs::FloatFuncs;
 /// be applied before interpolation.
 #[derive(Clone, Copy, Debug)]
 pub struct OpaqueColor<CS> {
+    /// The components, which may be manipulated directly.
+    ///
+    /// The interpretation of the components depends on the color space.
     pub components: [f32; 3],
+    /// The color space.
     pub cs: PhantomData<CS>,
 }
 
@@ -34,7 +38,12 @@ pub struct OpaqueColor<CS> {
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
 pub struct AlphaColor<CS> {
+    /// The components, which may be manipulated directly.
+    ///
+    /// The interpretation of the first three components depends on the color
+    /// space. The fourth component is separate alpha.
     pub components: [f32; 4],
+    /// The color space.
     pub cs: PhantomData<CS>,
 }
 
@@ -50,7 +59,18 @@ pub struct AlphaColor<CS> {
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
 pub struct PremulColor<CS> {
+    /// The components, which may be manipulated directly.
+    ///
+    /// The interpretation of the first three components depends on the color
+    /// space, and are premultiplied with the alpha value. The fourth component
+    /// is alpha.
+    ///
+    /// Note that in cylindrical color spaces, the hue component is not
+    /// premultiplied, as specified in the CSS Color 4 spec. The methods on
+    /// this type take care of that for you, but if you're manipulating the
+    /// components yourself, be aware.
     pub components: [f32; 4],
+    /// The color space.
     pub cs: PhantomData<CS>,
 }
 
@@ -63,10 +83,14 @@ pub struct PremulColor<CS> {
 #[derive(Clone, Copy, Default, Debug)]
 #[non_exhaustive]
 pub enum HueDirection {
+    /// Hue angles take the shorter of the two arcs between starting and ending values.
     #[default]
     Shorter,
+    /// Hue angles take the longer of the two arcs between starting and ending values.
     Longer,
+    /// Hue angles increase as they are interpolated.
     Increasing,
+    /// Hue angles decrease as they are interpolated.
     Decreasing,
     // It's possible we'll add "raw"; color.js has it.
 }
@@ -85,13 +109,10 @@ fn fixup_hue(h1: f32, h2: &mut f32, direction: HueDirection) {
     let dh = (*h2 - h1) * (1. / 360.);
     match direction {
         HueDirection::Shorter => {
-            // Round, resolving ties toward zero.
-            let rounded = if dh - dh.floor() == 0.5 {
-                dh.trunc()
-            } else {
-                dh.round()
-            };
-            *h2 -= 360. * rounded;
+            // Round, resolving ties toward zero. This tricky formula
+            // has been validated to yield the correct result for all
+            // bit values of f32.
+            *h2 -= 360. * ((dh.abs() - 0.25) - 0.25).ceil().copysign(dh);
         }
         HueDirection::Longer => {
             let t = 2.0 * dh.abs().ceil() - (dh.abs() + 1.5).floor();
@@ -114,11 +135,14 @@ pub(crate) fn fixup_hues_for_interpolate(
 }
 
 impl<CS: ColorSpace> OpaqueColor<CS> {
+    /// Create a new color from the given components.
     pub const fn new(components: [f32; 3]) -> Self {
         let cs = PhantomData;
         Self { components, cs }
     }
 
+    /// Convert a color into a different color space.
+    #[must_use]
     pub fn convert<TargetCS: ColorSpace>(self) -> OpaqueColor<TargetCS> {
         OpaqueColor::new(CS::convert::<TargetCS>(self.components))
     }
@@ -126,6 +150,7 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     /// Add an alpha channel.
     ///
     /// This function is the inverse of [`AlphaColor::split`].
+    #[must_use]
     pub const fn with_alpha(self, alpha: f32) -> AlphaColor<CS> {
         AlphaColor::new(add_alpha(self.components, alpha))
     }
@@ -232,6 +257,7 @@ pub(crate) const fn add_alpha([x, y, z]: [f32; 3], a: f32) -> [f32; 4] {
 }
 
 impl<CS: ColorSpace> AlphaColor<CS> {
+    /// Create a new color from the given components.
     pub const fn new(components: [f32; 4]) -> Self {
         let cs = PhantomData;
         Self { components, cs }
@@ -246,6 +272,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
         (OpaqueColor::new(opaque), alpha)
     }
 
+    /// Convert a color into a different color space.
     #[must_use]
     pub fn convert<TargetCs: ColorSpace>(self) -> AlphaColor<TargetCs> {
         let (opaque, alpha) = split_alpha(self.components);
@@ -253,12 +280,17 @@ impl<CS: ColorSpace> AlphaColor<CS> {
         AlphaColor::new(add_alpha(components, alpha))
     }
 
+    /// Convert a color to the corresponding premultiplied form.
     #[must_use]
     pub const fn premultiply(self) -> PremulColor<CS> {
         let (opaque, alpha) = split_alpha(self.components);
         PremulColor::new(add_alpha(CS::LAYOUT.scale(opaque, alpha), alpha))
     }
 
+    /// Linearly interpolate colors, without hue fixup.
+    ///
+    /// This method produces meaningful results in rectangular color spaces,
+    /// or if hue fixup has been applied.
     #[must_use]
     pub fn lerp_rect(self, other: Self, t: f32) -> Self {
         self.premultiply()
@@ -266,6 +298,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
             .un_premultiply()
     }
 
+    /// Linearly interpolate colors, with hue fixup if needed.
     #[must_use]
     pub fn lerp(self, other: Self, t: f32, direction: HueDirection) -> Self {
         self.premultiply()
@@ -273,6 +306,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
             .un_premultiply()
     }
 
+    /// Multiply alpha by the given factor.
     #[must_use]
     pub const fn mul_alpha(self, rhs: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
@@ -327,11 +361,13 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 }
 
 impl<CS: ColorSpace> PremulColor<CS> {
+    /// Create a new color from the given components.
     pub const fn new(components: [f32; 4]) -> Self {
         let cs = PhantomData;
         Self { components, cs }
     }
 
+    /// Convert a color into a different color space.
     #[must_use]
     pub fn convert<TargetCS: ColorSpace>(self) -> PremulColor<TargetCS> {
         if TypeId::of::<CS>() == TypeId::of::<TargetCS>() {
@@ -345,6 +381,7 @@ impl<CS: ColorSpace> PremulColor<CS> {
         }
     }
 
+    /// Convert a color to the corresponding separate alpha form.
     #[must_use]
     pub fn un_premultiply(self) -> AlphaColor<CS> {
         let (multiplied, alpha) = split_alpha(self.components);
@@ -379,6 +416,7 @@ impl<CS: ColorSpace> PremulColor<CS> {
         self.lerp_rect(other, t)
     }
 
+    /// Multiply alpha by the given factor.
     #[must_use]
     pub const fn mul_alpha(self, rhs: f32) -> Self {
         let (multiplied, alpha) = split_alpha(self.components);

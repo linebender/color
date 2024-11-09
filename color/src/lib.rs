@@ -12,7 +12,6 @@
 // TODO: parts of the crate are not done, with some missing docstring,
 // and some enum variants not yet implemented. Finish those and remove
 // these allow attributes.
-#![allow(missing_docs, reason = "need to write more docs")]
 #![allow(clippy::todo, reason = "need to fix todos")]
 
 //! # Color
@@ -57,6 +56,7 @@ fn matmul(m: &[[f32; 3]; 3], x: [f32; 3]) -> [f32; 3] {
 }
 
 impl AlphaColor<Srgb> {
+    /// Create a color from 8-bit rgba values.
     pub const fn from_rgba8(r: u8, g: u8, b: u8, a: u8) -> Self {
         let components = [
             u8_to_f32(r as u32),

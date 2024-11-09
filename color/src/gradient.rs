@@ -5,6 +5,12 @@ use crate::{
     ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator, Oklab, PremulColor,
 };
 
+/// The iterator for gradient approximation.
+///
+/// This will yield a value for each gradient stop, including `t` values
+/// of 0 and 1 at the endpoints.
+///
+/// Use the `gradient` function to generate this iterator.
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
 pub struct GradientIter<CS: ColorSpace> {
     interpolator: Interpolator,
@@ -18,6 +24,28 @@ pub struct GradientIter<CS: ColorSpace> {
     end_color: PremulColor<CS>,
 }
 
+/// Generate a piecewise linear approximation to a gradient ramp.
+///
+/// A major feature of CSS Color 4 is to specify gradients in any
+/// interpolation color space, which may be quite a bit better than
+/// simple linear interpolation in sRGB (for example).
+///
+/// One strategy for implementing these gradients is to interpolate
+/// in the appropriate (premultipled) space, then map each resulting
+/// color to the space used for compositing. That can be expensive.
+/// An alternative strategy is to precompute a piecewise linear ramp
+/// that closely approximates the desired ramp, then render that
+/// using high performance techniques. This method computes such an
+/// approximation.
+///
+/// The given `tolerance` value specifies the maximum error in the
+/// approximation, in deltaEOK units. A reasonable value is 0.01,
+/// which in testing is nearly indistinguishable from the exact
+/// ramp. The number of stops scales roughly as the inverse square
+/// root of the tolerance.
+///
+/// The error is measured at the midpoint of each segment, which in
+/// some cases may underestimate the error.
 pub fn gradient<CS: ColorSpace>(
     mut color0: DynamicColor,
     mut color1: DynamicColor,

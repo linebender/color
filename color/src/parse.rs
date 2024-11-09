@@ -9,6 +9,12 @@ use core::str::FromStr;
 use crate::{AlphaColor, ColorSpaceTag, DynamicColor, Missing, Srgb};
 
 // TODO: proper error type, maybe include string offset
+/// Error type for parse errors.
+///
+/// Currently just a static string, but likely will be changed to
+/// an enum.
+///
+/// Discussion question: should it also contain a string offset?
 pub type Error = &'static str;
 
 #[derive(Default)]

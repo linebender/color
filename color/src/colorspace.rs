@@ -100,12 +100,15 @@ pub trait ColorSpace: Clone + Copy + 'static {
     fn clip(src: [f32; 3]) -> [f32; 3];
 }
 
-/// The layout of a color space, particularly the hue channel.
+/// The layout of a color space, particularly the hue component.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[non_exhaustive]
 pub enum ColorSpaceLayout {
+    /// Rectangular, no hue component.
     Rectangular,
+    /// Cylindrical, hue is first component.
     HueFirst,
+    /// Cylindrical, hue is third component.
     HueThird,
 }
 
