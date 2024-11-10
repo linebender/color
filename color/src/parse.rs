@@ -344,7 +344,7 @@ impl<'a> Parser<'a> {
         let comma = self.ch(b',');
         let s = self.scaled_component(1., 1.)?.map(|x| x.max(0.));
         self.optional_comma(comma)?;
-        let l = self.scaled_component(1., 1.)?.map(|x| x.clamp(0., 100.));
+        let l = self.scaled_component(1., 1.)?;
         let mut alpha = Some(1.0);
         if self.opacity_separator(comma) {
             alpha = self.scaled_component(1., 0.01)?.map(|a| a.clamp(0., 1.));
