@@ -49,47 +49,22 @@ impl Error for ParseError {}
 
 impl fmt::Display for ParseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match *self {
-            Self::UnclosedComment => {
-                write!(f, "unclosed comment")
-            }
-            Self::UnknownAngleDimension => {
-                write!(f, "unknown angle dimension")
-            }
-            Self::UnknownAngle => {
-                write!(f, "unknown angle")
-            }
-            Self::UnknownColorComponent => {
-                write!(f, "unknown color component")
-            }
-            Self::UnknownColorIdentifier => {
-                write!(f, "unknown color identifier")
-            }
-            Self::UnknownColorSpace => {
-                write!(f, "unknown color space")
-            }
-            Self::UnknownColorSyntax => {
-                write!(f, "unknown color syntax")
-            }
-            Self::ExpectedArguments => {
-                write!(f, "expected arguments")
-            }
-            Self::ExpectedClosingParenthesis => {
-                write!(f, "expected closing parenthesis")
-            }
-            Self::ExpectedColorSpaceIdentifier => {
-                write!(f, "expected color space identifier")
-            }
-            Self::ExpectedComma => {
-                write!(f, "expected comma")
-            }
-            Self::InvalidHexDigit => {
-                write!(f, "invalid hex digit")
-            }
-            Self::WrongNumberOfHexDigits => {
-                write!(f, "wrong number of hex digits")
-            }
-        }
+        let msg = match *self {
+            Self::UnclosedComment => "unclosed comment",
+            Self::UnknownAngleDimension => "unknown angle dimension",
+            Self::UnknownAngle => "unknown angle",
+            Self::UnknownColorComponent => "unknown color component",
+            Self::UnknownColorIdentifier => "unknown color identifier",
+            Self::UnknownColorSpace => "unknown color space",
+            Self::UnknownColorSyntax => "unknown color syntax",
+            Self::ExpectedArguments => "expected arguments",
+            Self::ExpectedClosingParenthesis => "expected closing parenthesis",
+            Self::ExpectedColorSpaceIdentifier => "expected color space identifier",
+            Self::ExpectedComma => "expected comma",
+            Self::InvalidHexDigit => "invalid hex digit",
+            Self::WrongNumberOfHexDigits => "wrong number of hex digits",
+        };
+        f.write_str(msg)
     }
 }
 
