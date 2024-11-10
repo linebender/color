@@ -4,8 +4,8 @@
 //! The color space tag enum.
 
 use crate::{
-    ColorSpace, ColorSpaceLayout, DisplayP3, Lab, Lch, LinearSrgb, Missing, Oklab, Oklch, Srgb,
-    XyzD65,
+    ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Lab, Lch, LinearSrgb, Missing, Oklab, Oklch,
+    Srgb, XyzD65,
 };
 
 /// The color space tag for dynamic colors.
@@ -28,8 +28,7 @@ pub enum ColorSpaceTag {
     Lab,
     /// The [`Lch`] color space.
     Lch,
-    // TODO: link
-    /// The `Hsl` color space.
+    /// The [`Hsl`] color space.
     Hsl,
     // TODO: link
     /// The `Hwb` color space.
@@ -137,6 +136,7 @@ impl ColorSpaceTag {
             Self::Oklch => Oklch::from_linear_srgb(rgb),
             Self::DisplayP3 => DisplayP3::from_linear_srgb(rgb),
             Self::XyzD65 => XyzD65::from_linear_srgb(rgb),
+            Self::Hsl => Hsl::from_linear_srgb(rgb),
             _ => todo!(),
         }
     }
@@ -154,6 +154,7 @@ impl ColorSpaceTag {
             Self::Oklch => Oklch::to_linear_srgb(src),
             Self::DisplayP3 => DisplayP3::to_linear_srgb(src),
             Self::XyzD65 => XyzD65::to_linear_srgb(src),
+            Self::Hsl => Hsl::to_linear_srgb(src),
             _ => todo!(),
         }
     }
@@ -166,6 +167,8 @@ impl ColorSpaceTag {
             _ if self == target => src,
             (Self::Oklab, Self::Oklch) | (Self::Lab, Self::Lch) => Oklab::convert::<Oklch>(src),
             (Self::Oklch, Self::Oklab) | (Self::Lch, Self::Lab) => Oklch::convert::<Oklab>(src),
+            (Self::Srgb, Self::Hsl) => Srgb::convert::<Hsl>(src),
+            (Self::Hsl, Self::Srgb) => Hsl::convert::<Srgb>(src),
             _ => target.from_linear_srgb(self.to_linear_srgb(src)),
         }
     }
@@ -199,6 +202,7 @@ impl ColorSpaceTag {
             Self::Oklch => Oklch::clip(src),
             Self::DisplayP3 => DisplayP3::clip(src),
             Self::XyzD65 => XyzD65::clip(src),
+            Self::Hsl => Hsl::clip(src),
             _ => todo!(),
         }
     }

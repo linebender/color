@@ -54,28 +54,36 @@ fn write_color_function(color: &DynamicColor, name: &str, f: &mut Formatter<'_>)
     write!(f, ")")
 }
 
+fn write_legacy_function(
+    color: &DynamicColor,
+    name: &str,
+    scale: f32,
+    f: &mut Formatter<'_>,
+) -> Result {
+    let opt_a = if color.components[3] < 1.0 { "a" } else { "" };
+    write!(f, "{name}{opt_a}(")?;
+    write_scaled_component(color, 0, f, scale)?;
+    write!(f, ", ")?;
+    write_scaled_component(color, 1, f, scale)?;
+    write!(f, ", ")?;
+    write_scaled_component(color, 2, f, scale)?;
+    if color.components[3] < 1.0 {
+        write!(f, ", ")?;
+        // TODO: clamp negative values
+        write_scaled_component(color, 3, f, 1.0)?;
+    }
+    write!(f, ")")
+}
+
 impl core::fmt::Display for DynamicColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self.cs {
-            ColorSpaceTag::Srgb => {
-                // A case can be made this isn't the best serialization in general,
-                // because CSS parsing of out-of-gamut components will clamp.
-                let opt_a = if self.components[3] < 1.0 { "a" } else { "" };
-                write!(f, "rgb{opt_a}(")?;
-                write_scaled_component(self, 0, f, 255.0)?;
-                write!(f, ", ")?;
-                write_scaled_component(self, 1, f, 255.0)?;
-                write!(f, ", ")?;
-                write_scaled_component(self, 2, f, 255.0)?;
-                if self.components[3] < 1.0 {
-                    write!(f, ", ")?;
-                    // TODO: clamp negative values
-                    write_scaled_component(self, 3, f, 1.0)?;
-                }
-                write!(f, ")")
-            }
+            // A case can be made this isn't the best serialization in general,
+            // because CSS parsing of out-of-gamut components will clamp.
+            ColorSpaceTag::Srgb => write_legacy_function(self, "rgb", 255.0, f),
             ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
             ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
+            ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
             ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
             ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
             ColorSpaceTag::Lch => write_modern_function(self, "lch", f),

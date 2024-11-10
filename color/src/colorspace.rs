@@ -221,6 +221,17 @@ impl ColorSpace for Srgb {
         src.map(lin_to_srgb)
     }
 
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Hsl>() {
+            rgb_to_hsl(src)
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
+    }
+
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
         [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
     }
@@ -631,6 +642,109 @@ impl ColorSpace for Lch {
             src
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Lab>() {
             lch_to_lab(src)
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
+    }
+
+    fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
+        [l.clamp(0., 100.), c.max(0.), h]
+    }
+}
+
+/// 🌌 The HSL color space
+///
+/// The HSL color space is fairly widely used and convenient, but it is
+/// not based on sound color science. Among its flaws, colors with the
+/// same "lightness" value can have wildly varying perceptual lightness.
+///
+/// Its components are `[H, S, L]` with
+/// - `H` - the hue angle in degrees, with red at 0, green at 120, and blue at 240.
+/// - `S` - the saturation, where 0 is gray and 100 is maximally saturated.
+/// - `L` - the lightness, where 0 is black and 100 is white.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 7 ][css-sec].
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#the-hsl-notation
+#[derive(Clone, Copy, Debug)]
+pub struct Hsl;
+
+/// Convert HSL to RGB.
+///
+/// Reference: § 7.1 of CSS Color 4 spec.
+fn hsl_to_rgb([h, s, l]: [f32; 3]) -> [f32; 3] {
+    // Don't need mod 360 for hue, it's subsumed by mod 12 below.
+    let sat = s * 0.01;
+    let light = l * 0.01;
+    let a = sat * light.min(1.0 - light);
+    [0.0, 8.0, 4.0].map(|n| {
+        let x = n + h * (1.0 / 30.0);
+        let k = x - 12.0 * (x * (1.0 / 12.0)).floor();
+        light - a * (k - 3.0).min(9.0 - k).clamp(-1.0, 1.0)
+    })
+}
+
+/// Convert RGB to HSL.
+///
+/// Reference: § 7.2 of CSS Color 4 spec.
+fn rgb_to_hsl([r, g, b]: [f32; 3]) -> [f32; 3] {
+    let max = r.max(g).max(b);
+    let min = r.min(g).min(b);
+    let mut hue = 0.0;
+    let mut sat = 0.0;
+    let light = 0.5 * (min + max);
+    let d = max - min;
+
+    const EPSILON: f32 = 1e-6;
+    if d > EPSILON {
+        let denom = light.min(1.0 - light);
+        if denom.abs() > EPSILON {
+            sat = (max - light) / denom;
+        }
+        hue = if max == r {
+            (g - b) / d
+        } else if max == g {
+            (b - r) / d + 2.0
+        } else {
+            // max == b
+            (r - g) / d + 4.0
+        };
+        hue *= 60.0;
+        // Deal with negative saturation from out of gamut colors
+        if sat < 0.0 {
+            hue += 180.0;
+            sat = sat.abs();
+        }
+        hue -= 360. * (hue * (1.0 / 360.0)).floor();
+    }
+    [hue, sat * 100.0, light * 100.0]
+}
+
+impl ColorSpace for Hsl {
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Hsl);
+
+    const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueFirst;
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        let rgb = Srgb::from_linear_srgb(src);
+        rgb_to_hsl(rgb)
+    }
+
+    fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        let rgb = hsl_to_rgb(src);
+        Srgb::to_linear_srgb(rgb)
+    }
+
+    fn scale_chroma([h, s, v]: [f32; 3], scale: f32) -> [f32; 3] {
+        [h, s * scale, v]
+    }
+
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Srgb>() {
+            hsl_to_rgb(src)
         } else {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)

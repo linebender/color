@@ -228,11 +228,11 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     /// In a color space that naturally has a lightness component, map that value.
     /// Otherwise, do the mapping in [Oklab]. The lightness range is normalized so
     /// that 1.0 is white. That is the normal range for Oklab but differs from the
-    /// range in [Lab], [Lch], and [HSL].
+    /// range in [Lab], [Lch], and [Hsl].
     ///
     /// [Lab]: crate::Lab
     /// [Lch]: crate::Lch
-    /// [HSL]: https://www.w3.org/TR/css-color-4/#the-hsl-notation
+    /// [Hsl]: crate::Hsl
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match CS::TAG {
@@ -340,11 +340,11 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     /// In a color space that naturally has a lightness component, map that value.
     /// Otherwise, do the mapping in [Oklab]. The lightness range is normalized so
     /// that 1.0 is white. That is the normal range for [Oklab] but differs from the
-    /// range in [Lab], [Lch], and [HSL].
+    /// range in [Lab], [Lch], and [Hsl].
     ///
     /// [Lab]: crate::Lab
     /// [Lch]: crate::Lch
-    /// [HSL]: https://www.w3.org/TR/css-color-4/#the-hsl-notation
+    /// [Hsl]: crate::Hsl
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match CS::TAG {
