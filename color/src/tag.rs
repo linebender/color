@@ -24,17 +24,15 @@ pub enum ColorSpaceTag {
     Srgb,
     /// The [`LinearSrgb`] color space.
     LinearSrgb,
-    // TODO: link
-    /// The `Lab` color space.
+    /// The [`Lab`] color space.
     Lab,
-    // TODO: link
-    /// The `Lch` color space.
+    /// The [`Lch`] color space.
     Lch,
     // TODO: link
     /// The `Hsl` color space.
     Hsl,
     // TODO: link
-    /// The `Hsl` color space.
+    /// The `Hwb` color space.
     Hwb,
     /// The [`Oklab`] color space.
     Oklab,
