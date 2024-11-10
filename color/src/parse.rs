@@ -3,19 +3,95 @@
 
 //! Parse CSS4 color
 
+use core::error::Error;
 use core::f64;
+use core::fmt;
 use core::str::FromStr;
 
 use crate::{AlphaColor, ColorSpaceTag, DynamicColor, Missing, Srgb};
 
-// TODO: proper error type, maybe include string offset
+// TODO: maybe include string offset
 /// Error type for parse errors.
 ///
-/// Currently just a static string, but likely will be changed to
-/// an enum.
-///
 /// Discussion question: should it also contain a string offset?
-pub type Error = &'static str;
+#[derive(Clone, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum ParseError {
+    /// Unclosed comment
+    UnclosedComment,
+    /// Unknown angle dimension
+    UnknownAngleDimension,
+    /// Unknown angle
+    UnknownAngle,
+    /// Unknown color component
+    UnknownColorComponent,
+    /// Unknown color identifier
+    UnknownColorIdentifier,
+    /// Unknown color space
+    UnknownColorSpace,
+    /// Unknown color syntax
+    UnknownColorSyntax,
+    /// Expected arguments
+    ExpectedArguments,
+    /// Expected closing parenthesis
+    ExpectedClosingParenthesis,
+    /// Expected color space identifier
+    ExpectedColorSpaceIdentifier,
+    /// Expected comma
+    ExpectedComma,
+    /// Invalid hex digit
+    InvalidHexDigit,
+    /// Wrong number of hex digits
+    WrongNumberOfHexDigits,
+}
+
+impl Error for ParseError {}
+
+impl fmt::Display for ParseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            Self::UnclosedComment => {
+                write!(f, "unclosed comment")
+            }
+            Self::UnknownAngleDimension => {
+                write!(f, "unknown angle dimension")
+            }
+            Self::UnknownAngle => {
+                write!(f, "unknown angle")
+            }
+            Self::UnknownColorComponent => {
+                write!(f, "unknown color component")
+            }
+            Self::UnknownColorIdentifier => {
+                write!(f, "unknown color identifier")
+            }
+            Self::UnknownColorSpace => {
+                write!(f, "unknown color space")
+            }
+            Self::UnknownColorSyntax => {
+                write!(f, "unknown color syntax")
+            }
+            Self::ExpectedArguments => {
+                write!(f, "expected arguments")
+            }
+            Self::ExpectedClosingParenthesis => {
+                write!(f, "expected closing parenthesis")
+            }
+            Self::ExpectedColorSpaceIdentifier => {
+                write!(f, "expected color space identifier")
+            }
+            Self::ExpectedComma => {
+                write!(f, "expected comma")
+            }
+            Self::InvalidHexDigit => {
+                write!(f, "invalid hex digit")
+            }
+            Self::WrongNumberOfHexDigits => {
+                write!(f, "wrong number of hex digits")
+            }
+        }
+    }
+}
 
 #[derive(Default)]
 struct Parser<'a> {
@@ -57,12 +133,12 @@ impl<'a> Parser<'a> {
     }
 
     // This will be called at the start of most tokens.
-    fn consume_comments(&mut self) -> Result<(), Error> {
+    fn consume_comments(&mut self) -> Result<(), ParseError> {
         while self.s[self.ix..].starts_with("/*") {
             if let Some(i) = self.s[self.ix + 2..].find("*/") {
                 self.ix += i + 4;
             } else {
-                return Err("unclosed comment");
+                return Err(ParseError::UnclosedComment);
             }
         }
         Ok(())
@@ -220,18 +296,18 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse a color component.
-    fn scaled_component(&mut self, scale: f64, pct_scale: f64) -> Result<Option<f64>, Error> {
+    fn scaled_component(&mut self, scale: f64, pct_scale: f64) -> Result<Option<f64>, ParseError> {
         self.ws();
         let value = self.value();
         match value {
             Some(Value::Number(n)) => Ok(Some(n * scale)),
             Some(Value::Percent(n)) => Ok(Some(n * pct_scale)),
             Some(Value::Symbol("none")) => Ok(None),
-            _ => Err("unknown color component"),
+            _ => Err(ParseError::UnknownColorComponent),
         }
     }
 
-    fn angle(&mut self) -> Result<Option<f64>, Error> {
+    fn angle(&mut self) -> Result<Option<f64>, ParseError> {
         self.ws();
         let value = self.value();
         match value {
@@ -243,18 +319,18 @@ impl<'a> Parser<'a> {
                     "rad" => 180.0 / f64::consts::PI,
                     "grad" => 0.9,
                     "turn" => 360.0,
-                    _ => return Err("unknown angle dimension"),
+                    _ => return Err(ParseError::UnknownAngleDimension),
                 };
                 Ok(Some(n * scale))
             }
-            _ => Err("unknown angle"),
+            _ => Err(ParseError::UnknownAngle),
         }
     }
 
-    fn optional_comma(&mut self, comma: bool) -> Result<(), Error> {
+    fn optional_comma(&mut self, comma: bool) -> Result<(), ParseError> {
         self.ws();
         if comma && !self.ch(b',') {
-            Err("expected comma to separate components")
+            Err(ParseError::ExpectedComma)
         } else {
             Ok(())
         }
@@ -265,9 +341,9 @@ impl<'a> Parser<'a> {
         self.ch(if comma { b',' } else { b'/' })
     }
 
-    fn rgb(&mut self) -> Result<DynamicColor, Error> {
+    fn rgb(&mut self) -> Result<DynamicColor, ParseError> {
         if !self.raw_ch(b'(') {
-            return Err("expected arguments");
+            return Err(ParseError::ExpectedArguments);
         }
         // TODO: in legacy mode, be stricter about not mixing numbers
         // and percentages, and disallowing "none"
@@ -289,12 +365,12 @@ impl<'a> Parser<'a> {
         }
         self.ws();
         if !self.ch(b')') {
-            return Err("expected closing parenthesis");
+            return Err(ParseError::ExpectedClosingParenthesis);
         }
         Ok(color_from_components([r, g, b, alpha], ColorSpaceTag::Srgb))
     }
 
-    fn optional_alpha(&mut self) -> Result<Option<f64>, Error> {
+    fn optional_alpha(&mut self) -> Result<Option<f64>, ParseError> {
         let mut alpha = Some(1.0);
         self.ws();
         if self.ch(b'/') {
@@ -304,9 +380,9 @@ impl<'a> Parser<'a> {
         Ok(alpha)
     }
 
-    fn lab(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<DynamicColor, Error> {
+    fn lab(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<DynamicColor, ParseError> {
         if !self.raw_ch(b'(') {
-            return Err("expected arguments");
+            return Err(ParseError::ExpectedArguments);
         }
         let l = self
             .scaled_component(1., 0.01 * lmax)?
@@ -315,14 +391,14 @@ impl<'a> Parser<'a> {
         let b = self.scaled_component(1., c)?;
         let alpha = self.optional_alpha()?;
         if !self.ch(b')') {
-            return Err("expected closing parenthesis");
+            return Err(ParseError::ExpectedClosingParenthesis);
         }
         Ok(color_from_components([l, a, b, alpha], tag))
     }
 
-    fn lch(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<DynamicColor, Error> {
+    fn lch(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<DynamicColor, ParseError> {
         if !self.raw_ch(b'(') {
-            return Err("expected arguments");
+            return Err(ParseError::ExpectedArguments);
         }
         let l = self
             .scaled_component(1., 0.01 * lmax)?
@@ -331,32 +407,32 @@ impl<'a> Parser<'a> {
         let h = self.angle()?;
         let alpha = self.optional_alpha()?;
         if !self.ch(b')') {
-            return Err("expected closing parenthesis");
+            return Err(ParseError::ExpectedClosingParenthesis);
         }
         Ok(color_from_components([l, c, h, alpha], tag))
     }
 
-    fn color(&mut self) -> Result<DynamicColor, Error> {
+    fn color(&mut self) -> Result<DynamicColor, ParseError> {
         if !self.raw_ch(b'(') {
-            return Err("expected arguments");
+            return Err(ParseError::ExpectedArguments);
         }
         self.ws();
         let Some(id) = self.ident() else {
-            return Err("expected identifier for colorspace");
+            return Err(ParseError::ExpectedColorSpaceIdentifier);
         };
         let cs = match id {
             "srgb" => ColorSpaceTag::Srgb,
             "srgb-linear" => ColorSpaceTag::LinearSrgb,
             "display-p3" => ColorSpaceTag::DisplayP3,
             "xyz" | "xyz-d65" => ColorSpaceTag::XyzD65,
-            _ => return Err("unknown colorspace"),
+            _ => return Err(ParseError::UnknownColorSpace),
         };
         let r = self.scaled_component(1., 0.01)?;
         let g = self.scaled_component(1., 0.01)?;
         let b = self.scaled_component(1., 0.01)?;
         let alpha = self.optional_alpha()?;
         if !self.ch(b')') {
-            return Err("expected closing parenthesis");
+            return Err(ParseError::ExpectedClosingParenthesis);
         }
         Ok(color_from_components([r, g, b, alpha], cs))
     }
@@ -369,7 +445,7 @@ impl<'a> Parser<'a> {
 ///
 /// Tries to return a suitable error for any invalid string, but may be
 /// a little lax on some details.
-pub fn parse_color(s: &str) -> Result<DynamicColor, Error> {
+pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
     if let Some(stripped) = s.strip_prefix('#') {
         let color = color_from_4bit_hex(get_4bit_hex_channels(stripped)?);
         return Ok(DynamicColor::from_alpha_color(color));
@@ -390,23 +466,23 @@ pub fn parse_color(s: &str) -> Result<DynamicColor, Error> {
                     let color = AlphaColor::from_rgba8(r, g, b, a);
                     Ok(DynamicColor::from_alpha_color(color))
                 } else {
-                    Err("unknown color identifier")
+                    Err(ParseError::UnknownColorIdentifier)
                 }
             }
         }
         // TODO: should we validate that the parser is at eof?
     } else {
-        Err("unknown color syntax")
+        Err(ParseError::UnknownColorSyntax)
     }
 }
 
-const fn get_4bit_hex_channels(hex_str: &str) -> Result<[u8; 8], Error> {
+const fn get_4bit_hex_channels(hex_str: &str) -> Result<[u8; 8], ParseError> {
     let mut four_bit_channels = match *hex_str.as_bytes() {
         [r, g, b] => [r, r, g, g, b, b, b'f', b'f'],
         [r, g, b, a] => [r, r, g, g, b, b, a, a],
         [r0, r1, g0, g1, b0, b1] => [r0, r1, g0, g1, b0, b1, b'f', b'f'],
         [r0, r1, g0, g1, b0, b1, a0, a1] => [r0, r1, g0, g1, b0, b1, a0, a1],
-        _ => return Err("wrong number of hex digits"),
+        _ => return Err(ParseError::WrongNumberOfHexDigits),
     };
 
     // convert to hex in-place
@@ -424,12 +500,12 @@ const fn get_4bit_hex_channels(hex_str: &str) -> Result<[u8; 8], Error> {
     Ok(four_bit_channels)
 }
 
-const fn hex_from_ascii_byte(b: u8) -> Result<u8, Error> {
+const fn hex_from_ascii_byte(b: u8) -> Result<u8, ParseError> {
     match b {
         b'0'..=b'9' => Ok(b - b'0'),
         b'A'..=b'F' => Ok(b - b'A' + 10),
         b'a'..=b'f' => Ok(b - b'a' + 10),
-        _ => Err("invalid hex digit"),
+        _ => Err(ParseError::InvalidHexDigit),
     }
 }
 
@@ -439,7 +515,7 @@ const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb> {
 }
 
 impl FromStr for ColorSpaceTag {
-    type Err = &'static str;
+    type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -451,7 +527,7 @@ impl FromStr for ColorSpaceTag {
             "oklch" => Ok(Self::Oklch),
             "display-p3" => Ok(Self::DisplayP3),
             "xyz" | "xyz-d65" => Ok(Self::XyzD65),
-            _ => Err("unknown colorspace name"),
+            _ => Err(ParseError::UnknownColorSpace),
         }
     }
 }
