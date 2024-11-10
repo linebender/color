@@ -736,8 +736,8 @@ impl ColorSpace for Hsl {
         Srgb::to_linear_srgb(rgb)
     }
 
-    fn scale_chroma([h, s, v]: [f32; 3], scale: f32) -> [f32; 3] {
-        [h, s * scale, v]
+    fn scale_chroma([h, s, l]: [f32; 3], scale: f32) -> [f32; 3] {
+        [h, s * scale, l]
     }
 
     fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
@@ -751,7 +751,7 @@ impl ColorSpace for Hsl {
         }
     }
 
-    fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
-        [l.clamp(0., 100.), c.max(0.), h]
+    fn clip([h, s, l]: [f32; 3]) -> [f32; 3] {
+        [h, s.max(0.), l.clamp(0., 100.)]
     }
 }
