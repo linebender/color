@@ -31,7 +31,7 @@ pub struct GradientIter<CS: ColorSpace> {
 /// simple linear interpolation in sRGB (for example).
 ///
 /// One strategy for implementing these gradients is to interpolate
-/// in the appropriate (premultipled) space, then map each resulting
+/// in the appropriate (premultiplied) space, then map each resulting
 /// color to the space used for compositing. That can be expensive.
 /// An alternative strategy is to precompute a piecewise linear ramp
 /// that closely approximates the desired ramp, then render that
