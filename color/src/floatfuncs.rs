@@ -44,8 +44,6 @@ define_float_funcs! {
     fn hypot(self, other: Self) -> Self => hypotf;
     // Note: powi is missing because its libm implementation is not efficient
     fn powf(self, n: Self) -> Self => powf;
-    fn round(self) -> Self => roundf;
     fn sin_cos(self) -> (Self, Self) => sincosf;
     fn sqrt(self) -> Self => sqrtf;
-    fn trunc(self) -> Self => truncf;
 }
