@@ -40,7 +40,7 @@ pub use colorspace::{
 pub use dynamic::{DynamicColor, Interpolator};
 pub use gradient::{gradient, GradientIter};
 pub use missing::Missing;
-pub use parse::{parse_color, Error};
+pub use parse::{parse_color, ParseError};
 pub use tag::ColorSpaceTag;
 
 const fn u8_to_f32(x: u32) -> f32 {
