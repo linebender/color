@@ -9,6 +9,22 @@ use crate::{
 };
 
 /// A color with a color space tag decided at runtime.
+///
+/// This type is roughly equivalent to [`AlphaColor`] except with a tag
+/// for color space as opposed being determined at compile time. It can
+/// also represent missing components, which are a feature of the CSS
+/// Color 4 spec.
+///
+/// Missing components are mostly useful for interpolation, and in that
+/// context take the value of the other color being interpolated. For
+/// example, interpolating a color in [Oklch] with `oklch(none 0 none)`
+/// fades the color saturation, ending in a gray with the same lightness.
+///
+/// In other contexts, missing colors are interpreted as a zero value.
+/// When manipulating components directly, setting them nonzero when the
+/// corresponding missing flag is set may yield unexpected results.
+///
+/// [Oklch]: crate::Oklch
 #[derive(Clone, Copy, Debug)]
 pub struct DynamicColor {
     pub cs: ColorSpaceTag,
@@ -75,7 +91,7 @@ impl DynamicColor {
                     }
                     self.missing
                 } else {
-                    let mut missing = self.missing & Missing::singleton(3);
+                    let mut missing = self.missing & Missing::single(3);
                     if self.cs.h_missing(self.missing) {
                         cs.set_h_missing(&mut missing, &mut components);
                     }

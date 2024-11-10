@@ -19,7 +19,7 @@ impl Missing {
     }
 
     /// The set containing a single component index.
-    pub fn singleton(ix: usize) -> Self {
+    pub fn single(ix: usize) -> Self {
         Self(1 << ix)
     }
 
