@@ -225,7 +225,7 @@ impl ColorSpace for Srgb {
         if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
             src
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Hsl>() {
-            rgb_to_hsl(src)
+            rgb_to_hsl(src, true)
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Hwb>() {
             rgb_to_hwb(src)
         } else {
@@ -690,7 +690,10 @@ fn hsl_to_rgb([h, s, l]: [f32; 3]) -> [f32; 3] {
 /// Convert RGB to HSL.
 ///
 /// Reference: § 7.2 of CSS Color 4 spec.
-fn rgb_to_hsl([r, g, b]: [f32; 3]) -> [f32; 3] {
+///
+/// See <https://github.com/w3c/csswg-drafts/issues/10695> for an
+/// explanation of why `hue_hack` is needed.
+fn rgb_to_hsl([r, g, b]: [f32; 3], hue_hack: bool) -> [f32; 3] {
     let max = r.max(g).max(b);
     let min = r.min(g).min(b);
     let mut hue = 0.0;
@@ -714,7 +717,7 @@ fn rgb_to_hsl([r, g, b]: [f32; 3]) -> [f32; 3] {
         };
         hue *= 60.0;
         // Deal with negative saturation from out of gamut colors
-        if sat < 0.0 {
+        if hue_hack && sat < 0.0 {
             hue += 180.0;
             sat = sat.abs();
         }
@@ -730,7 +733,7 @@ impl ColorSpace for Hsl {
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         let rgb = Srgb::from_linear_srgb(src);
-        rgb_to_hsl(rgb)
+        rgb_to_hsl(rgb, true)
     }
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -802,7 +805,7 @@ fn hwb_to_rgb([h, w, b]: [f32; 3]) -> [f32; 3] {
 ///
 /// Reference: § 8.2 of CSS Color 4 spec.
 fn rgb_to_hwb([r, g, b]: [f32; 3]) -> [f32; 3] {
-    let hsl = rgb_to_hsl([r, g, b]);
+    let hsl = rgb_to_hsl([r, g, b], false);
     let white = r.min(g).min(b);
     let black = 1.0 - r.max(g).max(b);
     [hsl[0], white * 100., black * 100.]
@@ -829,7 +832,7 @@ impl ColorSpace for Hwb {
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Srgb>() {
             hwb_to_rgb(src)
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Hsl>() {
-            rgb_to_hsl(hwb_to_rgb(src))
+            rgb_to_hsl(hwb_to_rgb(src), true)
         } else {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)
