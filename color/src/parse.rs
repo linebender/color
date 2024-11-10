@@ -407,6 +407,20 @@ impl<'a> Parser<'a> {
         Ok(color_from_components([h, s, l, alpha], ColorSpaceTag::Hsl))
     }
 
+    fn hwb(&mut self) -> Result<DynamicColor, ParseError> {
+        if !self.raw_ch(b'(') {
+            return Err(ParseError::ExpectedArguments);
+        }
+        let h = self.angle()?;
+        let w = self.scaled_component(1., 1.)?;
+        let b = self.scaled_component(1., 1.)?;
+        let alpha = self.optional_alpha()?;
+        if !self.ch(b')') {
+            return Err(ParseError::ExpectedClosingParenthesis);
+        }
+        Ok(color_from_components([h, w, b, alpha], ColorSpaceTag::Hwb))
+    }
+
     fn color(&mut self) -> Result<DynamicColor, ParseError> {
         if !self.raw_ch(b'(') {
             return Err(ParseError::ExpectedArguments);
@@ -455,6 +469,7 @@ pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
             "oklab" => parser.lab(1.0, 0.004, ColorSpaceTag::Oklab),
             "oklch" => parser.lch(1.0, 0.004, ColorSpaceTag::Oklch),
             "hsl" | "hsla" => parser.hsl(),
+            "hwb" => parser.hwb(),
             "color" => parser.color(),
             _ => {
                 if let Some([r, g, b, a]) = crate::x11_colors::lookup_palette(id) {

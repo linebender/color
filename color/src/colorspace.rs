@@ -226,6 +226,8 @@ impl ColorSpace for Srgb {
             src
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Hsl>() {
             rgb_to_hsl(src)
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Hwb>() {
+            rgb_to_hwb(src)
         } else {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)
@@ -664,7 +666,7 @@ impl ColorSpace for Lch {
 /// - `S` - the saturation, where 0 is gray and 100 is maximally saturated.
 /// - `L` - the lightness, where 0 is black and 100 is white.
 ///
-/// This corresponds to the color space in [CSS Color Module Level 4 § 7 ][css-sec].
+/// This corresponds to the color space in [CSS Color Module Level 4 § 7][css-sec].
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#the-hsl-notation
 #[derive(Clone, Copy, Debug)]
@@ -745,6 +747,8 @@ impl ColorSpace for Hsl {
             src
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Srgb>() {
             hsl_to_rgb(src)
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Hwb>() {
+            rgb_to_hwb(hsl_to_rgb(src))
         } else {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)
@@ -753,5 +757,86 @@ impl ColorSpace for Hsl {
 
     fn clip([h, s, l]: [f32; 3]) -> [f32; 3] {
         [h, s.max(0.), l.clamp(0., 100.)]
+    }
+}
+
+/// 🌌 The HWB color space
+///
+/// The HWB color space is a convenient way to represent colors. It corresponds
+/// closely to popular color pickers, both a triangle with white, black, and
+/// fully saturated color at the corner, and also a rectangle with a hue spectrum
+/// at the top and black at the bottom, with whiteness as a separate slider. It
+/// was proposed in [HWB–A More Intuitive Hue-Based Color Model].
+///
+/// Its components are `[H, W, B]` with
+/// - `H` - the hue angle in degrees, with red at 0, green at 120, and blue at 240.
+/// - `W` - an amount of whiteness to mix in, with 100 being white.
+/// - `B` - an amount of blackness to mix in, with 100 being black.
+///
+/// The hue angle is the same as in [Hsl], and thus has the same flaw of poor hue
+/// uniformity.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 8][css-sec].
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#the-hwb-notation
+/// [HWB–A More Intuitive Hue-Based Color Model]: http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
+#[derive(Clone, Copy, Debug)]
+pub struct Hwb;
+
+/// Convert HWB to RGB.
+///
+/// Reference: § 8.1 of CSS Color 4 spec.
+fn hwb_to_rgb([h, w, b]: [f32; 3]) -> [f32; 3] {
+    let white = w * 0.01;
+    let black = b * 0.01;
+    if white + black >= 1.0 {
+        let gray = white / (white + black);
+        [gray, gray, gray]
+    } else {
+        let rgb = hsl_to_rgb([h, 100., 50.]);
+        rgb.map(|x| white + x * (1.0 - white - black))
+    }
+}
+
+/// Convert RGB to HWB.
+///
+/// Reference: § 8.2 of CSS Color 4 spec.
+fn rgb_to_hwb([r, g, b]: [f32; 3]) -> [f32; 3] {
+    let hsl = rgb_to_hsl([r, g, b]);
+    let white = r.min(g).min(b);
+    let black = 1.0 - r.max(g).max(b);
+    [hsl[0], white * 100., black * 100.]
+}
+
+impl ColorSpace for Hwb {
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Hwb);
+
+    const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueFirst;
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        let rgb = Srgb::from_linear_srgb(src);
+        rgb_to_hwb(rgb)
+    }
+
+    fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        let rgb = hwb_to_rgb(src);
+        Srgb::to_linear_srgb(rgb)
+    }
+
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Srgb>() {
+            hwb_to_rgb(src)
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Hsl>() {
+            rgb_to_hsl(hwb_to_rgb(src))
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
+    }
+
+    fn clip([h, w, b]: [f32; 3]) -> [f32; 3] {
+        [h, w.clamp(0., 100.), b.clamp(0., 100.)]
     }
 }

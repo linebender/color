@@ -84,12 +84,12 @@ impl core::fmt::Display for DynamicColor {
             ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
             ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
             ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
+            ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
             ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
             ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
             ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
             ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
             ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
-            _ => todo!(),
         }
     }
 }

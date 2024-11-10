@@ -11,7 +11,7 @@
 //! cargo run --example parse 'oklab(0.5 0.2 0)'
 //! ```
 
-use color::{AlphaColor, Lab, Srgb};
+use color::{AlphaColor, Hwb, Lab, Srgb};
 
 fn main() {
     let arg = std::env::args().nth(1).expect("give color as arg");
@@ -23,6 +23,8 @@ fn main() {
             println!("{srgba:?}");
             let lab: AlphaColor<Lab> = color.to_alpha_color();
             println!("{lab:?}");
+            let hwb: AlphaColor<Hwb> = color.to_alpha_color();
+            println!("{hwb:?}");
         }
         Err(e) => println!("error: {e}"),
     }
