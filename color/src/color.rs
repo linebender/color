@@ -156,11 +156,10 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     }
 
     /// Difference between two colors by Euclidean metric.
+    #[must_use]
     pub fn difference(self, other: Self) -> f32 {
-        let x = self.components;
-        let y = other.components;
-        let (d0, d1, d2) = (x[0] - y[0], x[1] - y[1], x[2] - y[2]);
-        (d0 * d0 + d1 * d1 + d2 * d2).sqrt()
+        let d = (self - other).components;
+        (d[0] * d[0] + d[1] * d[1] + d[2] * d[2]).sqrt()
     }
 
     /// Linearly interpolate colors, without hue fixup.
