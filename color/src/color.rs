@@ -6,7 +6,7 @@
 use core::any::TypeId;
 use core::marker::PhantomData;
 
-use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab};
+use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -246,6 +246,19 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
             _ => self.map_in::<Oklab>(|l, a, b| [f(l), a, b]),
         }
     }
+
+    /// Map the hue of the color.
+    ///
+    /// In a color space that naturally has a hue component, map that value.
+    /// Otherwise, do the mapping in [Oklch]. The hue is in degrees.
+    #[must_use]
+    pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
+        match CS::LAYOUT {
+            ColorSpaceLayout::HueFirst => self.map(|h, c1, c2| [f(h), c1, c2]),
+            ColorSpaceLayout::HueThird => self.map(|c0, c1, h| [c0, c1, f(h)]),
+            _ => self.map_in::<Oklch>(|l, c, h| [l, c, f(h)]),
+        }
+    }
 }
 
 pub(crate) const fn split_alpha([x, y, z, a]: [f32; 4]) -> ([f32; 3], f32) {
@@ -356,6 +369,19 @@ impl<CS: ColorSpace> AlphaColor<CS> {
             }
             Some(ColorSpaceTag::Hsl) => self.map(|h, s, l, a| [h, s, 100.0 * f(l * 0.01), a]),
             _ => self.map_in::<Oklab>(|l, a, b, alpha| [f(l), a, b, alpha]),
+        }
+    }
+
+    /// Map the hue of the color.
+    ///
+    /// In a color space that naturally has a hue component, map that value.
+    /// Otherwise, do the mapping in [Oklch]. The hue is in degrees.
+    #[must_use]
+    pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
+        match CS::LAYOUT {
+            ColorSpaceLayout::HueFirst => self.map(|h, c1, c2, a| [f(h), c1, c2, a]),
+            ColorSpaceLayout::HueThird => self.map(|c0, c1, h, a| [c0, c1, f(h), a]),
+            _ => self.map_in::<Oklch>(|l, c, h, alpha| [l, c, f(h), alpha]),
         }
     }
 }

@@ -292,6 +292,21 @@ impl DynamicColor {
             _ => self.map_in(ColorSpaceTag::Oklab, |l, a, b, alpha| [f(l), a, b, alpha]),
         }
     }
+
+    /// Map the hue of the color.
+    ///
+    /// In a color space that naturally has a hue component, map that value.
+    /// Otherwise, do the mapping in [Oklch]. The hue is in degrees.
+    ///
+    /// [Oklch]: crate::Oklch
+    #[must_use]
+    pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
+        match self.cs.layout() {
+            ColorSpaceLayout::HueFirst => self.map(|h, c1, c2, a| [f(h), c1, c2, a]),
+            ColorSpaceLayout::HueThird => self.map(|c0, c1, h, a| [c0, c1, f(h), a]),
+            _ => self.map_in(ColorSpaceTag::Oklch, |l, c, h, a| [l, c, f(h), a]),
+        }
+    }
 }
 
 impl Interpolator {
