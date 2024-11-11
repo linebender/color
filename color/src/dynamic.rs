@@ -277,8 +277,14 @@ impl DynamicColor {
     /// Map the lightness of the color.
     ///
     /// In a color space that naturally has a lightness component, map that value.
-    /// Otherwise, do the mapping in Oklab. The lightness range is normalized so
-    /// that 1.0 is white.
+    /// Otherwise, do the mapping in [Oklab]. The lightness range is normalized so
+    /// that 1.0 is white. That is the normal range for Oklab but differs from the
+    /// range in [Lab], [Lch], and [Hsl].
+    ///
+    /// [Oklab]: crate::Oklab
+    /// [Lab]: crate::Lab
+    /// [Lch]: crate::Lch
+    /// [Hsl]: crate::Hsl
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match self.cs {
