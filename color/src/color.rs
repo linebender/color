@@ -251,6 +251,18 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     ///
     /// In a color space that naturally has a hue component, map that value.
     /// Otherwise, do the mapping in [Oklch]. The hue is in degrees.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use color::{Oklab, OpaqueColor};
+    ///
+    /// let color = OpaqueColor::<Oklab>::new([0.5, 0.2, -0.1]);
+    /// let complementary = color.map_hue(|h| (h + 180.) % 360.);
+    /// let expected = OpaqueColor::<Oklab>::new([0.5, -0.2, 0.1]);
+    ///
+    /// assert!(complementary.difference(expected) < 0.001);
+    /// ```
     #[must_use]
     pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
         match CS::LAYOUT {
