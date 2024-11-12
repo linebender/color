@@ -83,6 +83,7 @@ impl core::fmt::Display for DynamicColor {
             ColorSpaceTag::Srgb => write_legacy_function(self, "rgb", 255.0, f),
             ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
             ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
+            ColorSpaceTag::A98Rgb => write_color_function(self, "a98-rgb", f),
             ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
             ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
             ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),

@@ -433,6 +433,7 @@ impl<'a> Parser<'a> {
             "srgb" => ColorSpaceTag::Srgb,
             "srgb-linear" => ColorSpaceTag::LinearSrgb,
             "display-p3" => ColorSpaceTag::DisplayP3,
+            "a98-rgb" => ColorSpaceTag::A98Rgb,
             "xyz" | "xyz-d65" => ColorSpaceTag::XyzD65,
             _ => return Err(ParseError::UnknownColorSpace),
         };
@@ -536,6 +537,7 @@ impl FromStr for ColorSpaceTag {
             "oklab" => Ok(Self::Oklab),
             "oklch" => Ok(Self::Oklch),
             "display-p3" => Ok(Self::DisplayP3),
+            "a98-rgb" => Ok(Self::A98Rgb),
             "xyz" | "xyz-d65" => Ok(Self::XyzD65),
             _ => Err(ParseError::UnknownColorSpace),
         }

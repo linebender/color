@@ -283,6 +283,79 @@ impl ColorSpace for DisplayP3 {
     }
 }
 
+/// 🌌 The Adobe RGB (1998) color space.
+///
+/// Adobe RGB is similar to [sRGB](`Srgb`) but has higher green chromaticity, thereby extending its
+/// gamut over sRGB on that component. It was developed to encompass typical color print gamuts.
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black and `[1, 1, 1]` white. The natural bounds of the channels are `[0, 1]`.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 10.5][css-sec] and is
+/// [characterized by the ICC][icc]. Adobe RGB is described [here][adobe] by Adobe.
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-a98-rgb
+/// [icc]: https://www.color.org/chardata/rgb/adobergb.xalter
+/// [adobe]: https://www.adobe.com/digitalimag/adobergb.html
+#[derive(Clone, Copy, Debug)]
+pub struct A98Rgb;
+
+impl ColorSpace for A98Rgb {
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::A98Rgb);
+
+    fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_sRGB * lin_A98_to_XYZ
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "exact rational, truncate at compile-time"
+        )]
+        const LINEAR_A98RGB_TO_SRGB: [[f32; 3]; 3] = [
+            [
+                (66_942_405. / 47_872_228.) as f32,
+                (-19_070_177. / 47_872_228.) as f32,
+                0.,
+            ],
+            [0., 1., 0.],
+            [
+                0.,
+                (-11_512_411. / 268_173_353.) as f32,
+                (279_685_764. / 268_173_353.) as f32,
+            ],
+        ];
+        matmul(
+            &LINEAR_A98RGB_TO_SRGB,
+            [r, g, b].map(|x| x.abs().powf(2.199_218_8).copysign(x)),
+        )
+    }
+
+    fn from_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_A98RGB * lin_sRGB_to_XYZ
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "exact rational, truncate at compile-time"
+        )]
+        const LINEAR_SRGB_TO_A98RGB: [[f32; 3]; 3] = [
+            [
+                (47_872_228. / 66_942_405.) as f32,
+                (19_070_177. / 66_942_405.) as f32,
+                0.0,
+            ],
+            [0., 1., 0.],
+            [
+                0.,
+                (11_512_411. / 279_685_764.) as f32,
+                (268_173_353. / 279_685_764.) as f32,
+            ],
+        ];
+        matmul(&LINEAR_SRGB_TO_A98RGB, [r, g, b])
+            .map(|x| x.abs().powf(1. / 2.199_218_8).copysign(x))
+    }
+
+    fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
+        [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
+    }
+}
+
 /// 🌌 The CIE XYZ color space with a 2° observer and a reference white of D65.
 ///
 /// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.
@@ -841,5 +914,25 @@ impl ColorSpace for Hwb {
 
     fn clip([h, w, b]: [f32; 3]) -> [f32; 3] {
         [h, w.clamp(0., 100.), b.clamp(0., 100.)]
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{A98Rgb, ColorSpace, OpaqueColor, Srgb};
+
+    fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
+        OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 0.001
+    }
+
+    #[test]
+    fn a98rgb_srgb() {
+        for (srgb, a98) in [
+            ([0.1, 0.2, 0.3], [0.15511, 0.21232, 0.30150]),
+            ([0., 1., 0.], [0.56493, 1., 0.23445]),
+        ] {
+            assert!(almost_equal::<Srgb>(srgb, A98Rgb::convert::<Srgb>(a98)));
+            assert!(almost_equal::<A98Rgb>(a98, Srgb::convert::<A98Rgb>(srgb)));
+        }
     }
 }
