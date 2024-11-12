@@ -355,6 +355,49 @@ impl ColorSpace for A98Rgb {
     }
 }
 
+/// 🌌 The CIE XYZ color space with a 2° observer and a reference white of D50.
+///
+/// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.
+/// Reference white has a luminance `Y` of 1.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 10.8][css-sec]. It is
+/// defined in CIE 015:2018.
+///
+/// See the [XYZ-D65 color space](`XyzD65`) documentation for some background information on color
+/// spaces.
+#[derive(Clone, Copy, Debug)]
+pub struct XyzD50;
+
+impl ColorSpace for XyzD50 {
+    const IS_LINEAR: bool = true;
+
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::XyzD50);
+
+    fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_sRGB * D50_to_D65
+        const XYZ_TO_LINEAR_SRGB: [[f32; 3]; 3] = [
+            [3.134_136, -1.617_386, -0.490_662_22],
+            [-0.978_795_47, 1.916_254_4, 0.033_442_874],
+            [0.071_955_39, -0.228_976_76, 1.405_386_1],
+        ];
+        matmul(&XYZ_TO_LINEAR_SRGB, src)
+    }
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        // D65_to_D50 * lin_sRGB_to_XYZ
+        const LINEAR_SRGB_TO_XYZ: [[f32; 3]; 3] = [
+            [0.436_065_73, 0.385_151_5, 0.143_078_42],
+            [0.222_493_17, 0.716_887, 0.060_619_81],
+            [0.013_923_922, 0.097_081_326, 0.714_099_35],
+        ];
+        matmul(&LINEAR_SRGB_TO_XYZ, src)
+    }
+
+    fn clip([x, y, z]: [f32; 3]) -> [f32; 3] {
+        [x, y, z]
+    }
+}
+
 /// 🌌 The CIE XYZ color space with a 2° observer and a reference white of D65.
 ///
 /// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.

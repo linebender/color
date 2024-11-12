@@ -86,6 +86,7 @@ impl core::fmt::Display for DynamicColor {
             ColorSpaceTag::A98Rgb => write_color_function(self, "a98-rgb", f),
             ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
             ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
+            ColorSpaceTag::XyzD50 => write_color_function(self, "xyz-d50", f),
             ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
             ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
             ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
