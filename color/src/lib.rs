@@ -36,6 +36,7 @@ mod missing;
 // Note: this may become feature-gated; we'll decide this soon
 mod dynamic;
 mod parse;
+mod rgba8;
 mod serialize;
 mod tag;
 mod x11_colors;
@@ -52,6 +53,7 @@ pub use dynamic::{DynamicColor, Interpolator};
 pub use gradient::{gradient, GradientIter};
 pub use missing::Missing;
 pub use parse::{parse_color, ParseError};
+pub use rgba8::Rgba8;
 pub use tag::ColorSpaceTag;
 
 const fn u8_to_f32(x: u32) -> f32 {
@@ -68,6 +70,8 @@ fn matmul(m: &[[f32; 3]; 3], x: [f32; 3]) -> [f32; 3] {
 
 impl AlphaColor<Srgb> {
     /// Create a color from 8-bit rgba values.
+    ///
+    /// Note: for conversion from the [`Rgba8`] type, just use the `From` trait.
     pub const fn from_rgba8(r: u8, g: u8, b: u8, a: u8) -> Self {
         let components = [
             u8_to_f32(r as u32),

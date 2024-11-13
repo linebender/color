@@ -6,7 +6,7 @@
 use core::any::TypeId;
 use core::marker::PhantomData;
 
-use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch};
+use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, Rgba8, Srgb};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -270,6 +270,12 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
             _ => self.map_in::<Oklch>(|l, c, h| [l, c, f(h)]),
         }
     }
+
+    /// Pack into 8 bit per component encoding.
+    #[must_use]
+    pub fn to_rgba8(self) -> Rgba8 {
+        self.with_alpha(1.0).to_rgba8()
+    }
 }
 
 pub(crate) const fn split_alpha([x, y, z, a]: [f32; 4]) -> ([f32; 3], f32) {
@@ -394,6 +400,17 @@ impl<CS: ColorSpace> AlphaColor<CS> {
             ColorSpaceLayout::HueThird => self.map(|c0, c1, h, a| [c0, c1, f(h), a]),
             _ => self.map_in::<Oklch>(|l, c, h, alpha| [l, c, f(h), alpha]),
         }
+    }
+
+    /// Pack into 8 bit per component encoding.
+    #[must_use]
+    pub fn to_rgba8(self) -> Rgba8 {
+        #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
+        let [r, g, b, a] = self
+            .convert::<Srgb>()
+            .components
+            .map(|x| (x.clamp(0., 1.) * 255.0).round() as u8);
+        Rgba8 { r, g, b, a }
     }
 }
 

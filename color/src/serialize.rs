@@ -5,7 +5,7 @@
 
 use core::fmt::{Formatter, Result};
 
-use crate::{ColorSpaceTag, DynamicColor};
+use crate::{ColorSpaceTag, DynamicColor, Rgba8};
 
 fn write_scaled_component(
     color: &DynamicColor,
@@ -80,7 +80,7 @@ impl core::fmt::Display for DynamicColor {
         match self.cs {
             // A case can be made this isn't the best serialization in general,
             // because CSS parsing of out-of-gamut components will clamp.
-            ColorSpaceTag::Srgb => write_legacy_function(self, "rgb", 255.0, f),
+            ColorSpaceTag::Srgb => write_color_function(self, "srgb", f),
             ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
             ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
             ColorSpaceTag::A98Rgb => write_color_function(self, "a98-rgb", f),
@@ -92,6 +92,45 @@ impl core::fmt::Display for DynamicColor {
             ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
             ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
             ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
+        }
+    }
+}
+
+impl core::fmt::Display for Rgba8 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if self.a == 255 {
+            write!(f, "rgb({}, {}, {})", self.r, self.g, self.b)
+        } else {
+            let a = self.a as f32 * (1.0 / 255.0);
+            write!(f, "rgba({}, {}, {}, {a})", self.r, self.g, self.b)
+        }
+    }
+}
+
+impl core::fmt::LowerHex for Rgba8 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if self.a == 255 {
+            write!(f, "#{:02x}{:02x}{:02x})", self.r, self.g, self.b)
+        } else {
+            write!(
+                f,
+                "#{:02x}{:02x}{:02x}{:02x})",
+                self.r, self.g, self.b, self.a
+            )
+        }
+    }
+}
+
+impl core::fmt::UpperHex for Rgba8 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if self.a == 255 {
+            write!(f, "#{:02X}{:02X}{:02X})", self.r, self.g, self.b)
+        } else {
+            write!(
+                f,
+                "#{:02X}{:02X}{:02X}{:02X})",
+                self.r, self.g, self.b, self.a
+            )
         }
     }
 }
