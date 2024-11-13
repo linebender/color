@@ -462,7 +462,7 @@ impl<'a> Parser<'a> {
 pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
     #[inline]
     fn set_from_named_color_space(mut color: DynamicColor) -> DynamicColor {
-        color.flags.set_from_named_color_space();
+        color.flags.set_named_color_space();
         color
     }
 
@@ -495,7 +495,7 @@ pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
                     let mut color =
                         DynamicColor::from_alpha_color(AlphaColor::from_rgba8(r, g, b, a));
                     #[expect(clippy::cast_possible_truncation, reason = "there are 142 colors")]
-                    color.flags.set_from_named_color(ix as u16);
+                    color.flags.set_named_color(ix as u16);
                     Ok(color)
                 } else {
                     Err(ParseError::UnknownColorIdentifier)

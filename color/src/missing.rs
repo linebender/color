@@ -45,14 +45,14 @@ impl Flags {
     }
 
     /// Construct flags indicating the color was generated from one of the named colors.
-    pub(crate) fn set_from_named_color(&mut self, name_ix: u16) {
+    pub(crate) fn set_named_color(&mut self, name_ix: u16) {
         let missing = self.0 & 0b1111;
         self.0 = missing | 1 << 4 | (name_ix + 1) << 5;
     }
 
     /// Construct flags indicating the color was generated from one of the named color space
     /// functions.
-    pub(crate) fn set_from_named_color_space(&mut self) {
+    pub(crate) fn set_named_color_space(&mut self) {
         let missing = self.0 & 0b1111;
         self.0 = missing | 1 << 4;
     }
