@@ -11,7 +11,7 @@ const SALTS: [u8; 142] = [
     0, 0, 1, 4, 2, 0, 0, 2, 2, 0, 1, 0, 0, 1, 5, 0, 0, 1, 0, 0,
 ];
 
-const NAMES: [&str; 142] = [
+pub(crate) const NAMES: [&str; 142] = [
     "rosybrown",
     "forestgreen",
     "cornsilk",
@@ -156,7 +156,7 @@ const NAMES: [&str; 142] = [
     "yellowgreen",
 ];
 
-const COLORS: [[u8; 4]; 142] = [
+pub(crate) const COLORS: [[u8; 4]; 142] = [
     [188, 143, 143, 255],
     [34, 139, 34, 255],
     [255, 248, 220, 255],
@@ -312,7 +312,7 @@ fn weak_hash(key: u32, salt: u32, n: usize) -> usize {
     (((y as u64) * (n as u64)) >> 32) as usize
 }
 
-pub(crate) fn lookup_palette(s: &str) -> Option<[u8; 4]> {
+pub(crate) fn lookup_palette(s: &str) -> Option<usize> {
     let mut key = 0_u32;
     for b in s.as_bytes() {
         key = key.wrapping_mul(9).wrapping_add(*b as u32);
@@ -320,7 +320,7 @@ pub(crate) fn lookup_palette(s: &str) -> Option<[u8; 4]> {
     let salt = SALTS[weak_hash(key, 0, SALTS.len())] as u32;
     let ix = weak_hash(key, salt, SALTS.len());
     if s == NAMES[ix] {
-        Some(COLORS[ix])
+        Some(ix)
     } else {
         None
     }

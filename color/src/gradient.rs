@@ -54,11 +54,11 @@ pub fn gradient<CS: ColorSpace>(
     tolerance: f32,
 ) -> GradientIter<CS> {
     let interpolator = color0.interpolate(color1, interp_cs, direction);
-    if !color0.missing.is_empty() {
+    if !color0.flags.missing().is_empty() {
         color0 = interpolator.eval(0.0);
     }
     let target0 = color0.to_alpha_color().premultiply();
-    if !color1.missing.is_empty() {
+    if !color1.flags.missing().is_empty() {
         color1 = interpolator.eval(1.0);
     }
     let target1 = color1.to_alpha_color().premultiply();

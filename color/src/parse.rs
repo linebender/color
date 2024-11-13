@@ -8,7 +8,7 @@ use core::f64;
 use core::fmt;
 use core::str::FromStr;
 
-use crate::{AlphaColor, ColorSpaceTag, DynamicColor, Missing, Srgb};
+use crate::{AlphaColor, ColorSpaceTag, DynamicColor, Flags, Missing, Srgb};
 
 // TODO: maybe include string offset
 /// Error type for parse errors.
@@ -96,7 +96,7 @@ fn color_from_components(components: [Option<f64>; 4], cs: ColorSpaceTag) -> Dyn
     }
     DynamicColor {
         cs,
-        missing,
+        flags: Flags::from_missing(missing),
         components: components.map(|x| x.unwrap_or(0.0) as f32),
     }
 }
@@ -461,6 +461,12 @@ impl<'a> Parser<'a> {
 /// Tries to return a suitable error for any invalid string, but may be
 /// a little lax on some details.
 pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> {
+    #[inline]
+    fn set_from_named_color_space(mut color: DynamicColor) -> DynamicColor {
+        color.flags.set_named_color_space();
+        color
+    }
+
     if let Some(stripped) = s.strip_prefix('#') {
         let (ix, channels) = get_4bit_hex_channels(stripped)?;
         let color = color_from_4bit_hex(channels);
@@ -469,23 +475,35 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
     let mut parser = Parser::new(s);
     if let Some(id) = parser.ident() {
         let color = match id {
-            "rgb" | "rgba" => parser.rgb(),
-            "lab" => parser.lab(100.0, 1.25, ColorSpaceTag::Lab),
-            "lch" => parser.lch(100.0, 1.25, ColorSpaceTag::Lch),
-            "oklab" => parser.lab(1.0, 0.004, ColorSpaceTag::Oklab),
-            "oklch" => parser.lch(1.0, 0.004, ColorSpaceTag::Oklch),
-            "hsl" | "hsla" => parser.hsl(),
-            "hwb" => parser.hwb(),
+            "rgb" | "rgba" => parser.rgb().map(set_from_named_color_space),
+            "lab" => parser
+                .lab(100.0, 1.25, ColorSpaceTag::Lab)
+                .map(set_from_named_color_space),
+            "lch" => parser
+                .lch(100.0, 1.25, ColorSpaceTag::Lch)
+                .map(set_from_named_color_space),
+            "oklab" => parser
+                .lab(1.0, 0.004, ColorSpaceTag::Oklab)
+                .map(set_from_named_color_space),
+            "oklch" => parser
+                .lch(1.0, 0.004, ColorSpaceTag::Oklch)
+                .map(set_from_named_color_space),
+            "hsl" | "hsla" => parser.hsl().map(set_from_named_color_space),
+            "hwb" => parser.hwb().map(set_from_named_color_space),
             "color" => parser.color(),
             _ => {
-                if let Some([r, g, b, a]) = crate::x11_colors::lookup_palette(id) {
-                    let color = AlphaColor::from_rgba8(r, g, b, a);
-                    Ok(DynamicColor::from_alpha_color(color))
+                if let Some(ix) = crate::x11_colors::lookup_palette(id) {
+                    let [r, g, b, a] = crate::x11_colors::COLORS[ix];
+                    let mut color =
+                        DynamicColor::from_alpha_color(AlphaColor::from_rgba8(r, g, b, a));
+                    color.flags.set_named_color(ix);
+                    Ok(color)
                 } else {
                     Err(ParseError::UnknownColorIdentifier)
                 }
             }
         }?;
+
         Ok((parser.ix, color))
     } else {
         Err(ParseError::UnknownColorSyntax)

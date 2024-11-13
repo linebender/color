@@ -239,12 +239,12 @@ if len(obuf) > 3:
 print("];")
 print()
 
-print(f"const NAMES: [&str; {n}] = [")
+print(f"pub(crate) const NAMES: [&str; {n}] = [")
 for (name, rgba) in keys:
     print(f'    "{name}",')
 print("];")
 print()
-print(f"const COLORS: [[u8; 4]; {n}] = [")
+print(f"pub(crate) const COLORS: [[u8; 4]; {n}] = [")
 for (name, rgba) in keys:
     print(f'    {list(rgba)},')
 print("];")
@@ -260,7 +260,7 @@ fn weak_hash(key: u32, salt: u32, n: usize) -> usize {
     (((y as u64) * (n as u64)) >> 32) as usize
 }
 
-pub(crate) fn lookup_palette(s: &str) -> Option<[u8; 4]> {
+pub(crate) fn lookup_palette(s: &str) -> Option<usize> {
     let mut key = 0_u32;
     for b in s.as_bytes() {
         key = key.wrapping_mul(9).wrapping_add(*b as u32);
@@ -268,7 +268,7 @@ pub(crate) fn lookup_palette(s: &str) -> Option<[u8; 4]> {
     let salt = SALTS[weak_hash(key, 0, SALTS.len())] as u32;
     let ix = weak_hash(key, salt, SALTS.len());
     if s == NAMES[ix] {
-        Some(COLORS[ix])
+        Some(ix)
     } else {
         None
     }
