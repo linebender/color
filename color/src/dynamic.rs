@@ -42,6 +42,7 @@ pub struct DynamicColor {
 }
 
 // `DynamicColor` was carefully packed. Ensure its size doesn't accidentally change.
+#[cfg(test)]
 const _: () = if size_of::<DynamicColor>() != 20 {
     panic!("`DynamicColor` size changed");
 };
