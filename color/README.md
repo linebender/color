@@ -13,7 +13,27 @@
 
 </div>
 
-The Color library provides functionality for ...
+<!-- We use cargo-rdme to update the README with the contents of lib.rs.
+To edit the following section, update it in lib.rs, then run:
+cargo rdme --workspace-project=color --heading-base-level=0
+Full documentation at https://github.com/orium/cargo-rdme -->
+
+<!-- Intra-doc links used in lib.rs should be evaluated here. 
+See https://linebender.org/blog/doc-include/ for related discussion. -->
+[libm]: https://crates.io/crates/libm
+
+<!-- cargo-rdme start -->
+
+Color is a Rust crate which implements color space conversions, targeting at least CSS4 color.
+
+## Features
+
+- `std` (enabled by default): Get floating point functions from the standard library (likely using your target's libc).
+- `libm`: Use floating point implementations from [libm][].
+
+At least one of `std` and `libm` is required; `std` overrides `libm`.
+
+<!-- cargo-rdme end -->
 
 ## Minimum supported Rust Version (MSRV)
 
@@ -32,6 +52,7 @@ If you encounter a compilation issue due to a dependency and don't want to upgra
 # Use the problematic dependency's name and version
 cargo update -p package_name --precise 0.1.1
 ```
+
 </details>
 
 ## Community

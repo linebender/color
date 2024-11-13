@@ -14,10 +14,20 @@
 // these allow attributes.
 #![allow(clippy::todo, reason = "need to fix todos")]
 
-//! # Color
+//! Color is a Rust crate which implements color space conversions, targeting at least CSS4 color.
 //!
-//! TODO: need to write a treatise on the nature of color and how to model
-//! a reasonable fragment of it in the Rust type system.
+//! ## Features
+//!
+//! - `std` (enabled by default): Get floating point functions from the standard library (likely using your target's libc).
+//! - `libm`: Use floating point implementations from [libm][].
+//!
+//! At least one of `std` and `libm` is required; `std` overrides `libm`.
+//!
+#![cfg_attr(feature = "libm", doc = "[libm]: libm")]
+#![cfg_attr(not(feature = "libm"), doc = "[libm]: https://crates.io/crates/libm")]
+//
+// TODO: need to write a treatise on the nature of color and how to model
+// a reasonable fragment of it in the Rust type system.
 
 mod color;
 mod colorspace;
