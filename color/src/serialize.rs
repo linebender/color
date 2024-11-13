@@ -13,7 +13,7 @@ fn write_scaled_component(
     f: &mut Formatter<'_>,
     scale: f32,
 ) -> Result {
-    if color.missing.contains(ix) {
+    if color.flags.missing(ix) {
         // According to the serialization rules (§15.2), missing should be converted to 0.
         // However, it seems useful to preserve these. Perhaps we want to talk about whether
         // we want string formatting to strictly follow the serialization spec.
@@ -77,23 +77,65 @@ fn write_legacy_function(
 
 impl core::fmt::Display for DynamicColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self.cs {
-            // A case can be made this isn't the best serialization in general,
-            // because CSS parsing of out-of-gamut components will clamp.
-            ColorSpaceTag::Srgb => write_color_function(self, "srgb", f),
-            ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
-            ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
-            ColorSpaceTag::A98Rgb => write_color_function(self, "a98-rgb", f),
-            ColorSpaceTag::ProphotoRgb => write_color_function(self, "prophoto-rgb", f),
-            ColorSpaceTag::Rec2020 => write_color_function(self, "rec2020", f),
-            ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
-            ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
-            ColorSpaceTag::XyzD50 => write_color_function(self, "xyz-d50", f),
-            ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
-            ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
-            ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
-            ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
-            ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
+        if self.flags.named() {
+            if let Some(color_name) = self.flags.color_name() {
+                return write!(f, "{}", color_name);
+            }
+
+            match self.cs {
+                ColorSpaceTag::Srgb => write_legacy_function(self, "rgb", 255.0, f),
+                ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
+                ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
+                ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
+                ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
+                ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
+                ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
+                _ => unreachable!(),
+            }
+        } else {
+            let color_space = match self.cs {
+                ColorSpaceTag::Srgb => "srgb",
+                ColorSpaceTag::LinearSrgb => "srgb-linear",
+                ColorSpaceTag::DisplayP3 => "display-p3",
+                ColorSpaceTag::A98Rgb => "a98-rgb",
+                ColorSpaceTag::ProphotoRgb => "prophoto-rgb",
+                ColorSpaceTag::Rec2020 => "rec2020",
+                ColorSpaceTag::Hsl => "hsl",
+                ColorSpaceTag::Hwb => "hwb",
+                ColorSpaceTag::XyzD50 => "xyz-d50",
+                ColorSpaceTag::XyzD65 => "xyz",
+                ColorSpaceTag::Lab => "lab",
+                ColorSpaceTag::Lch => "lch",
+                ColorSpaceTag::Oklab => "oklab",
+                ColorSpaceTag::Oklch => "oklch",
+            };
+            write_color_function(self, color_space, f)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::parse_color;
+
+    #[test]
+    fn specified_to_serialized() {
+        for (specified, expected) in [
+            ("rgb(1,1,1)", "rgb(1, 1, 1)"),
+            // currently fails, but should succeed (values should be clamped at parse-time)
+            // ("rgb(1.1,1,1)", "rgb(1, 1, 1)"),
+            ("color(srgb 1.0 1.0 1.0)", "color(srgb 1 1 1)"),
+            ("rosybrown", "rosybrown"),
+            ("red", "red"),
+            ("transparent", "transparent"),
+            ("yellowgreen", "yellowgreen"),
+        ] {
+            let result = format!("{}", parse_color(specified).unwrap());
+            assert_eq!(
+                result,
+                expected,
+                "Failed serializing specified color `{specified}`. Expected: `{expected}`. Got: `{result}`."
+            );
         }
     }
 }
