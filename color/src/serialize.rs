@@ -84,8 +84,10 @@ impl core::fmt::Display for DynamicColor {
 
             match self.cs {
                 ColorSpaceTag::Srgb => write_legacy_function(self, "rgb", 255.0, f),
-                ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
-                ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
+                ColorSpaceTag::Hsl | ColorSpaceTag::Hwb => {
+                    let srgb = self.convert(ColorSpaceTag::Srgb);
+                    write_legacy_function(&srgb, "rgb", 255.0, f)
+                }
                 ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
                 ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
                 ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
@@ -122,6 +124,12 @@ mod tests {
     fn specified_to_serialized() {
         for (specified, expected) in [
             ("rgb(1,1,1)", "rgb(1, 1, 1)"),
+            // TODO: output rounding? Otherwise the tests should check for approximate equality
+            // (and not string equality) for these conversion cases
+            (
+                "hwb(740deg 20% 30% / 50%)",
+                "rgba(178.5, 93.50008, 50.999996, 0.5)",
+            ),
             // currently fails, but should succeed (values should be clamped at parse-time)
             // ("rgb(1.1,1,1)", "rgb(1, 1, 1)"),
             ("color(srgb 1.0 1.0 1.0)", "color(srgb 1 1 1)"),
