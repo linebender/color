@@ -5,7 +5,7 @@
 
 use crate::{
     A98Rgb, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Missing,
-    Oklab, Oklch, Srgb, XyzD50, XyzD65,
+    Oklab, Oklch, ProphotoRgb, Srgb, XyzD50, XyzD65,
 };
 
 /// The color space tag for dynamic colors.
@@ -41,6 +41,8 @@ pub enum ColorSpaceTag {
     DisplayP3,
     /// The [`A98Rgb`] color space.
     A98Rgb,
+    /// The [`ProphotoRgb`] color space.
+    ProphotoRgb,
     /// The [`XyzD50`] color space.
     XyzD50,
     /// The [`XyzD65`] color space.
@@ -64,8 +66,8 @@ impl ColorSpaceTag {
         matches!(
             (self, other),
             (
-                Srgb | LinearSrgb | DisplayP3 | A98Rgb | XyzD50 | XyzD65,
-                Srgb | LinearSrgb | DisplayP3 | A98Rgb | XyzD50 | XyzD65
+                Srgb | LinearSrgb | DisplayP3 | A98Rgb | ProphotoRgb | XyzD50 | XyzD65,
+                Srgb | LinearSrgb | DisplayP3 | A98Rgb | ProphotoRgb | XyzD50 | XyzD65
             ) | (Lab | Oklab, Lab | Oklab)
                 | (Lch | Oklch, Lch | Oklch)
         )
@@ -140,6 +142,7 @@ impl ColorSpaceTag {
             Self::Oklch => Oklch::from_linear_srgb(rgb),
             Self::DisplayP3 => DisplayP3::from_linear_srgb(rgb),
             Self::A98Rgb => A98Rgb::from_linear_srgb(rgb),
+            Self::ProphotoRgb => ProphotoRgb::from_linear_srgb(rgb),
             Self::XyzD50 => XyzD50::from_linear_srgb(rgb),
             Self::XyzD65 => XyzD65::from_linear_srgb(rgb),
             Self::Hsl => Hsl::from_linear_srgb(rgb),
@@ -160,6 +163,7 @@ impl ColorSpaceTag {
             Self::Oklch => Oklch::to_linear_srgb(src),
             Self::DisplayP3 => DisplayP3::to_linear_srgb(src),
             Self::A98Rgb => A98Rgb::to_linear_srgb(src),
+            Self::ProphotoRgb => ProphotoRgb::to_linear_srgb(src),
             Self::XyzD50 => XyzD50::to_linear_srgb(src),
             Self::XyzD65 => XyzD65::to_linear_srgb(src),
             Self::Hsl => Hsl::to_linear_srgb(src),
@@ -214,6 +218,7 @@ impl ColorSpaceTag {
             Self::Oklch => Oklch::clip(src),
             Self::DisplayP3 => DisplayP3::clip(src),
             Self::A98Rgb => A98Rgb::clip(src),
+            Self::ProphotoRgb => ProphotoRgb::clip(src),
             Self::XyzD50 => XyzD50::clip(src),
             Self::XyzD65 => XyzD65::clip(src),
             Self::Hsl => Hsl::clip(src),
