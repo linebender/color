@@ -130,6 +130,10 @@ mod tests {
                 "hwb(740deg 20% 30% / 50%)",
                 "rgba(178.5, 93.50008, 50.999996, 0.5)",
             ),
+            // the next two currently fail, but should succeed (ASCII uppercase codepoints should
+            // be lowercased)
+            // ("ReD", "red"),
+            // ("RgB(1,1,1)", "rgb(1, 1, 1)"),
             // currently fails, but should succeed (values should be clamped at parse-time)
             // ("rgb(1.1,1,1)", "rgb(1, 1, 1)"),
             ("color(srgb 1.0 1.0 1.0)", "color(srgb 1 1 1)"),
