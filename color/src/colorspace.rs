@@ -361,12 +361,15 @@ impl ColorSpace for A98Rgb {
 /// Reference white has a luminance `Y` of 1.
 ///
 /// This corresponds to the color space in [CSS Color Module Level 4 § 10.8][css-sec]. It is
-/// defined in CIE 015:2018.
+/// defined in CIE 015:2018. Following [CSS Color Module Level 4 § 11][css-chromatic-adaptation],
+/// the conversion between D50 and D65 white points is done with the standard Bradford linear
+/// chromatic adaptation transform.
 ///
 /// See the [XYZ-D65 color space](`XyzD65`) documentation for some background information on color
 /// spaces.
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-xyz
+/// [css-chromatic-adaptation]: https://www.w3.org/TR/css-color-4/#color-conversion
 #[derive(Clone, Copy, Debug)]
 pub struct XyzD50;
 
