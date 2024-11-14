@@ -921,14 +921,14 @@ mod tests {
     use crate::{A98Rgb, ColorSpace, OpaqueColor, Srgb};
 
     fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
-        OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 0.001
+        OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 1e-4
     }
 
     #[test]
     fn a98rgb_srgb() {
         for (srgb, a98) in [
-            ([0.1, 0.2, 0.3], [0.15511, 0.21232, 0.30150]),
-            ([0., 1., 0.], [0.56493, 1., 0.23445]),
+            ([0.1, 0.2, 0.3], [0.155_114, 0.212_317, 0.301_498]),
+            ([0., 1., 0.], [0.564_972, 1., 0.234_424]),
         ] {
             assert!(almost_equal::<Srgb>(srgb, A98Rgb::convert::<Srgb>(a98)));
             assert!(almost_equal::<A98Rgb>(a98, Srgb::convert::<A98Rgb>(srgb)));
