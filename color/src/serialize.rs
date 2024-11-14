@@ -133,16 +133,24 @@ mod tests {
             // currently fails, but should succeed (values should be clamped at parse-time)
             // ("rgb(1.1,1,1)", "rgb(1, 1, 1)"),
             ("color(srgb 1.0 1.0 1.0)", "color(srgb 1 1 1)"),
-            ("rosybrown", "rosybrown"),
-            ("red", "red"),
-            ("transparent", "transparent"),
-            ("yellowgreen", "yellowgreen"),
         ] {
             let result = format!("{}", parse_color(specified).unwrap());
             assert_eq!(
                 result,
                 expected,
                 "Failed serializing specified color `{specified}`. Expected: `{expected}`. Got: `{result}`."
+            );
+        }
+    }
+
+    #[test]
+    fn roundtrip_named_colors() {
+        for name in crate::x11_colors::NAMES {
+            let result = format!("{}", parse_color(name).unwrap());
+            assert_eq!(
+                result,
+                name,
+                "Failed serializing specified named color `{name}`. Expected it to roundtrip. Got: `{result}`."
             );
         }
     }
