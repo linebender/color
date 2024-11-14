@@ -10,21 +10,26 @@ use crate::x11_colors;
 /// This tracks missing color components of a `DynamicColor` and details of how a `DynamicColor`
 /// was constructed.
 ///
-/// The "missing" flags indicate whether a specific color component is missing. The "named" flag
-/// represents whether the dynamic color was generated from one of the named colors in [CSS Color
-/// Module Level 4 § 6.1][css-named-colors] or named color space functions in [CSS Color Module
-/// Level 4 § 4.1][css-named-color-spaces].
+/// The "missing" flags indicate whether a specific color component is missing (either the three
+/// color channels or the alpha channel). The "named" flag represents whether the dynamic color was
+/// generated from one of the named colors in [CSS Color Module Level 4 § 6.1][css-named-colors] or
+/// named color space functions in [CSS Color Module Level 4 § 4.1][css-named-color-spaces].
 ///
 /// The latter is primarily useful for serializing.
 ///
 /// [css-named-colors]: https://www.w3.org/TR/css-color-4/#named-colors
 /// [css-named-color-spaces]: https://www.w3.org/TR/css-color-4/#color-syntax
-//
-// The flags are tracked with 16 bits. The first three are for missing components, the fourth
-// indicates whether the color was generated from a named color or named color space function. The
-// remaining bits indicate the named color.
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
-pub struct Flags(u16);
+pub struct Flags {
+    /// A bitset of missing color components.
+    missing: u8,
+
+    /// The named source a [`crate::DynamicColor`] was constructed from. Meanings:
+    /// - 0 - not constructed from a named source
+    /// - 255 - constructed from a named color space function
+    /// - otherwise the 1-based index into [`crate::x11_colors::NAMES`].
+    name: u8,
+}
 
 /// Missing color components, extracted from [`Flags`]. Some bitwise operations are implemented on
 /// this type, making certain manipulations more ergonomic.
@@ -36,36 +41,43 @@ impl Flags {
     /// be 0, 1, 2, or 3.
     pub const fn from_single_missing(ix: usize) -> Self {
         debug_assert!(ix <= 3, "color component index must be 0, 1, 2 or 3");
-        Self(1 << ix)
+        Flags {
+            missing: 1 << ix,
+            name: 0,
+        }
     }
 
     /// Construct flags with the given missing components.
     pub const fn from_missing(missing: Missing) -> Self {
-        Self(missing.0 as u16)
+        Flags {
+            missing: missing.0,
+            name: 0,
+        }
     }
 
     /// Construct flags indicating the color was generated from one of the named colors.
-    pub(crate) fn set_named_color(&mut self, name_ix: u16) {
-        let missing = self.0 & 0b1111;
-        self.0 = missing | 1 << 4 | (name_ix + 1) << 5;
+    pub(crate) fn set_named_color(&mut self, name_ix: usize) {
+        debug_assert!(name_ix < x11_colors::NAMES.len());
+        debug_assert!(x11_colors::NAMES.len() <= 253);
+
+        self.name = name_ix as u8 + 1;
     }
 
     /// Construct flags indicating the color was generated from one of the named color space
     /// functions.
     pub(crate) fn set_named_color_space(&mut self) {
-        let missing = self.0 & 0b1111;
-        self.0 = missing | 1 << 4;
+        self.name = 255;
     }
 
     /// Set the given component as missing.
     pub fn set_missing(&mut self, ix: usize) {
-        self.0 |= Self::from_single_missing(ix).0;
+        self.missing = Self::from_single_missing(ix).missing;
     }
 
     /// Extract the missing components from the flags.
     #[inline]
     pub fn extract_missing(self) -> Missing {
-        Missing((self.0 & 0b1111) as u8)
+        Missing(self.missing)
     }
 
     /// Returns `true` if the flags indicate the given color component is missing. The component
@@ -84,15 +96,15 @@ impl Flags {
     /// Returns `true` if the flags indicate the color was generated from a named color or named
     /// color space function.
     pub fn named(self) -> bool {
-        self.0 & 1 << 4 != 0
+        self.name != 0
     }
 
     /// If the color was constructed from a named color, returns that name.
     ///
     /// See also [`parse_color`][crate::parse_color].
     pub fn color_name(self) -> Option<&'static str> {
-        let name_ix = self.0 >> 5;
-        if name_ix == 0 {
+        let name_ix = self.name;
+        if name_ix == 0 || name_ix == 255 {
             None
         } else {
             Some(x11_colors::NAMES[name_ix as usize - 1])
