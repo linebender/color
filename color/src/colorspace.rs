@@ -358,7 +358,9 @@ impl ColorSpace for A98Rgb {
 /// 🌌 The ProPhoto RGB color space.
 ///
 /// ProPhoto RGB is similar to [sRGB](`Srgb`) but has higher red, green and blue chromaticities,
-/// thereby extending its gamut over sRGB on all components.
+/// thereby extending its gamut over sRGB on all components. ProPhoto RGB has a reference white of
+/// D50; see the [XYZ-D65 color space](`XyzD65`) documentation for some background information on
+/// the meaning of "reference white."
 ///
 /// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
 /// pure black and `[1, 1, 1]` white. The natural bounds of the channels are `[0, 1]`.
