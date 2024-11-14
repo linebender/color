@@ -365,6 +365,8 @@ impl ColorSpace for A98Rgb {
 ///
 /// See the [XYZ-D65 color space](`XyzD65`) documentation for some background information on color
 /// spaces.
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-xyz
 #[derive(Clone, Copy, Debug)]
 pub struct XyzD50;
 
