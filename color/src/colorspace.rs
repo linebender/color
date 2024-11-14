@@ -355,10 +355,10 @@ impl ColorSpace for A98Rgb {
     }
 }
 
-/// 🌌 The ProPhoto RGB color space.
+/// 🌌 The Prophoto RGB color space.
 ///
 ///
-/// ProPhoto RGB is similar to [sRGB](`Srgb`) but has higher red, green and blue chromaticities,
+/// Prophoto RGB is similar to [sRGB](`Srgb`) but has higher red, green and blue chromaticities,
 /// thereby extending its gamut over sRGB on all components.
 ///
 /// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
@@ -367,7 +367,7 @@ impl ColorSpace for A98Rgb {
 /// This corresponds to the color space in [CSS Color Module Level 4 § 10.6][css-sec] and is
 /// [characterized by the ICC][icc].
 ///
-/// ProPhoto RGB is also known as ROMM RGB.
+/// Prophoto RGB is also known as ROMM RGB.
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-prophoto-rgb
 /// [icc]: https://www.color.org/chardata/rgb/rommrgb.xalter
@@ -378,9 +378,9 @@ impl ColorSpace for ProphotoRgb {
     fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * D50_to_D65 * lin_prophoto_to_XYZ
         const LINEAR_PROPHOTORGB_TO_SRGB: [[f32; 3]; 3] = [
-            [2.03436754347780, -0.727634474173360, -0.306733069304439],
-            [-0.228826798195387, 1.23175339622623, -0.00292659803084475],
-            [-0.00855842433665659, -0.153268203528315, 1.16182662786497],
+            [2.034_367_6, -0.727_634_5, -0.306_733_07],
+            [-0.228_826_79, 1.231_753_3, -0.002_926_598],
+            [-0.008_558_424, -0.153_268_2, 1.161_826_6],
         ];
 
         fn gamma_inv(x: f32) -> f32 {
@@ -397,9 +397,9 @@ impl ColorSpace for ProphotoRgb {
     fn from_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_prophoto * D65_to_D50 * lin_sRGB_to_XYZ
         const LINEAR_SRGB_TO_PROPHOTORGB: [[f32; 3]; 3] = [
-            [0.529280405976125, 0.330152985711814, 0.140566608312061],
-            [0.0983662219708857, 0.873463954506969, 0.0281698235221453],
-            [0.0168753409213868, 0.117659414256121, 0.865465244822492],
+            [0.529_280_4, 0.330_153, 0.140_566_6],
+            [0.098_366_22, 0.873_463_9, 0.028_169_824],
+            [0.016_875_342, 0.117_659_41, 0.865_465_2],
         ];
 
         fn gamma(x: f32) -> f32 {
