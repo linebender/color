@@ -355,10 +355,9 @@ impl ColorSpace for A98Rgb {
     }
 }
 
-/// 🌌 The Prophoto RGB color space.
+/// 🌌 The ProPhoto RGB color space.
 ///
-///
-/// Prophoto RGB is similar to [sRGB](`Srgb`) but has higher red, green and blue chromaticities,
+/// ProPhoto RGB is similar to [sRGB](`Srgb`) but has higher red, green and blue chromaticities,
 /// thereby extending its gamut over sRGB on all components.
 ///
 /// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
@@ -367,7 +366,7 @@ impl ColorSpace for A98Rgb {
 /// This corresponds to the color space in [CSS Color Module Level 4 § 10.6][css-sec] and is
 /// [characterized by the ICC][icc].
 ///
-/// Prophoto RGB is also known as ROMM RGB.
+/// ProPhoto RGB is also known as ROMM RGB.
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-prophoto-rgb
 /// [icc]: https://www.color.org/chardata/rgb/rommrgb.xalter
