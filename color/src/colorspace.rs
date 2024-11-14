@@ -324,7 +324,7 @@ impl ColorSpace for A98Rgb {
         ];
         matmul(
             &LINEAR_A98RGB_TO_SRGB,
-            [r, g, b].map(|x| x.abs().powf(2.199_218_8).copysign(x)),
+            [r, g, b].map(|x| x.abs().powf(563. / 256.).copysign(x)),
         )
     }
 
@@ -347,8 +347,7 @@ impl ColorSpace for A98Rgb {
                 (268_173_353. / 279_685_764.) as f32,
             ],
         ];
-        matmul(&LINEAR_SRGB_TO_A98RGB, [r, g, b])
-            .map(|x| x.abs().powf(1. / 2.199_218_8).copysign(x))
+        matmul(&LINEAR_SRGB_TO_A98RGB, [r, g, b]).map(|x| x.abs().powf(256. / 563.).copysign(x))
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
