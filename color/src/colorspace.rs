@@ -1051,7 +1051,7 @@ mod tests {
     }
 
     #[test]
-    fn prophoto_rgb() {
+    fn prophotorgb_srgb() {
         for (srgb, prophoto) in [
             ([0.1, 0.2, 0.3], [0.133136, 0.147659, 0.223581]),
             ([0., 1., 0.], [0.540282, 0.927599, 0.304566]),
