@@ -376,6 +376,8 @@ impl ColorSpace for A98Rgb {
 pub struct ProphotoRgb;
 
 impl ColorSpace for ProphotoRgb {
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::ProphotoRgb);
+
     fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * D50_to_D65 * lin_prophoto_to_XYZ
         const LINEAR_PROPHOTORGB_TO_SRGB: [[f32; 3]; 3] = [
