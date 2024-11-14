@@ -1031,7 +1031,7 @@ impl ColorSpace for Hwb {
 
 #[cfg(test)]
 mod tests {
-    use crate::{colorspace::ProphotoRgb, A98Rgb, ColorSpace, OpaqueColor, Srgb};
+    use crate::{A98Rgb, ColorSpace, OpaqueColor, ProphotoRgb, Srgb};
 
     fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
         OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 1e-4
