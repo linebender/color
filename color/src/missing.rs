@@ -25,9 +25,9 @@ pub struct Flags {
     missing: u8,
 
     /// The named source a [`crate::DynamicColor`] was constructed from. Meanings:
-    /// - 0 - not constructed from a named source
-    /// - 255 - constructed from a named color space function
-    /// - otherwise the 1-based index into [`crate::x11_colors::NAMES`].
+    /// - 0 - not constructed from a named source;
+    /// - 255 - constructed from a named color space function;
+    /// - otherwise - the 1-based index into [`crate::x11_colors::NAMES`].
     name: u8,
 }
 
