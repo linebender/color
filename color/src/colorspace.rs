@@ -383,7 +383,7 @@ impl ColorSpace for ProphotoRgb {
             [-0.008_558_424, -0.153_268_2, 1.161_826_6],
         ];
 
-        fn gamma_inv(x: f32) -> f32 {
+        fn transfer(x: f32) -> f32 {
             if x.abs() <= 16. / 512. {
                 x / 16.
             } else {
@@ -391,7 +391,7 @@ impl ColorSpace for ProphotoRgb {
             }
         }
 
-        matmul(&LINEAR_PROPHOTORGB_TO_SRGB, [r, g, b].map(gamma_inv))
+        matmul(&LINEAR_PROPHOTORGB_TO_SRGB, [r, g, b].map(transfer))
     }
 
     fn from_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -402,7 +402,7 @@ impl ColorSpace for ProphotoRgb {
             [0.016_875_342, 0.117_659_41, 0.865_465_2],
         ];
 
-        fn gamma(x: f32) -> f32 {
+        fn transfer(x: f32) -> f32 {
             if x.abs() <= 1. / 512. {
                 x * 16.
             } else {
@@ -410,7 +410,7 @@ impl ColorSpace for ProphotoRgb {
             }
         }
 
-        matmul(&LINEAR_SRGB_TO_PROPHOTORGB, [r, g, b]).map(gamma)
+        matmul(&LINEAR_SRGB_TO_PROPHOTORGB, [r, g, b]).map(transfer)
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
