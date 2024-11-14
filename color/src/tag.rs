@@ -5,7 +5,7 @@
 
 use crate::{
     A98Rgb, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Missing,
-    Oklab, Oklch, ProphotoRgb, Srgb, XyzD50, XyzD65,
+    Oklab, Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
 
 /// The color space tag for dynamic colors.
@@ -43,6 +43,8 @@ pub enum ColorSpaceTag {
     A98Rgb,
     /// The [`ProphotoRgb`] color space.
     ProphotoRgb,
+    /// The [`Rec2020`] color space.
+    Rec2020,
     /// The [`XyzD50`] color space.
     XyzD50,
     /// The [`XyzD65`] color space.
@@ -66,8 +68,8 @@ impl ColorSpaceTag {
         matches!(
             (self, other),
             (
-                Srgb | LinearSrgb | DisplayP3 | A98Rgb | ProphotoRgb | XyzD50 | XyzD65,
-                Srgb | LinearSrgb | DisplayP3 | A98Rgb | ProphotoRgb | XyzD50 | XyzD65
+                Srgb | LinearSrgb | DisplayP3 | A98Rgb | ProphotoRgb | Rec2020 | XyzD50 | XyzD65,
+                Srgb | LinearSrgb | DisplayP3 | A98Rgb | ProphotoRgb | Rec2020 | XyzD50 | XyzD65
             ) | (Lab | Oklab, Lab | Oklab)
                 | (Lch | Oklch, Lch | Oklch)
         )
@@ -143,6 +145,7 @@ impl ColorSpaceTag {
             Self::DisplayP3 => DisplayP3::from_linear_srgb(rgb),
             Self::A98Rgb => A98Rgb::from_linear_srgb(rgb),
             Self::ProphotoRgb => ProphotoRgb::from_linear_srgb(rgb),
+            Self::Rec2020 => Rec2020::from_linear_srgb(rgb),
             Self::XyzD50 => XyzD50::from_linear_srgb(rgb),
             Self::XyzD65 => XyzD65::from_linear_srgb(rgb),
             Self::Hsl => Hsl::from_linear_srgb(rgb),
@@ -164,6 +167,7 @@ impl ColorSpaceTag {
             Self::DisplayP3 => DisplayP3::to_linear_srgb(src),
             Self::A98Rgb => A98Rgb::to_linear_srgb(src),
             Self::ProphotoRgb => ProphotoRgb::to_linear_srgb(src),
+            Self::Rec2020 => Rec2020::to_linear_srgb(src),
             Self::XyzD50 => XyzD50::to_linear_srgb(src),
             Self::XyzD65 => XyzD65::to_linear_srgb(src),
             Self::Hsl => Hsl::to_linear_srgb(src),
@@ -219,6 +223,7 @@ impl ColorSpaceTag {
             Self::DisplayP3 => DisplayP3::clip(src),
             Self::A98Rgb => A98Rgb::clip(src),
             Self::ProphotoRgb => ProphotoRgb::clip(src),
+            Self::Rec2020 => Rec2020::clip(src),
             Self::XyzD50 => XyzD50::clip(src),
             Self::XyzD65 => XyzD65::clip(src),
             Self::Hsl => Hsl::clip(src),

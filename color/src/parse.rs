@@ -435,6 +435,7 @@ impl<'a> Parser<'a> {
             "display-p3" => ColorSpaceTag::DisplayP3,
             "a98-rgb" => ColorSpaceTag::A98Rgb,
             "prophoto-rgb" => ColorSpaceTag::ProphotoRgb,
+            "rec2020" => ColorSpaceTag::Rec2020,
             "xyz-d50" => ColorSpaceTag::XyzD50,
             "xyz" | "xyz-d65" => ColorSpaceTag::XyzD65,
             _ => return Err(ParseError::UnknownColorSpace),

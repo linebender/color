@@ -421,6 +421,110 @@ impl ColorSpace for ProphotoRgb {
     }
 }
 
+/// 🌌 The Rec. 2020 color space.
+///
+/// Rec. 2020 is similar to [sRGB](`Srgb`) but has higher red, green and blue chromaticities,
+/// thereby extending its gamut over sRGB on all components.
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black and `[1, 1, 1]` white. The natural bounds of the channels are `[0, 1]`.
+///
+/// This corresponds to the color space in [CSS Color Module Level 4 § 10.7][css-sec] and is
+/// [characterized by the ICC][icc]. The color space is defined by the International
+/// Telecommunication Union [here][itu].
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-rec2020
+/// [icc]: https://www.color.org/chardata/rgb/BT2020.xalter
+/// [itu]: https://www.itu.int/rec/R-REC-BT.2020/en
+#[derive(Clone, Copy, Debug)]
+pub struct Rec2020;
+
+impl Rec2020 {
+    // These are the parameters of the transfer function defined in the Rec. 2020 specification.
+    // They are truncated here to f32 precision.
+    const A: f32 = 1.099_296_8;
+    const B: f32 = 0.018_053_97;
+}
+
+impl ColorSpace for Rec2020 {
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Rec2020);
+
+    fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_sRGB * lin_Rec2020_to_XYZ
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "exact rational, truncate at compile-time"
+        )]
+        const LINEAR_REC2020_TO_SRGB: [[f32; 3]; 3] = [
+            [
+                (2_785_571_537. / 1_677_558_947.) as f32,
+                (-985_802_650. / 1_677_558_947.) as f32,
+                (-122_209_940. / 1_677_558_947.) as f32,
+            ],
+            [
+                (-4_638_020_506. / 37_238_079_773.) as f32,
+                (42_187_016_744. / 37_238_079_773.) as f32,
+                (-310_916_465. / 37_238_079_773.) as f32,
+            ],
+            [
+                (-97_469_024. / 5_369_968_309.) as f32,
+                (-3_780_738_464. / 37_589_778_163.) as f32,
+                (42_052_799_795. / 37_589_778_163.) as f32,
+            ],
+        ];
+
+        fn transfer(x: f32) -> f32 {
+            if x.abs() < Rec2020::B * 4.5 {
+                x / 4.5
+            } else {
+                ((x.abs() + Rec2020::A - 1.) / Rec2020::A)
+                    .powf(1. / 0.45)
+                    .copysign(x)
+            }
+        }
+
+        matmul(&LINEAR_REC2020_TO_SRGB, [r, g, b].map(transfer))
+    }
+
+    fn from_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_Rec2020 * lin_sRGB_to_XYZ
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "exact rational, truncate at compile-time"
+        )]
+        const LINEAR_SRGB_TO_REC2020: [[f32; 3]; 3] = [
+            [
+                (2_939_026_994. / 4_684_425_795.) as f32,
+                (9_255_011_753. / 28_106_554_770.) as f32,
+                (173_911_579. / 4_015_222_110.) as f32,
+            ],
+            [
+                (76_515_593. / 1_107_360_270.) as f32,
+                (6_109_575_001. / 6_644_161_620.) as f32,
+                (75_493_061. / 6_644_161_620.) as f32,
+            ],
+            [
+                (12_225_392. / 745_840_075.) as f32,
+                (1_772_384_008. / 20_137_682_025.) as f32,
+                (18_035_212_433. / 20_137_682_025.) as f32,
+            ],
+        ];
+
+        fn transfer(x: f32) -> f32 {
+            if x.abs() < Rec2020::B {
+                x * 4.5
+            } else {
+                (Rec2020::A * x.abs().powf(0.45) - Rec2020::A + 1.).copysign(x)
+            }
+        }
+        matmul(&LINEAR_SRGB_TO_REC2020, [r, g, b]).map(transfer)
+    }
+
+    fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
+        [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
+    }
+}
+
 /// 🌌 The CIE XYZ color space with a 2° observer and a reference white of D50.
 ///
 /// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.
@@ -1035,7 +1139,7 @@ impl ColorSpace for Hwb {
 
 #[cfg(test)]
 mod tests {
-    use crate::{A98Rgb, ColorSpace, OpaqueColor, ProphotoRgb, Srgb};
+    use crate::{A98Rgb, ColorSpace, OpaqueColor, ProphotoRgb, Rec2020, Srgb};
 
     fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
         OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 1e-4
@@ -1065,6 +1169,24 @@ mod tests {
             assert!(almost_equal::<ProphotoRgb>(
                 prophoto,
                 Srgb::convert::<ProphotoRgb>(srgb)
+            ));
+        }
+    }
+
+    #[test]
+    fn rec2020_srgb() {
+        for (srgb, rec2020) in [
+            ([0.1, 0.2, 0.3], [0.091284, 0.134169, 0.230056]),
+            ([0.05, 0.1, 0.15], [0.029785, 0.043700, 0.083264]),
+            ([0., 1., 0.], [0.567542, 0.959279, 0.268969]),
+        ] {
+            assert!(almost_equal::<Srgb>(
+                srgb,
+                Rec2020::convert::<Srgb>(rec2020)
+            ));
+            assert!(almost_equal::<Rec2020>(
+                rec2020,
+                Srgb::convert::<Rec2020>(srgb)
             ));
         }
     }
