@@ -22,8 +22,14 @@ targets = []
 default = ["std"]
 std = []
 libm = ["dep:libm"]
+bytemuck = ["dep:bytemuck"]
 
 [dependencies]
+
+[dependencies.bytemuck]
+version = "1.19.0"
+optional = true
+default-features = false
 
 [dependencies.libm]
 version = "0.2.11"

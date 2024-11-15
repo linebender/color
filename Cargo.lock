@@ -3,9 +3,16 @@
 version = 3
 
 [[package]]
+name = "bytemuck"
+version = "1.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8334215b81e418a0a7bdb8ef0849474f40bb10c8b71f1c4ed315cff49f32494d"
+
+[[package]]
 name = "color"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "libm",
 ]
 

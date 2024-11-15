@@ -22,6 +22,7 @@ use crate::floatfuncs::FloatFuncs;
 /// for spline interpolation. For cylindrical color spaces, hue fixup should
 /// be applied before interpolation.
 #[derive(Clone, Copy, Debug)]
+#[repr(transparent)]
 pub struct OpaqueColor<CS> {
     /// The components, which may be manipulated directly.
     ///
@@ -37,6 +38,7 @@ pub struct OpaqueColor<CS> {
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
+#[repr(transparent)]
 pub struct AlphaColor<CS> {
     /// The components, which may be manipulated directly.
     ///
@@ -58,6 +60,7 @@ pub struct AlphaColor<CS> {
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
+#[repr(transparent)]
 pub struct PremulColor<CS> {
     /// The components, which may be manipulated directly.
     ///

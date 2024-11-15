@@ -30,6 +30,7 @@ Color is a Rust crate which implements color space conversions, targeting at lea
 
 - `std` (enabled by default): Get floating point functions from the standard library (likely using your target's libc).
 - `libm`: Use floating point implementations from [libm][].
+- `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`], [`OpaqueColor`], [`PremulColor`], and [`Rgba8`].
 
 At least one of `std` and `libm` is required; `std` overrides `libm`.
 

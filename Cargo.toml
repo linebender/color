@@ -18,7 +18,7 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/linebender/color"
 
 [workspace.lints]
-rust.unsafe_code = "forbid"
+rust.unsafe_code = "deny"
 
 # LINEBENDER LINT SET - v1
 # See https://linebender.org/wiki/canonical-lints/
