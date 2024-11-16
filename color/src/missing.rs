@@ -31,6 +31,14 @@ pub struct Flags {
     name: u8,
 }
 
+// Ensure the amount of colors fits into the `Flags::name` packing.
+#[cfg(test)]
+const _: () = const {
+    if x11_colors::NAMES.len() > 253 {
+        panic!("There are more X11 color names than can be packed into Flags.");
+    }
+};
+
 /// Missing color components, extracted from [`Flags`]. Some bitwise operations are implemented on
 /// this type, making certain manipulations more ergonomic.
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
@@ -41,7 +49,7 @@ impl Flags {
     /// be 0, 1, 2, or 3.
     pub const fn from_single_missing(ix: usize) -> Self {
         debug_assert!(ix <= 3, "color component index must be 0, 1, 2 or 3");
-        Flags {
+        Self {
             missing: 1 << ix,
             name: 0,
         }
@@ -49,7 +57,7 @@ impl Flags {
 
     /// Construct flags with the given missing components.
     pub const fn from_missing(missing: Missing) -> Self {
-        Flags {
+        Self {
             missing: missing.0,
             name: 0,
         }
@@ -57,10 +65,20 @@ impl Flags {
 
     /// Construct flags indicating the color was generated from one of the named colors.
     pub(crate) fn set_named_color(&mut self, name_ix: usize) {
-        debug_assert!(name_ix < x11_colors::NAMES.len());
-        debug_assert!(x11_colors::NAMES.len() <= 253);
+        debug_assert!(
+            name_ix < x11_colors::NAMES.len(),
+            "Expected an X11 color name index no larger than: {}. Got: {}.",
+            x11_colors::NAMES.len(),
+            name_ix
+        );
 
-        self.name = name_ix as u8 + 1;
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "name_ix is guaranteed to small enough by the above condition and by the test on the length of `x11_colors::NAMES`"
+        )]
+        {
+            self.name = name_ix as u8 + 1;
+        }
     }
 
     /// Construct flags indicating the color was generated from one of the named color space
@@ -117,7 +135,10 @@ impl core::fmt::Debug for Flags {
         f.debug_struct("Flags")
             .field(
                 "data",
-                &format_args!("{:#018b}", (self.missing as u16) << 8 + self.name as u16),
+                &format_args!(
+                    "{:#018b}",
+                    ((self.missing as u16) << 8) + (self.name as u16)
+                ),
             )
             .field(
                 "missing",
