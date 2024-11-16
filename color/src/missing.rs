@@ -19,7 +19,7 @@ use crate::x11_colors;
 ///
 /// [css-named-colors]: https://www.w3.org/TR/css-color-4/#named-colors
 /// [css-named-color-spaces]: https://www.w3.org/TR/css-color-4/#color-syntax
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct Flags {
     /// A bitset of missing color components.
     missing: u8,
@@ -33,7 +33,7 @@ pub struct Flags {
 
 /// Missing color components, extracted from [`Flags`]. Some bitwise operations are implemented on
 /// this type, making certain manipulations more ergonomic.
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct Missing(u8);
 
 impl Flags {
@@ -112,6 +112,28 @@ impl Flags {
     }
 }
 
+impl core::fmt::Debug for Flags {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Flags")
+            .field(
+                "data",
+                &format_args!("{:#018b}", (self.missing as u16) << 8 + self.name as u16),
+            )
+            .field(
+                "missing",
+                &[
+                    self.missing(0),
+                    self.missing(1),
+                    self.missing(2),
+                    self.missing(3),
+                ],
+            )
+            .field("named", &self.named())
+            .field("color_name", &self.color_name())
+            .finish()
+    }
+}
+
 impl Missing {
     /// Returns `true` if the set contains the component index.
     #[inline]
@@ -159,5 +181,22 @@ impl core::ops::Not for Missing {
 
     fn not(self) -> Self::Output {
         Self(!self.0)
+    }
+}
+
+impl core::fmt::Debug for Missing {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("Missing")
+            .field("data", &format_args!("{:#010b}", self.0))
+            .field(
+                "missing",
+                &[
+                    self.contains(0),
+                    self.contains(1),
+                    self.contains(2),
+                    self.contains(3),
+                ],
+            )
+            .finish()
     }
 }
