@@ -10,7 +10,8 @@
 #![warn(unused_crate_dependencies)]
 #![warn(clippy::print_stdout, clippy::print_stderr)]
 
-//! Color is a Rust crate which implements color space conversions, targeting at least CSS4 color.
+//! Color is a Rust crate which implements color space conversions, targeting at least
+//! [CSS Color Level 4].
 //!
 //! ## Scope and goals
 //!
@@ -20,8 +21,12 @@
 //!
 //! The main purpose of this crate is to provide a good set of types for representing colors,
 //! along with conversions between them and basic manipulations, especially interpolation. A
-//! major inspiration is the CSS Color Level 4 draft spec; we implement most of the operations
+//! major inspiration is the [CSS Color Level 4] draft spec; we implement most of the operations
 //! and strive for correctness.
+//!
+//! A primary use case is rendering, including color conversions and methods for preparing
+//! gradients. The crate should also be suitable for document authoring and editing, as it
+//! contains methods for parsing and serializing colors with CSS Color 4 compatible syntax.
 //!
 //! Simplifications include:
 //!   * Always using `f32` to represent component values.
@@ -39,27 +44,38 @@
 //!   * Appearance models and other color science not needed for rendering.
 //!   * Quantizing and packing to lower bit depths.
 //!
+//! The [`Rgba8`][Rgba8] type is a partial exception to this last item, as that representation
+//! is ubiquitous and requires special logic for serializing to maximize compatibility.
+//!
+//! Some of these capabilities may be added as other crates within the `color` repository,
+//! and we will also facilitate interoperability with other color crates in the Rust
+//! ecosystem as needed.
+//!
 //! ## Main types
 //!
 //! The crate has two approaches to representing color in the Rust type system: a set of
-//! types with static color space as part of the types, and [`DynamicColor`] in which the
-//! color space is represented at runtime.
+//! types with static color space as part of the types, and [`DynamicColor`][DynamicColor]
+//! in which the color space is represented at runtime.
 //!
-//! The static color types come in three variants: [`OpaqueColor`] without an alpha channel,
-//! [`AlphaColor`] with a separate alpha channel, and [`PremulColor`] with premultiplied
-//! alpha. The last type is particularly useful for making interpolation and compositing more
-//! efficient. All have a generic type parameter with a trait bound of [`ColorSpace`], a
-//! zero sized type. The static types are open-ended, as it's possible to implement this
-//! trait for new color spaces.
+//! The static color types come in three variants: [`OpaqueColor`][OpaqueColor] without an
+//! alpha channel, [`AlphaColor`][AlphaColor] with a separate alpha channel, and
+//! [`PremulColor`][PremulColor] with premultiplied alpha. The last type is particularly
+//! useful for making interpolation and compositing more efficient. These have a marker
+//! type parameter, indicating which [ColorSpace] they are in. Conversion to another color
+//! space uses the convert method on each of these types. The static types are open-ended,
+//! as it's possible to implement this trait for new color spaces.
 //!
 //! ## Features
 //!
-//! - `std` (enabled by default): Get floating point functions from the standard library (likely using your target's libc).
+//! - `std` (enabled by default): Get floating point functions from the standard library
+//!   (likely using your target's libc).
 //! - `libm`: Use floating point implementations from [libm][].
-//! - `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`], [`OpaqueColor`], [`PremulColor`], and [`Rgba8`].
+//! - `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`][AlphaColor],
+//!   [`OpaqueColor`][OpaqueColor], [`PremulColor`][PremulColor], and [`Rgba8`][Rgba8].
 //!
 //! At least one of `std` and `libm` is required; `std` overrides `libm`.
 //!
+//! [CSS Color Level 4]: https://www.w3.org/TR/css-color-4/
 //! [ICC]: https://color.org/
 //! [ACES]: https://acescentral.com/
 #![cfg_attr(feature = "libm", doc = "[libm]: libm")]
