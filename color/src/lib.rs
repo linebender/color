@@ -36,6 +36,7 @@ mod gradient;
 mod missing;
 // Note: this may become feature-gated; we'll decide this soon
 mod dynamic;
+pub mod palette;
 mod parse;
 mod rgba8;
 mod serialize;
