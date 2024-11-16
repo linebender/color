@@ -9,12 +9,48 @@
 // shouldn't apply to examples and tests
 #![warn(unused_crate_dependencies)]
 #![warn(clippy::print_stdout, clippy::print_stderr)]
-// TODO: parts of the crate are not done, with some missing docstring,
-// and some enum variants not yet implemented. Finish those and remove
-// these allow attributes.
-#![allow(clippy::todo, reason = "need to fix todos")]
 
 //! Color is a Rust crate which implements color space conversions, targeting at least CSS4 color.
+//!
+//! ## Scope and goals
+//!
+//! Color in its entirety is an extremely deep and complex topic. It is completely impractical
+//! for a single crate to meet all color needs. The goal of this one is to strike a balance,
+//! providing color capabilities while also keeping things simple and efficient.
+//!
+//! The main purpose of this crate is to provide a good set of types for representing colors,
+//! along with conversions between them and basic manipulations, especially interpolation. A
+//! major inspiration is the CSS Color Level 4 draft spec; we implement most of the operations
+//! and strive for correctness.
+//!
+//! Simplifications include:
+//!   * Always using `f32` to represent component values.
+//!   * Only handling 3-component color spaces (plus optional alpha).
+//!   * Choosing a fixed, curated set of color spaces for dynamic color types.
+//!   * Choosing linear sRGB as the central color space.
+//!   * Keeping white point implicit.
+//!
+//! A number of other tasks are out of scope for this crate:
+//!   * Print color spaces (CMYK).
+//!   * Spectral colors.
+//!   * Color spaces with more than 3 components generally.
+//!   * [ICC] color profiles.
+//!   * [ACES] color transforms.
+//!   * Appearance models and other color science not needed for rendering.
+//!   * Quantizing and packing to lower bit depths.
+//!
+//! ## Main types
+//!
+//! The crate has two approaches to representing color in the Rust type system: a set of
+//! types with static color space as part of the types, and [`DynamicColor`] in which the
+//! color space is represented at runtime.
+//!
+//! The static color types come in three variants: [`OpaqueColor`] without an alpha channel,
+//! [`AlphaColor`] with a separate alpha channel, and [`PremulColor`] with premultiplied
+//! alpha. The last type is particularly useful for making interpolation and compositing more
+//! efficient. All have a generic type parameter with a trait bound of [`ColorSpace`], a
+//! zero sized type. The static types are open-ended, as it's possible to implement this
+//! trait for new color spaces.
 //!
 //! ## Features
 //!
@@ -24,11 +60,10 @@
 //!
 //! At least one of `std` and `libm` is required; `std` overrides `libm`.
 //!
+//! [ICC]: https://color.org/
+//! [ACES]: https://acescentral.com/
 #![cfg_attr(feature = "libm", doc = "[libm]: libm")]
 #![cfg_attr(not(feature = "libm"), doc = "[libm]: https://crates.io/crates/libm")]
-//
-// TODO: need to write a treatise on the nature of color and how to model
-// a reasonable fragment of it in the Rust type system.
 
 mod color;
 mod colorspace;
