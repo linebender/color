@@ -475,9 +475,9 @@ impl ColorSpace for Rec2020 {
 
         fn transfer(x: f32) -> f32 {
             if x.abs() < Rec2020::B * 4.5 {
-                x / 4.5
+                x * (1. / 4.5)
             } else {
-                ((x.abs() + Rec2020::A - 1.) / Rec2020::A)
+                ((x.abs() + (Rec2020::A - 1.)) / Rec2020::A)
                     .powf(1. / 0.45)
                     .copysign(x)
             }
@@ -514,7 +514,7 @@ impl ColorSpace for Rec2020 {
             if x.abs() < Rec2020::B {
                 x * 4.5
             } else {
-                (Rec2020::A * x.abs().powf(0.45) - Rec2020::A + 1.).copysign(x)
+                (Rec2020::A * x.abs().powf(0.45) - (Rec2020::A - 1.)).copysign(x)
             }
         }
         matmul(&LINEAR_SRGB_TO_REC2020, [r, g, b]).map(transfer)
