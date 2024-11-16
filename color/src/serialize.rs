@@ -116,6 +116,45 @@ impl core::fmt::Display for DynamicColor {
     }
 }
 
+impl core::fmt::Display for Rgba8 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if self.a == 255 {
+            write!(f, "rgb({}, {}, {})", self.r, self.g, self.b)
+        } else {
+            let a = self.a as f32 * (1.0 / 255.0);
+            write!(f, "rgba({}, {}, {}, {a})", self.r, self.g, self.b)
+        }
+    }
+}
+
+impl core::fmt::LowerHex for Rgba8 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if self.a == 255 {
+            write!(f, "#{:02x}{:02x}{:02x})", self.r, self.g, self.b)
+        } else {
+            write!(
+                f,
+                "#{:02x}{:02x}{:02x}{:02x})",
+                self.r, self.g, self.b, self.a
+            )
+        }
+    }
+}
+
+impl core::fmt::UpperHex for Rgba8 {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        if self.a == 255 {
+            write!(f, "#{:02X}{:02X}{:02X})", self.r, self.g, self.b)
+        } else {
+            write!(
+                f,
+                "#{:02X}{:02X}{:02X}{:02X})",
+                self.r, self.g, self.b, self.a
+            )
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::parse_color;
@@ -156,45 +195,6 @@ mod tests {
                 name,
                 "Failed serializing specified named color `{name}`. Expected it to roundtrip. Got: `{result}`."
             );
-        }
-    }
-}
-
-impl core::fmt::Display for Rgba8 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        if self.a == 255 {
-            write!(f, "rgb({}, {}, {})", self.r, self.g, self.b)
-        } else {
-            let a = self.a as f32 * (1.0 / 255.0);
-            write!(f, "rgba({}, {}, {}, {a})", self.r, self.g, self.b)
-        }
-    }
-}
-
-impl core::fmt::LowerHex for Rgba8 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        if self.a == 255 {
-            write!(f, "#{:02x}{:02x}{:02x})", self.r, self.g, self.b)
-        } else {
-            write!(
-                f,
-                "#{:02x}{:02x}{:02x}{:02x})",
-                self.r, self.g, self.b, self.a
-            )
-        }
-    }
-}
-
-impl core::fmt::UpperHex for Rgba8 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        if self.a == 255 {
-            write!(f, "#{:02X}{:02X}{:02X})", self.r, self.g, self.b)
-        } else {
-            write!(
-                f,
-                "#{:02X}{:02X}{:02X}{:02X})",
-                self.r, self.g, self.b, self.a
-            )
         }
     }
 }
