@@ -205,7 +205,9 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     /// Compute the relative luminance of the color.
     ///
     /// This can be useful for choosing contrasting colors, and follows the
-    /// WCAG 2.1 spec.
+    /// [WCAG 2.1 spec].
+    ///
+    /// [WCAG 2.1 spec]: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
     #[must_use]
     pub fn relative_luminance(self) -> f32 {
         let [r, g, b] = CS::to_linear_srgb(self.components);

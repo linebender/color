@@ -245,11 +245,13 @@ impl DynamicColor {
     /// Compute the relative luminance of the color.
     ///
     /// This can be useful for choosing contrasting colors, and follows the
-    /// WCAG 2.1 spec.
+    /// [WCAG 2.1 spec].
     ///
     /// Note that this method only considers the opaque color, not the alpha.
     /// Blending semi-transparent colors will reduce contrast, and that
     /// should also be taken into account.
+    ///
+    /// [WCAG 2.1 spec]: https://www.w3.org/TR/WCAG21/#dfn-relative-luminance
     #[must_use]
     pub fn relative_luminance(self) -> f32 {
         let [r, g, b, _] = self.convert(ColorSpaceTag::LinearSrgb).components;
