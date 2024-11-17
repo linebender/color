@@ -307,6 +307,14 @@ impl<CS: ColorSpace> AlphaColor<CS> {
         (OpaqueColor::new(opaque), alpha)
     }
 
+    /// Split out the opaque components, discarding the alpha.
+    ///
+    /// This is a shorthand for calling [`split`](Self::split).
+    #[must_use]
+    pub const fn discard_alpha(self) -> OpaqueColor<CS> {
+        self.split().0
+    }
+
     /// Convert a color into a different color space.
     #[must_use]
     pub fn convert<TargetCs: ColorSpace>(self) -> AlphaColor<TargetCs> {
@@ -426,6 +434,18 @@ impl<CS: ColorSpace> PremulColor<CS> {
         Self { components, cs }
     }
 
+    /// Split out the opaque components, discarding the alpha.
+    ///
+    /// This is a shorthand for un-premultiplying the alpha and
+    /// calling [`AlphaColor::discard_alpha`].
+    ///
+    /// The result of calling this on a fully transparent color
+    /// will be the color black.
+    #[must_use]
+    pub const fn discard_alpha(self) -> OpaqueColor<CS> {
+        self.un_premultiply().discard_alpha()
+    }
+
     /// Convert a color into a different color space.
     #[must_use]
     pub fn convert<TargetCS: ColorSpace>(self) -> PremulColor<TargetCS> {
@@ -442,7 +462,7 @@ impl<CS: ColorSpace> PremulColor<CS> {
 
     /// Convert a color to the corresponding separate alpha form.
     #[must_use]
-    pub fn un_premultiply(self) -> AlphaColor<CS> {
+    pub const fn un_premultiply(self) -> AlphaColor<CS> {
         let (multiplied, alpha) = split_alpha(self.components);
         let scale = if alpha == 0.0 { 1.0 } else { 1.0 / alpha };
         AlphaColor::new(add_alpha(CS::LAYOUT.scale(multiplied, scale), alpha))
