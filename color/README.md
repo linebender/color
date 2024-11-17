@@ -27,7 +27,7 @@ See https://linebender.org/blog/doc-include/ for related discussion. -->
 [`PremulColor`]: https://docs.rs/color/latest/color/struct.PremulColor.html
 [`OpaqueColor`]: https://docs.rs/color/latest/color/struct.OpaqueColor.html
 [`Rgba8`]: https://docs.rs/color/latest/color/struct.Rgba8.html
-[`ColorSpace`]: https://docs.rs/color/latest/color//trait.ColorSpace.html
+[`ColorSpace`]: https://docs.rs/color/latest/color/trait.ColorSpace.html
 <!-- cargo-rdme start -->
 
 Color is a Rust crate which implements color space conversions, targeting at least
