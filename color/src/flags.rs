@@ -88,6 +88,7 @@ impl Flags {
 
     /// Returns `true` if the flags indicate the color was generated from a named color or named
     /// color space function.
+    #[inline]
     pub fn named(self) -> bool {
         self.name != 0
     }
@@ -152,6 +153,7 @@ impl Missing {
 impl core::ops::BitAnd for Missing {
     type Output = Self;
 
+    #[inline]
     fn bitand(self, rhs: Self) -> Self {
         Self(self.0 & rhs.0)
     }
@@ -160,6 +162,7 @@ impl core::ops::BitAnd for Missing {
 impl core::ops::BitOr for Missing {
     type Output = Self;
 
+    #[inline]
     fn bitor(self, rhs: Self) -> Self {
         Self(self.0 | rhs.0)
     }
@@ -168,6 +171,7 @@ impl core::ops::BitOr for Missing {
 impl core::ops::Not for Missing {
     type Output = Self;
 
+    #[inline]
     fn not(self) -> Self::Output {
         Self(!self.0)
     }
