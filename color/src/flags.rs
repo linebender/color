@@ -1,7 +1,7 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-//! A simple bitset.
+//! Types for tracking [`DynamicColor`](crate::DynamicColor) state.
 
 use crate::x11_colors;
 
