@@ -32,8 +32,8 @@
 
 mod color;
 mod colorspace;
+mod flags;
 mod gradient;
-mod missing;
 // Note: this may become feature-gated; we'll decide this soon
 mod dynamic;
 mod parse;
@@ -54,8 +54,8 @@ pub use colorspace::{
     ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
 pub use dynamic::{DynamicColor, Interpolator};
+pub use flags::{Flags, Missing};
 pub use gradient::{gradient, GradientIter};
-pub use missing::{Flags, Missing};
 pub use parse::{parse_color, ParseError};
 pub use rgba8::Rgba8;
 pub use tag::ColorSpaceTag;
