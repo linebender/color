@@ -114,22 +114,8 @@ impl Flags {
 impl core::fmt::Debug for Flags {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("Flags")
-            .field(
-                "data",
-                &format_args!(
-                    "{:#018b}",
-                    ((self.missing.0 as u16) << 8) + (self.name as u16)
-                ),
-            )
-            .field(
-                "missing",
-                &[
-                    self.missing.contains(0),
-                    self.missing.contains(1),
-                    self.missing.contains(2),
-                    self.missing.contains(3),
-                ],
-            )
+            .field("missing", &self.missing)
+            .field("name", &self.name)
             .field("named", &self.named())
             .field("color_name", &self.color_name())
             .finish()
@@ -189,17 +175,8 @@ impl core::ops::Not for Missing {
 
 impl core::fmt::Debug for Missing {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        f.debug_struct("Missing")
-            .field("data", &format_args!("{:#010b}", self.0))
-            .field(
-                "missing",
-                &[
-                    self.contains(0),
-                    self.contains(1),
-                    self.contains(2),
-                    self.contains(3),
-                ],
-            )
+        f.debug_tuple("Missing")
+            .field(&format_args!("{:#010b}", self.0))
             .finish()
     }
 }
