@@ -22,7 +22,7 @@ use crate::x11_colors;
 #[derive(Default, Clone, Copy, PartialEq, Eq)]
 pub struct Flags {
     /// A bitset of missing color components.
-    missing: u8,
+    missing: Missing,
 
     /// The named source a [`crate::DynamicColor`] was constructed from. Meanings:
     /// - 0 - not constructed from a named source;
@@ -50,17 +50,14 @@ impl Flags {
     pub const fn from_single_missing(ix: usize) -> Self {
         debug_assert!(ix <= 3, "color component index must be 0, 1, 2 or 3");
         Self {
-            missing: 1 << ix,
+            missing: Missing(1 << ix),
             name: 0,
         }
     }
 
     /// Construct flags with the given missing components.
     pub const fn from_missing(missing: Missing) -> Self {
-        Self {
-            missing: missing.0,
-            name: 0,
-        }
+        Self { missing, name: 0 }
     }
 
     /// Construct flags indicating the color was generated from one of the named colors.
@@ -95,7 +92,7 @@ impl Flags {
     /// Extract the missing components from the flags.
     #[inline]
     pub fn extract_missing(self) -> Missing {
-        Missing(self.missing)
+        self.missing
     }
 
     /// Returns `true` if the flags indicate the given color component is missing. The component
@@ -137,7 +134,7 @@ impl core::fmt::Debug for Flags {
                 "data",
                 &format_args!(
                     "{:#018b}",
-                    ((self.missing as u16) << 8) + (self.name as u16)
+                    ((self.missing.0 as u16) << 8) + (self.name as u16)
                 ),
             )
             .field(
