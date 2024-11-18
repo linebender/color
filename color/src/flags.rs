@@ -62,7 +62,8 @@ impl Flags {
         self.missing
     }
 
-    /// Construct flags indicating the color was generated from one of the named colors.
+    /// Set the flags to indicate the color was specified as one of the named colors. `name_ix` is
+    /// the index into [`crate::x11_colors::NAMES`].
     pub(crate) fn set_named_color(&mut self, name_ix: usize) {
         debug_assert!(
             name_ix < x11_colors::NAMES.len(),
@@ -80,7 +81,7 @@ impl Flags {
         }
     }
 
-    /// Construct flags indicating the color was generated from one of the named color space
+    /// Set the flags to indicate the color was specified using one of the named color space
     /// functions.
     pub(crate) fn set_named_color_space(&mut self) {
         self.name = 255;
