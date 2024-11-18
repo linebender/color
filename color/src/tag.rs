@@ -4,8 +4,8 @@
 //! The color space tag enum.
 
 use crate::{
-    A98Rgb, ColorSpace, ColorSpaceLayout, DisplayP3, Flags, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab,
-    Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+    A98Rgb, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Missing,
+    Oklab, Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
 
 /// The color space tag for dynamic colors.
@@ -75,58 +75,58 @@ impl ColorSpaceTag {
         )
     }
 
-    pub(crate) fn l_missing(self, flags: Flags) -> bool {
+    pub(crate) fn l_missing(self, missing: Missing) -> bool {
         use ColorSpaceTag::*;
         match self {
-            Lab | Lch | Oklab | Oklch => flags.missing(0),
-            Hsl => flags.missing(2),
+            Lab | Lch | Oklab | Oklch => missing.contains(0),
+            Hsl => missing.contains(2),
             _ => false,
         }
     }
 
-    pub(crate) fn set_l_missing(self, missing: &mut Flags, components: &mut [f32; 4]) {
+    pub(crate) fn set_l_missing(self, missing: &mut Missing, components: &mut [f32; 4]) {
         use ColorSpaceTag::*;
         match self {
             Lab | Lch | Oklab | Oklch => {
-                missing.set_missing(0);
+                missing.insert(0);
                 components[0] = 0.0;
             }
             Hsl => {
-                missing.set_missing(2);
+                missing.insert(2);
                 components[2] = 0.0;
             }
             _ => (),
         }
     }
 
-    pub(crate) fn c_missing(self, flags: Flags) -> bool {
+    pub(crate) fn c_missing(self, missing: Missing) -> bool {
         use ColorSpaceTag::*;
         match self {
-            Lab | Lch | Oklab | Oklch | Hsl => flags.missing(1),
+            Lab | Lch | Oklab | Oklch | Hsl => missing.contains(1),
             _ => false,
         }
     }
 
-    pub(crate) fn set_c_missing(self, flags: &mut Flags, components: &mut [f32; 4]) {
+    pub(crate) fn set_c_missing(self, missing: &mut Missing, components: &mut [f32; 4]) {
         use ColorSpaceTag::*;
         match self {
             Lab | Lch | Oklab | Oklch | Hsl => {
-                flags.set_missing(1);
+                missing.insert(1);
                 components[1] = 0.0;
             }
             _ => (),
         }
     }
 
-    pub(crate) fn h_missing(self, flags: Flags) -> bool {
+    pub(crate) fn h_missing(self, missing: Missing) -> bool {
         self.layout()
             .hue_channel()
-            .is_some_and(|ix| flags.missing(ix))
+            .is_some_and(|ix| missing.contains(ix))
     }
 
-    pub(crate) fn set_h_missing(self, flags: &mut Flags, components: &mut [f32; 4]) {
+    pub(crate) fn set_h_missing(self, missing: &mut Missing, components: &mut [f32; 4]) {
         if let Some(ix) = self.layout().hue_channel() {
-            flags.set_missing(ix);
+            missing.insert(ix);
             components[ix] = 0.0;
         }
     }

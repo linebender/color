@@ -13,7 +13,7 @@ fn write_scaled_component(
     f: &mut Formatter<'_>,
     scale: f32,
 ) -> Result {
-    if color.flags.missing(ix) {
+    if color.flags.missing().contains(ix) {
         // According to the serialization rules (§15.2), missing should be converted to 0.
         // However, it seems useful to preserve these. Perhaps we want to talk about whether
         // we want string formatting to strictly follow the serialization spec.

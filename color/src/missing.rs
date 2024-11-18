@@ -7,15 +7,14 @@ use crate::x11_colors;
 
 /// Flags indicating [`DynamicColor`](crate::DynamicColor) state.
 ///
-/// This tracks missing color components of a `DynamicColor` and details of how a `DynamicColor`
-/// was constructed.
-///
 /// The "missing" flags indicate whether a specific color component is missing (either the three
-/// color channels or the alpha channel). The "named" flag represents whether the dynamic color was
-/// generated from one of the named colors in [CSS Color Module Level 4 § 6.1][css-named-colors] or
-/// named color space functions in [CSS Color Module Level 4 § 4.1][css-named-color-spaces].
+/// color channels or the alpha channel).
 ///
-/// The latter is primarily useful for serializing.
+/// The "named" flag represents whether the dynamic color was parsed from one of the named colors
+/// in [CSS Color Module Level 4 § 6.1][css-named-colors] or named color space functions in [CSS
+/// Color Module Level 4 § 4.1][css-named-color-spaces].
+///
+/// The latter is primarily useful for serializing to a CSS-compliant string format.
 ///
 /// [css-named-colors]: https://www.w3.org/TR/css-color-4/#named-colors
 /// [css-named-color-spaces]: https://www.w3.org/TR/css-color-4/#color-syntax
@@ -45,19 +44,22 @@ const _: () = const {
 pub struct Missing(u8);
 
 impl Flags {
-    /// Construct flags indicating the given color component is missing. The component index must
-    /// be 0, 1, 2, or 3.
-    pub const fn from_single_missing(ix: usize) -> Self {
-        debug_assert!(ix <= 3, "color component index must be 0, 1, 2 or 3");
-        Self {
-            missing: Missing(1 << ix),
-            name: 0,
-        }
-    }
-
     /// Construct flags with the given missing components.
+    #[inline]
     pub const fn from_missing(missing: Missing) -> Self {
         Self { missing, name: 0 }
+    }
+
+    /// Set the missing components.
+    #[inline]
+    pub fn set_missing(&mut self, missing: Missing) {
+        self.missing = missing;
+    }
+
+    /// Returns the missing components from the flags.
+    #[inline]
+    pub const fn missing(self) -> Missing {
+        self.missing
     }
 
     /// Construct flags indicating the color was generated from one of the named colors.
@@ -84,30 +86,6 @@ impl Flags {
         self.name = 255;
     }
 
-    /// Set the given component as missing.
-    pub fn set_missing(&mut self, ix: usize) {
-        self.missing = Self::from_single_missing(ix).missing;
-    }
-
-    /// Extract the missing components from the flags.
-    #[inline]
-    pub fn extract_missing(self) -> Missing {
-        self.missing
-    }
-
-    /// Returns `true` if the flags indicate the given color component is missing. The component
-    /// index must be 0, 1 or 2.
-    #[inline]
-    pub fn missing(self, ix: usize) -> bool {
-        self.extract_missing().contains(ix)
-    }
-
-    /// Returns `true` if at least one component is missing.
-    #[inline]
-    pub fn has_missing(self) -> bool {
-        !self.extract_missing().is_empty()
-    }
-
     /// Returns `true` if the flags indicate the color was generated from a named color or named
     /// color space function.
     pub fn named(self) -> bool {
@@ -125,6 +103,12 @@ impl Flags {
             Some(x11_colors::NAMES[name_ix as usize - 1])
         }
     }
+
+    /// Discard the color name or color space name from the flags.
+    #[inline]
+    pub fn discard_name(&mut self) {
+        self.name = 0;
+    }
 }
 
 impl core::fmt::Debug for Flags {
@@ -140,10 +124,10 @@ impl core::fmt::Debug for Flags {
             .field(
                 "missing",
                 &[
-                    self.missing(0),
-                    self.missing(1),
-                    self.missing(2),
-                    self.missing(3),
+                    self.missing.contains(0),
+                    self.missing.contains(1),
+                    self.missing.contains(2),
+                    self.missing.contains(3),
                 ],
             )
             .field("named", &self.named())
@@ -153,22 +137,23 @@ impl core::fmt::Debug for Flags {
 }
 
 impl Missing {
+    /// The set containing a single component index.
+    #[inline]
+    pub const fn single(ix: usize) -> Self {
+        debug_assert!(ix <= 3, "color component index must be 0, 1, 2 or 3");
+        Self(1 << ix)
+    }
+
     /// Returns `true` if the set contains the component index.
     #[inline]
     pub fn contains(self, ix: usize) -> bool {
-        (self.0 & (1 << ix)) != 0
+        (self.0 & Self::single(ix).0) != 0
     }
 
-    /// Adds a component index to the set.
+    /// Add a missing component index to the set.
     #[inline]
     pub fn insert(&mut self, ix: usize) {
-        self.0 |= 1 << ix;
-    }
-
-    /// The set containing a single component index.
-    #[inline]
-    pub fn single(ix: usize) -> Self {
-        Self(1 << ix)
+        self.0 |= Self::single(ix).0;
     }
 
     /// Returns `true` if the set contains no indices.

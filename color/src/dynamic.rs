@@ -103,36 +103,33 @@ impl DynamicColor {
             let (opaque, alpha) = split_alpha(self.components);
             let mut components = add_alpha(self.cs.convert(cs, opaque), alpha);
             // Reference: §12.2 of Color 4 spec
-            let missing = if self.flags.has_missing() {
+            let missing = if !self.flags.missing().is_empty() {
                 if self.cs.same_analogous(cs) {
                     for (i, component) in components.iter_mut().enumerate() {
-                        if self.flags.missing(i) {
+                        if self.flags.missing().contains(i) {
                             *component = 0.0;
                         }
                     }
-                    Flags::from_missing(self.flags.extract_missing())
+                    self.flags.missing()
                 } else {
-                    let mut flags = Flags::from_missing(
-                        self.flags.extract_missing()
-                            & Flags::from_single_missing(3).extract_missing(),
-                    );
-                    if self.cs.h_missing(self.flags) {
-                        cs.set_h_missing(&mut flags, &mut components);
+                    let mut missing = self.flags.missing() & Missing::single(3);
+                    if self.cs.h_missing(self.flags.missing()) {
+                        cs.set_h_missing(&mut missing, &mut components);
                     }
-                    if self.cs.c_missing(self.flags) {
-                        cs.set_c_missing(&mut flags, &mut components);
+                    if self.cs.c_missing(self.flags.missing()) {
+                        cs.set_c_missing(&mut missing, &mut components);
                     }
-                    if self.cs.l_missing(self.flags) {
-                        cs.set_l_missing(&mut flags, &mut components);
+                    if self.cs.l_missing(self.flags.missing()) {
+                        cs.set_l_missing(&mut missing, &mut components);
                     }
-                    Flags::from_missing(self.flags.extract_missing())
+                    missing
                 }
             } else {
-                Flags::default()
+                Missing::default()
             };
             let mut result = Self {
                 cs,
-                flags: missing,
+                flags: Flags::from_missing(missing),
                 components,
             };
             result.powerless_to_missing();
@@ -146,9 +143,9 @@ impl DynamicColor {
     /// a corresponding component which is 0. This method restores that
     /// invariant after manipulation which might invalidate it.
     fn zero_missing_components(mut self) -> Self {
-        if self.flags.has_missing() {
+        if !self.flags.missing().is_empty() {
             for (i, component) in self.components.iter_mut().enumerate() {
-                if self.flags.missing(i) {
+                if self.flags.missing().contains(i) {
                     *component = 0.0;
                 }
             }
@@ -163,9 +160,12 @@ impl DynamicColor {
     pub fn scale_chroma(self, scale: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
         let components = self.cs.scale_chroma(opaque, scale);
+
+        let mut flags = self.flags;
+        flags.discard_name();
         Self {
             cs: self.cs,
-            flags: self.flags,
+            flags,
             components: add_alpha(components, alpha),
         }
         .zero_missing_components()
@@ -190,7 +190,7 @@ impl DynamicColor {
     fn premultiply_split(self) -> ([f32; 3], f32) {
         // Reference: §12.3 of Color 4 spec
         let (opaque, alpha) = split_alpha(self.components);
-        let premul = if alpha == 1.0 || self.flags.missing(3) {
+        let premul = if alpha == 1.0 || self.flags.missing().contains(3) {
             opaque
         } else {
             self.cs.layout().scale(opaque, alpha)
@@ -206,7 +206,9 @@ impl DynamicColor {
         if self.cs.layout() != ColorSpaceLayout::Rectangular
             && self.components[1] < POWERLESS_EPSILON
         {
-            self.cs.set_h_missing(&mut self.flags, &mut self.components);
+            let mut missing = self.flags.missing();
+            self.cs.set_h_missing(&mut missing, &mut self.components);
+            self.flags.set_missing(missing);
         }
     }
 
@@ -224,8 +226,8 @@ impl DynamicColor {
     ) -> Interpolator {
         let mut a = self.convert(cs);
         let mut b = other.convert(cs);
-        let a_missing = a.flags.extract_missing();
-        let b_missing = b.flags.extract_missing();
+        let a_missing = a.flags.missing();
+        let b_missing = b.flags.missing();
         let missing = a_missing & b_missing;
         if a_missing != b_missing {
             for i in 0..4 {
@@ -272,9 +274,12 @@ impl DynamicColor {
     #[must_use]
     pub fn map(self, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
         let [x, y, z, a] = self.components;
+
+        let mut flags = self.flags;
+        flags.discard_name();
         Self {
             cs: self.cs,
-            flags: Flags::from_missing(self.flags.extract_missing()),
+            flags,
             components: f(x, y, z, a),
         }
         .zero_missing_components()
