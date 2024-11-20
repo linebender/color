@@ -9,9 +9,6 @@ categories = ["graphics"]
 repository.workspace = true
 rust-version.workspace = true
 
-# Whilst we prepare the initial release
-publish = false
-
 [package.metadata.docs.rs]
 all-features = true
 # There are no platform specific docs.
