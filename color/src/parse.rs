@@ -463,7 +463,6 @@ pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
         let color = color_from_4bit_hex(get_4bit_hex_channels(stripped)?);
         return Ok(DynamicColor::from_alpha_color(color));
     }
-    // TODO: the named x11 colors (steal from peniko)
     let mut parser = Parser::new(s);
     if let Some(id) = parser.ident() {
         match id {

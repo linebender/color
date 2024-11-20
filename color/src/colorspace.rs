@@ -665,14 +665,14 @@ impl ColorSpace for XyzD65 {
 /// `a` and `b` are unbounded, but are usually between -0.5 and 0.5.
 ///
 /// This corresponds to the color space in [CSS Color Module Level 4 § 9.2 ][css-sec]. It is
-/// defined on [Björn Ottosson's blog][bjorn]. It is similar to the CIELAB color space but with
+/// defined on [Björn Ottosson's blog][bjorn]. It is similar to the [CIELAB] color space but with
 /// improved hue constancy.
 ///
 /// Oklab has a cylindrical counterpart: [Oklch](`Oklch`).
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#ok-lab
 /// [bjorn]: https://bottosson.github.io/posts/oklab/
-// todo: link to the CIELAB color space.
+/// [CIELAB]: Lab
 #[derive(Clone, Copy, Debug)]
 pub struct Oklab;
 

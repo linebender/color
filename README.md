@@ -2,7 +2,7 @@
 
 # Color
 
-**TODO: Add tagline**
+A library for representing and manipulating colors.
 
 [![Linebender Zulip, #color channel](https://img.shields.io/badge/Linebender-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
 [![dependency status](https://deps.rs/repo/github/linebender/color/status.svg)](https://deps.rs/repo/github/linebender/color)
@@ -13,7 +13,7 @@
 
 </div>
 
-The Color library provides functionality for ...
+The Color library provides functionality for representing, converting, parsing, serializing, and manipulating colors in a variety of color spaces. It closely follows the [CSS Color Level 4] draft spec.
 
 ## Minimum supported Rust Version (MSRV)
 
@@ -63,3 +63,4 @@ licensed as above, without any additional terms or conditions.
 
 [Rust Code of Conduct]: https://www.rust-lang.org/policies/code-of-conduct
 [AUTHORS]: ./AUTHORS
+[CSS Color Level 4]: https://www.w3.org/TR/css-color-4/

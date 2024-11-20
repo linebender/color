@@ -30,8 +30,7 @@ pub enum ColorSpaceTag {
     Lch,
     /// The [`Hsl`] color space.
     Hsl,
-    // TODO: link
-    /// The `Hwb` color space.
+    /// The [`Hwb`] color space.
     Hwb,
     /// The [`Oklab`] color space.
     Oklab,

@@ -2,7 +2,7 @@
 
 # Color
 
-**TODO: Add tagline**
+A library for representing and manipulating colors.
 
 [![Linebender Zulip, #color channel](https://img.shields.io/badge/Linebender-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
 [![dependency status](https://deps.rs/repo/github/linebender/color/status.svg)](https://deps.rs/repo/github/linebender/color)
