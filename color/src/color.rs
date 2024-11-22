@@ -447,14 +447,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 
     /// Map the lightness of the color.
     ///
-    /// In a color space that naturally has a lightness component, map that value.
-    /// Otherwise, do the mapping in [Oklab]. The lightness range is normalized so
-    /// that 1.0 is white. That is the normal range for [Oklab] but differs from the
-    /// range in [Lab], [Lch], and [Hsl].
-    ///
-    /// [Lab]: crate::Lab
-    /// [Lch]: crate::Lch
-    /// [Hsl]: crate::Hsl
+    /// See [`OpaqueColor::map_lightness`] for more details.
     #[must_use]
     pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
         match CS::TAG {
@@ -471,8 +464,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 
     /// Map the hue of the color.
     ///
-    /// In a color space that naturally has a hue component, map that value.
-    /// Otherwise, do the mapping in [Oklch]. The hue is in degrees.
+    /// See [`OpaqueColor::map_hue`] for more details.
     #[must_use]
     pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
         match CS::LAYOUT {
