@@ -1,15 +1,6 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-#![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
-// LINEBENDER LINT SET - v1
-// See https://linebender.org/wiki/canonical-lints/
-// These lints aren't included in Cargo.toml because they
-// shouldn't apply to examples and tests
-#![warn(unused_crate_dependencies)]
-#![warn(clippy::print_stdout, clippy::print_stderr)]
-
 //! Color is a Rust crate which implements color space conversions, targeting at least
 //! [CSS Color Level 4].
 //!
@@ -80,6 +71,15 @@
 //! [ACES]: https://acescentral.com/
 #![cfg_attr(feature = "libm", doc = "[libm]: libm")]
 #![cfg_attr(not(feature = "libm"), doc = "[libm]: https://crates.io/crates/libm")]
+// LINEBENDER LINT SET - lib.rs - v1
+// See https://linebender.org/wiki/canonical-lints/
+// These lints aren't included in Cargo.toml because they
+// shouldn't apply to examples and tests
+#![warn(unused_crate_dependencies)]
+#![warn(clippy::print_stdout, clippy::print_stderr)]
+// END LINEBENDER LINT SET
+#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
 
 mod color;
 mod colorspace;
