@@ -525,6 +525,59 @@ impl ColorSpace for Rec2020 {
     }
 }
 
+/// 🌌 The ACEScg color space.
+///
+/// This color space is defined by the Academy Color Encoding System specification [here][acescg].
+///
+/// The ACEScg color space is a linear color space. The wide gamut makes this color space useful as
+/// a working space for computer graphics.
+///
+/// Other ACES color spaces include ACES2065-1, ACEScc, and ACEScct.
+///
+/// The ACEScg components are `[R, G, B]`. The components are bounded to `[-65504.0, 65504.0]`,
+/// though it is unusual to clip in this color space.
+///
+/// The conversion between D65 and the ACES whitepoint is done with the standard Bradford linear
+/// chromatic adaptation transform.
+///
+/// [acescg]: https://docs.acescentral.com/specifications/acescg/
+#[derive(Clone, Copy, Debug)]
+pub struct AcesCg;
+
+impl ColorSpace for AcesCg {
+    const IS_LINEAR: bool = true;
+
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::AcesCg);
+
+    fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_sRGB * ACESwp_to_D65 * ACEScg_to_XYZ
+        const ACESCG_TO_LINEAR_SRGB: [[f32; 3]; 3] = [
+            [1.705_050_99, -0.621_792_12, -0.083_258_87],
+            [-0.130_256_42, 1.140_804_74, -0.010_548_32],
+            [-0.024_003_36, -0.128_968_98, 1.152_972_33],
+        ];
+        matmul(&ACESCG_TO_LINEAR_SRGB, src)
+    }
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_ACEScg * D65_to_ACESwp * lin_sRGB_to_XYZ
+        const LINEAR_SRGB_TO_ACESCG: [[f32; 3]; 3] = [
+            [0.613_097_40, 0.339_523_15, 0.047379_45],
+            [0.070_193_72, 0.916_353_88, 0.013452_40],
+            [0.020_615_59, 0.109_569_77, 0.869814_63],
+        ];
+        matmul(&LINEAR_SRGB_TO_ACESCG, src)
+    }
+
+    fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
+        [
+            r.clamp(-65504., 65504.),
+            g.clamp(-65504., 65504.),
+            b.clamp(-65504., 65504.),
+        ]
+    }
+}
+
 /// 🌌 The CIE XYZ color space with a 2° observer and a reference white of D50.
 ///
 /// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.

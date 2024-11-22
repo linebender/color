@@ -40,7 +40,6 @@
 //!   * Spectral colors.
 //!   * Color spaces with more than 3 components generally.
 //!   * [ICC] color profiles.
-//!   * [ACES] color transforms.
 //!   * Appearance models and other color science not needed for rendering.
 //!   * Quantizing and packing to lower bit depths.
 //!
@@ -77,7 +76,6 @@
 //!
 //! [CSS Color Level 4]: https://www.w3.org/TR/css-color-4/
 //! [ICC]: https://color.org/
-//! [ACES]: https://acescentral.com/
 #![cfg_attr(feature = "libm", doc = "[libm]: libm")]
 #![cfg_attr(not(feature = "libm"), doc = "[libm]: https://crates.io/crates/libm")]
 
@@ -102,8 +100,8 @@ mod floatfuncs;
 
 pub use color::{AlphaColor, HueDirection, OpaqueColor, PremulColor};
 pub use colorspace::{
-    A98Rgb, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab, Oklch,
-    ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+    A98Rgb, AcesCg, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab,
+    Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
 pub use dynamic::{DynamicColor, Interpolator};
 pub use gradient::{gradient, GradientIter};
