@@ -525,14 +525,19 @@ impl ColorSpace for Rec2020 {
     }
 }
 
+#[expect(
+    clippy::doc_markdown,
+    reason = "these color space names should not be surrounded in backticks"
+)]
 /// 🌌 The ACEScg color space.
 ///
-/// This color space is defined by the Academy Color Encoding System specification [here][acescg].
+/// This color space is defined by the Academy Color Encoding System [specification][acescg].
 ///
 /// The ACEScg color space is a linear color space. The wide gamut makes this color space useful as
 /// a working space for computer graphics.
 ///
-/// Other ACES color spaces include ACES2065-1, ACEScc, and ACEScct.
+/// Other ACES color spaces include ACES2065-1, ACEScc, and ACEScct. This crate currently does not
+/// support these color spaces.
 ///
 /// The ACEScg components are `[R, G, B]`. The components are bounded to `[-65504.0, 65504.0]`,
 /// though it is unusual to clip in this color space.

@@ -60,6 +60,7 @@ A number of other tasks are out of scope for this crate:
   * Spectral colors.
   * Color spaces with more than 3 components generally.
   * [ICC] color profiles.
+  * [ACES] color transforms.
   * Appearance models and other color science not needed for rendering.
   * Quantizing and packing to lower bit depths.
 
@@ -96,6 +97,7 @@ At least one of `std` and `libm` is required; `std` overrides `libm`.
 
 [CSS Color Level 4]: https://www.w3.org/TR/css-color-4/
 [ICC]: https://color.org/
+[ACES]: https://acescentral.com/
 
 <!-- cargo-rdme end -->
 
