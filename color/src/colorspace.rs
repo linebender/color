@@ -1176,8 +1176,76 @@ mod tests {
     };
 
     #[must_use]
-    fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
-        OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 1e-4
+    fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3], absolute_epsilon: f32) -> bool {
+        OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) <= absolute_epsilon
+    }
+
+    /// The maximal magnitude of the color components. Useful for calculating relative errors.
+    fn magnitude(col: [f32; 3]) -> f32 {
+        col[0].abs().max(col[1].abs()).max(col[2].abs())
+    }
+
+    #[test]
+    fn roundtrip() {
+        fn test_roundtrips<Source: ColorSpace, Dest: ColorSpace>(colors: &[[f32; 3]]) {
+            /// A tight bound on relative numerical precision.
+            const RELATIVE_EPSILON: f32 = f32::EPSILON * 16.;
+
+            for color in colors {
+                let intermediate = Source::convert::<Dest>(*color);
+                let roundtripped = Dest::convert::<Source>(intermediate);
+
+                // The roundtrip error is measured in linear sRGB. This adds more conversions, but
+                // makes the components analogous.
+                let linsrgb_color = Source::to_linear_srgb(*color);
+                let linsrgb_intermediate = Dest::to_linear_srgb(intermediate);
+                let linsrgb_roundtripped = Source::to_linear_srgb(roundtripped);
+
+                // The absolute epsilon is based on the magnitudes of the source and intermediate
+                // colors. The magnitude is at least 1, as that is the natural bound of linear sRGB
+                // channels and prevents numerical issues around 0.
+                let absolute_epsilon = magnitude(linsrgb_color)
+                    .max(magnitude(linsrgb_intermediate))
+                    .max(1.)
+                    * RELATIVE_EPSILON;
+                assert!(almost_equal::<LinearSrgb>(
+                    linsrgb_color,
+                    linsrgb_roundtripped,
+                    absolute_epsilon,
+                ));
+            }
+        }
+
+        // Generate some values to test rectangular color spaces.
+        let rectangular_values = {
+            let components = [
+                0., 1., -1., 0.5, 1234., -1234., 1.000_001, 0.000_001, -0.000_001,
+            ];
+            let mut values = Vec::new();
+            for c0 in components {
+                for c1 in components {
+                    for c2 in components {
+                        values.push([c0, c1, c2]);
+                    }
+                }
+            }
+            values
+        };
+
+        test_roundtrips::<LinearSrgb, Srgb>(&rectangular_values);
+        test_roundtrips::<DisplayP3, Srgb>(&rectangular_values);
+        test_roundtrips::<A98Rgb, Srgb>(&rectangular_values);
+        test_roundtrips::<ProphotoRgb, Srgb>(&rectangular_values);
+        test_roundtrips::<Rec2020, Srgb>(&rectangular_values);
+        test_roundtrips::<XyzD50, Srgb>(&rectangular_values);
+        test_roundtrips::<XyzD65, Srgb>(&rectangular_values);
+
+        test_roundtrips::<Oklab, Srgb>(&[
+            [0., 0., 0.],
+            [1., 0., 0.],
+            [0.2, 0.2, -0.1],
+            [2.0, 0., -0.4],
+        ]);
     }
 
     #[test]
@@ -1186,10 +1254,12 @@ mod tests {
             assert!(almost_equal::<Srgb>(
                 Srgb::WHITE_COMPONENTS,
                 CS::convert::<Srgb>(CS::WHITE_COMPONENTS),
+                1e-4,
             ));
             assert!(almost_equal::<CS>(
                 CS::WHITE_COMPONENTS,
                 Srgb::convert::<CS>(Srgb::WHITE_COMPONENTS),
+                1e-4,
             ));
         }
 
@@ -1214,8 +1284,16 @@ mod tests {
             ([0.1, 0.2, 0.3], [0.155_114, 0.212_317, 0.301_498]),
             ([0., 1., 0.], [0.564_972, 1., 0.234_424]),
         ] {
-            assert!(almost_equal::<Srgb>(srgb, A98Rgb::convert::<Srgb>(a98)));
-            assert!(almost_equal::<A98Rgb>(a98, Srgb::convert::<A98Rgb>(srgb)));
+            assert!(almost_equal::<Srgb>(
+                srgb,
+                A98Rgb::convert::<Srgb>(a98),
+                1e-4
+            ));
+            assert!(almost_equal::<A98Rgb>(
+                a98,
+                Srgb::convert::<A98Rgb>(srgb),
+                1e-4
+            ));
         }
     }
 
@@ -1227,11 +1305,13 @@ mod tests {
         ] {
             assert!(almost_equal::<Srgb>(
                 srgb,
-                ProphotoRgb::convert::<Srgb>(prophoto)
+                ProphotoRgb::convert::<Srgb>(prophoto),
+                1e-4
             ));
             assert!(almost_equal::<ProphotoRgb>(
                 prophoto,
-                Srgb::convert::<ProphotoRgb>(srgb)
+                Srgb::convert::<ProphotoRgb>(srgb),
+                1e-4
             ));
         }
     }
@@ -1245,11 +1325,13 @@ mod tests {
         ] {
             assert!(almost_equal::<Srgb>(
                 srgb,
-                Rec2020::convert::<Srgb>(rec2020)
+                Rec2020::convert::<Srgb>(rec2020),
+                1e-4
             ));
             assert!(almost_equal::<Rec2020>(
                 rec2020,
-                Srgb::convert::<Rec2020>(srgb)
+                Srgb::convert::<Rec2020>(srgb),
+                1e-4
             ));
         }
     }
