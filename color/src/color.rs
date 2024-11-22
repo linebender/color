@@ -234,6 +234,18 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     /// that 1.0 is white. That is the normal range for Oklab but differs from the
     /// range in [Lab], [Lch], and [Hsl].
     ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// use color::{Lab, OpaqueColor};
+    ///
+    /// let color = OpaqueColor::<Lab>::new([40., 4., -17.]);
+    /// let lighter = color.map_lightness(|l| l + 0.2);
+    /// let expected = OpaqueColor::<Lab>::new([60., 4., -17.]);
+    ///
+    /// assert!(lighter.difference(expected) < 0.001);
+    /// ```
+    ///
     /// [Lab]: crate::Lab
     /// [Lch]: crate::Lch
     /// [Hsl]: crate::Hsl
