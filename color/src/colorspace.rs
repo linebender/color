@@ -525,10 +525,6 @@ impl ColorSpace for Rec2020 {
     }
 }
 
-#[expect(
-    clippy::doc_markdown,
-    reason = "these color space names should not be surrounded in backticks"
-)]
 /// 🌌 The ACEScg color space.
 ///
 /// This color space is defined by the Academy Color Encoding System [specification][acescg].

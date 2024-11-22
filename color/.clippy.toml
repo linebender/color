@@ -1,1 +1,1 @@
-doc-valid-idents = ["ProPhoto", ".."]
+doc-valid-idents = ["ACEScg", "ACEScc", "ACEScct", "ProPhoto", ".."]
