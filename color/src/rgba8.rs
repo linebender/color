@@ -9,6 +9,7 @@ use crate::{AlphaColor, Srgb};
 /// it is efficient and convenient, even if limited in accuracy and
 /// gamut.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(C)]
 pub struct Rgba8 {
     /// Red component.

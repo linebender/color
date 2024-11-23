@@ -92,6 +92,8 @@ this trait for new color spaces.
 - `libm`: Use floating point implementations from [libm][].
 - `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`], [`OpaqueColor`],
   [`PremulColor`], and [`Rgba8`].
+- `serde`: Implement `serde::Deserialize` and `serde::Serialize` on [`AlphaColor`],
+  [`OpaqueColor`], [`PremulColor`], and [`Rgba8`].
 
 At least one of `std` and `libm` is required; `std` overrides `libm`.
 

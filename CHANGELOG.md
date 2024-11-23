@@ -18,6 +18,7 @@ This release has an [MSRV][] of 1.82.
 ### Added
 
 * Add `BLACK`, `WHITE`, and `TRANSPARENT` constants to the color types. ([#64][] by [@waywardmonkeys][])
+* The `serde` feature enables using `serde` with `AlphaColor`, `OpaqueColor`, `PremulColor`, and `Rgba8`. ([#61][] by [@waywardmonkeys][])
 
 ### Changed
 
@@ -31,6 +32,7 @@ This is the initial release.
 
 [@waywardmonkeys]: https://github.com/waywardmonkeys
 
+[#61]: https://github.com/linebender/color/pull/61
 [#64]: https://github.com/linebender/color/pull/64
 [#65]: https://github.com/linebender/color/pull/65
 
