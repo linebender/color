@@ -138,6 +138,20 @@ pub(crate) fn fixup_hues_for_interpolate(
 }
 
 impl<CS: ColorSpace> OpaqueColor<CS> {
+    /// A black color.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const BLACK: Self = Self::new([0., 0., 0.]);
+
+    /// A white color.
+    ///
+    /// This value is specific to the color space.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const WHITE: Self = Self::new(CS::WHITE_COMPONENTS);
+
     /// Create a new color from the given components.
     pub const fn new(components: [f32; 3]) -> Self {
         let cs = PhantomData;
@@ -292,6 +306,28 @@ pub(crate) const fn add_alpha([x, y, z]: [f32; 3], a: f32) -> [f32; 4] {
 }
 
 impl<CS: ColorSpace> AlphaColor<CS> {
+    /// A black color.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const BLACK: Self = Self::new([0., 0., 0., 1.]);
+
+    /// A transparent color.
+    ///
+    /// This is a black color with full alpha.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const TRANSPARENT: Self = Self::new([0., 0., 0., 0.]);
+
+    /// A white color.
+    ///
+    /// This value is specific to the color space.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const WHITE: Self = Self::new(add_alpha(CS::WHITE_COMPONENTS, 1.));
+
     /// Create a new color from the given components.
     pub const fn new(components: [f32; 4]) -> Self {
         let cs = PhantomData;
@@ -428,6 +464,28 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 }
 
 impl<CS: ColorSpace> PremulColor<CS> {
+    /// A black color.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const BLACK: Self = Self::new([0., 0., 0., 1.]);
+
+    /// A transparent color.
+    ///
+    /// This is a black color with full alpha.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const TRANSPARENT: Self = Self::new([0., 0., 0., 0.]);
+
+    /// A white color.
+    ///
+    /// This value is specific to the color space.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const WHITE: Self = Self::new(add_alpha(CS::WHITE_COMPONENTS, 1.));
+
     /// Create a new color from the given components.
     pub const fn new(components: [f32; 4]) -> Self {
         let cs = PhantomData;

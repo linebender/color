@@ -41,6 +41,9 @@ pub trait ColorSpace: Clone + Copy + 'static {
     /// The tag corresponding to this color space, if a matching tag exists.
     const TAG: Option<ColorSpaceTag> = None;
 
+    /// The component values for the color white within this color space.
+    const WHITE_COMPONENTS: [f32; 3];
+
     /// Convert an opaque color to linear sRGB.
     ///
     /// Values are likely to exceed [0, 1] for wide-gamut and HDR colors.
@@ -157,6 +160,8 @@ impl ColorSpace for LinearSrgb {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::LinearSrgb);
 
+    const WHITE_COMPONENTS: [f32; 3] = [1., 1., 1.];
+
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         src
     }
@@ -213,6 +218,8 @@ fn lin_to_srgb(x: f32) -> f32 {
 impl ColorSpace for Srgb {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Srgb);
 
+    const WHITE_COMPONENTS: [f32; 3] = [1., 1., 1.];
+
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         src.map(srgb_to_lin)
     }
@@ -260,6 +267,8 @@ pub struct DisplayP3;
 impl ColorSpace for DisplayP3 {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::DisplayP3);
 
+    const WHITE_COMPONENTS: [f32; 3] = [0.99999994, 0.99999994, 0.99999994];
+
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         const LINEAR_DISPLAYP3_TO_SRGB: [[f32; 3]; 3] = [
             [1.224_940_2, -0.224_940_18, 0.0],
@@ -302,6 +311,8 @@ pub struct A98Rgb;
 
 impl ColorSpace for A98Rgb {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::A98Rgb);
+
+    const WHITE_COMPONENTS: [f32; 3] = [1., 1., 1.];
 
     fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * lin_A98_to_XYZ
@@ -378,6 +389,8 @@ pub struct ProphotoRgb;
 impl ColorSpace for ProphotoRgb {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::ProphotoRgb);
 
+    const WHITE_COMPONENTS: [f32; 3] = [1., 0.99999994, 1.];
+
     fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * D50_to_D65 * lin_prophoto_to_XYZ
         const LINEAR_PROPHOTORGB_TO_SRGB: [[f32; 3]; 3] = [
@@ -448,6 +461,8 @@ impl Rec2020 {
 
 impl ColorSpace for Rec2020 {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Rec2020);
+
+    const WHITE_COMPONENTS: [f32; 3] = [1., 1., 1.];
 
     fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * lin_Rec2020_to_XYZ
@@ -548,6 +563,8 @@ impl ColorSpace for XyzD50 {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::XyzD50);
 
+    const WHITE_COMPONENTS: [f32; 3] = [0.9642956, 1., 0.8251046];
+
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * D50_to_D65
         const XYZ_TO_LINEAR_SRGB: [[f32; 3]; 3] = [
@@ -631,6 +648,8 @@ impl ColorSpace for XyzD65 {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::XyzD65);
 
+    const WHITE_COMPONENTS: [f32; 3] = [0.9504559, 1., 1.0890577];
+
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         const XYZ_TO_LINEAR_SRGB: [[f32; 3]; 3] = [
             [3.240_97, -1.537_383_2, -0.498_610_76],
@@ -706,6 +725,8 @@ const OKLAB_LMS_TO_LAB: [[f32; 3]; 3] = [
 impl ColorSpace for Oklab {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Oklab);
 
+    const WHITE_COMPONENTS: [f32; 3] = [1., 0., 0.];
+
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         let lms = matmul(&OKLAB_LAB_TO_LMS, src).map(|x| x * x * x);
         matmul(&OKLAB_LMS_TO_SRGB, lms)
@@ -768,6 +789,8 @@ impl ColorSpace for Oklch {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Oklch);
 
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueThird;
+
+    const WHITE_COMPONENTS: [f32; 3] = [1., 0., 90.];
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         lab_to_lch(Oklab::from_linear_srgb(src))
@@ -852,6 +875,8 @@ const KAPPA: f32 = 24389. / 27.;
 impl ColorSpace for Lab {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Lab);
 
+    const WHITE_COMPONENTS: [f32; 3] = [100., 0., 0.];
+
     fn to_linear_srgb([l, a, b]: [f32; 3]) -> [f32; 3] {
         let f1 = l * (1. / 116.) + (16. / 116.);
         let f0 = a * (1. / 500.) + f1;
@@ -919,6 +944,8 @@ impl ColorSpace for Lch {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Lch);
 
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueThird;
+
+    const WHITE_COMPONENTS: [f32; 3] = [100., 0., 0.];
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         lab_to_lch(Lab::from_linear_srgb(src))
@@ -1024,6 +1051,8 @@ impl ColorSpace for Hsl {
 
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueFirst;
 
+    const WHITE_COMPONENTS: [f32; 3] = [0., 0., 100.];
+
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         let rgb = Srgb::from_linear_srgb(src);
         rgb_to_hsl(rgb, true)
@@ -1109,6 +1138,8 @@ impl ColorSpace for Hwb {
 
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueFirst;
 
+    const WHITE_COMPONENTS: [f32; 3] = [0., 100., 0.];
+
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         let rgb = Srgb::from_linear_srgb(src);
         rgb_to_hwb(rgb)
@@ -1139,10 +1170,41 @@ impl ColorSpace for Hwb {
 
 #[cfg(test)]
 mod tests {
-    use crate::{A98Rgb, ColorSpace, OpaqueColor, ProphotoRgb, Rec2020, Srgb};
+    use crate::{
+        A98Rgb, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab, Oklch, OpaqueColor,
+        ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+    };
 
     fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
         OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 1e-4
+    }
+
+    #[test]
+    fn white_components() {
+        fn check_white<CS: ColorSpace>() {
+            almost_equal::<Srgb>(
+                Srgb::WHITE_COMPONENTS,
+                CS::convert::<Srgb>(CS::WHITE_COMPONENTS),
+            );
+            almost_equal::<CS>(
+                CS::WHITE_COMPONENTS,
+                Srgb::convert::<CS>(Srgb::WHITE_COMPONENTS),
+            );
+        }
+
+        check_white::<A98Rgb>();
+        check_white::<DisplayP3>();
+        check_white::<Hsl>();
+        check_white::<Hwb>();
+        check_white::<Lab>();
+        check_white::<Lch>();
+        check_white::<LinearSrgb>();
+        check_white::<Oklab>();
+        check_white::<Oklch>();
+        check_white::<ProphotoRgb>();
+        check_white::<Rec2020>();
+        check_white::<XyzD50>();
+        check_white::<XyzD65>();
     }
 
     #[test]
