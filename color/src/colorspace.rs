@@ -567,6 +567,8 @@ impl ColorSpace for AcesCg {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::AcesCg);
 
+    const WHITE_COMPONENTS: [f32; 3] = [1.0, 1.0, 1.0];
+
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * ACESwp_to_D65 * ACEScg_to_XYZ
         const ACESCG_TO_LINEAR_SRGB: [[f32; 3]; 3] = [
@@ -1227,8 +1229,8 @@ impl ColorSpace for Hwb {
 #[cfg(test)]
 mod tests {
     use crate::{
-        A98Rgb, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab, Oklch, OpaqueColor,
-        ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+        A98Rgb, AcesCg, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab, Oklch,
+        OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
     };
 
     fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
@@ -1259,6 +1261,7 @@ mod tests {
         check_white::<Oklch>();
         check_white::<ProphotoRgb>();
         check_white::<Rec2020>();
+        check_white::<AcesCg>();
         check_white::<XyzD50>();
         check_white::<XyzD65>();
     }
