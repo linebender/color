@@ -538,11 +538,12 @@ impl ColorSpace for Rec2020 {
 /// The ACEScg components are `[R, G, B]`. The components are bounded to `[-65504.0, 65504.0]`,
 /// though it is unusual to clip in this color space.
 ///
-/// The conversion between D65 and the ACES white point is done using the standard Bradford
-/// linear chromatic adaptation transform. See the [XYZ-D65 color space](`XyzD65`) documentation for
-/// background information on the topic of white point.
+/// ACEScg has a reference white [near D60][aceswp]; see the
+/// [XYZ-D65 color space](`XyzD65`) documentation for some background information on the meaning of
+/// "reference white."
 ///
 /// [acescg]: https://docs.acescentral.com/specifications/acescg/
+/// [aceswp]: https://docs.acescentral.com/tb/white-point
 #[derive(Clone, Copy, Debug)]
 pub struct AcesCg;
 
