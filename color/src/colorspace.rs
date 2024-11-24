@@ -1198,16 +1198,12 @@ mod tests {
                 // The roundtrip error is measured in linear sRGB. This adds more conversions, but
                 // makes the components analogous.
                 let linsrgb_color = Source::to_linear_srgb(*color);
-                let linsrgb_intermediate = Dest::to_linear_srgb(intermediate);
                 let linsrgb_roundtripped = Source::to_linear_srgb(roundtripped);
 
-                // The absolute epsilon is based on the magnitudes of the source and intermediate
-                // colors. The magnitude is at least 1, as that is the natural bound of linear sRGB
-                // channels and prevents numerical issues around 0.
-                let absolute_epsilon = magnitude(linsrgb_color)
-                    .max(magnitude(linsrgb_intermediate))
-                    .max(1.)
-                    * RELATIVE_EPSILON;
+                // The absolute epsilon is based on the maximal magnitude of the source color
+                // components. The magnitude is at least 1, as that is the natural bound of linear
+                // sRGB channels and prevents numerical issues around 0.
+                let absolute_epsilon = magnitude(linsrgb_color).max(1.) * RELATIVE_EPSILON;
                 assert!(almost_equal::<LinearSrgb>(
                     linsrgb_color,
                     linsrgb_roundtripped,
