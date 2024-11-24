@@ -387,7 +387,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 
     /// Multiply alpha by the given factor.
     #[must_use]
-    pub const fn mul_alpha(self, rhs: f32) -> Self {
+    pub const fn multiply_alpha(self, rhs: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
         Self::new(add_alpha(opaque, alpha * rhs))
     }
@@ -555,7 +555,7 @@ impl<CS: ColorSpace> PremulColor<CS> {
 
     /// Multiply alpha by the given factor.
     #[must_use]
-    pub const fn mul_alpha(self, rhs: f32) -> Self {
+    pub const fn multiply_alpha(self, rhs: f32) -> Self {
         let (multiplied, alpha) = split_alpha(self.components);
         Self::new(add_alpha(CS::LAYOUT.scale(multiplied, rhs), alpha * rhs))
     }
@@ -686,7 +686,7 @@ impl<CS: ColorSpace> core::ops::Sub for AlphaColor<CS> {
 /// Multiply components by a scalar.
 ///
 /// For rectangular color spaces, this is equivalent to multiplying
-/// alpha, but for cylindrical color spaces, [`PremulColor::mul_alpha`]
+/// alpha, but for cylindrical color spaces, [`PremulColor::multiply_alpha`]
 /// is the preferred method.
 impl<CS: ColorSpace> core::ops::Mul<f32> for PremulColor<CS> {
     type Output = Self;
