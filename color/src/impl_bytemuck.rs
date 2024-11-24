@@ -3,7 +3,7 @@
 
 #![allow(unsafe_code, reason = "unsafe is required for bytemuck unsafe impls")]
 
-use crate::{AlphaColor, ColorSpace, OpaqueColor, PremulColor, Rgba8};
+use crate::{AlphaColor, ColorSpace, OpaqueColor, PremulColor, PremulRgba8, Rgba8};
 
 // Safety: The struct is `repr(transparent)` and the data member is bytemuck::Pod.
 unsafe impl<CS: ColorSpace> bytemuck::Pod for AlphaColor<CS> {}
@@ -33,6 +33,12 @@ unsafe impl<CS: ColorSpace> bytemuck::TransparentWrapper<[f32; 4]> for PremulCol
 unsafe impl<CS: ColorSpace> bytemuck::Zeroable for PremulColor<CS> {}
 
 // Safety: The struct is `repr(C)` and all members are bytemuck::Pod.
+unsafe impl bytemuck::Pod for PremulRgba8 {}
+
+// Safety: The struct is `repr(C)` and all members are bytemuck::Zeroable.
+unsafe impl bytemuck::Zeroable for PremulRgba8 {}
+
+// Safety: The struct is `repr(C)` and all members are bytemuck::Pod.
 unsafe impl bytemuck::Pod for Rgba8 {}
 
 // Safety: The struct is `repr(C)` and all members are bytemuck::Zeroable.
@@ -40,7 +46,7 @@ unsafe impl bytemuck::Zeroable for Rgba8 {}
 
 #[cfg(test)]
 mod tests {
-    use crate::{AlphaColor, OpaqueColor, PremulColor, Rgba8, Srgb};
+    use crate::{AlphaColor, OpaqueColor, PremulColor, PremulRgba8, Rgba8, Srgb};
     use bytemuck::{TransparentWrapper, Zeroable};
     use core::marker::PhantomData;
 
@@ -71,6 +77,21 @@ mod tests {
             cs: PhantomData,
         } = PremulColor::<Srgb>::new([1., 2., 3., 0.]);
         assert_is_pod(components);
+    }
+
+    #[test]
+    fn premulrgba8_is_pod() {
+        let rgba8 = PremulRgba8 {
+            r: 0,
+            b: 0,
+            g: 0,
+            a: 0,
+        };
+        let PremulRgba8 { r, g, b, a } = rgba8;
+        assert_is_pod(r);
+        assert_is_pod(g);
+        assert_is_pod(b);
+        assert_is_pod(a);
     }
 
     #[test]

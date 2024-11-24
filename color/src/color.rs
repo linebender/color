@@ -6,7 +6,7 @@
 use core::any::TypeId;
 use core::marker::PhantomData;
 
-use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, Rgba8, Srgb};
+use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, PremulRgba8, Rgba8, Srgb};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -568,6 +568,17 @@ impl<CS: ColorSpace> PremulColor<CS> {
     pub fn difference(self, other: Self) -> f32 {
         let d = (self - other).components;
         (d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + d[3] * d[3]).sqrt()
+    }
+
+    /// Pack into 8 bit per component encoding.
+    #[must_use]
+    pub fn to_rgba8(self) -> PremulRgba8 {
+        #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
+        let [r, g, b, a] = self
+            .convert::<Srgb>()
+            .components
+            .map(|x| (x.clamp(0., 1.) * 255.0).round() as u8);
+        PremulRgba8 { r, g, b, a }
     }
 }
 

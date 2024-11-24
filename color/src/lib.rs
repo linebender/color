@@ -35,8 +35,9 @@
 //!   * Appearance models and other color science not needed for rendering.
 //!   * Quantizing and packing to lower bit depths.
 //!
-//! The [`Rgba8`] type is a partial exception to this last item, as that representation
-//! is ubiquitous and requires special logic for serializing to maximize compatibility.
+//! The [`Rgba8`] and [`PremulRgba8`] types are a partial exception to this last item, as
+//! those representation are ubiquitous and requires special logic for serializing to
+//! maximize compatibility.
 //!
 //! Some of these capabilities may be added as other crates within the `color` repository,
 //! and we will also facilitate interoperability with other color crates in the Rust
@@ -62,9 +63,9 @@
 //!   (likely using your target's libc).
 //! - `libm`: Use floating point implementations from [libm][].
 //! - `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`], [`OpaqueColor`],
-//!   [`PremulColor`], and [`Rgba8`].
+//!   [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
 //! - `serde`: Implement `serde::Deserialize` and `serde::Serialize` on [`AlphaColor`],
-//!   [`OpaqueColor`], [`PremulColor`], and [`Rgba8`].
+//!   [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
 //!
 //! At least one of `std` and `libm` is required; `std` overrides `libm`.
 //!
@@ -111,10 +112,10 @@ pub use dynamic::{DynamicColor, Interpolator};
 pub use gradient::{gradient, GradientIter};
 pub use missing::Missing;
 pub use parse::{parse_color, ParseError};
-pub use rgba8::Rgba8;
+pub use rgba8::{PremulRgba8, Rgba8};
 pub use tag::ColorSpaceTag;
 
-const fn u8_to_f32(x: u32) -> f32 {
+const fn u8_to_f32(x: u8) -> f32 {
     x as f32 * (1.0 / 255.0)
 }
 
@@ -131,12 +132,17 @@ impl AlphaColor<Srgb> {
     ///
     /// Note: for conversion from the [`Rgba8`] type, just use the `From` trait.
     pub const fn from_rgba8(r: u8, g: u8, b: u8, a: u8) -> Self {
-        let components = [
-            u8_to_f32(r as u32),
-            u8_to_f32(g as u32),
-            u8_to_f32(b as u32),
-            u8_to_f32(a as u32),
-        ];
+        let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b), u8_to_f32(a)];
+        Self::new(components)
+    }
+}
+
+impl PremulColor<Srgb> {
+    /// Create a color from pre-multiplied 8-bit rgba values.
+    ///
+    /// Note: for conversion from the [`PremulRgba8`] type, just use the `From` trait.
+    pub const fn from_rgba8(r: u8, g: u8, b: u8, a: u8) -> Self {
+        let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b), u8_to_f32(a)];
         Self::new(components)
     }
 }
