@@ -6,7 +6,7 @@
 use core::any::TypeId;
 use core::marker::PhantomData;
 
-use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, Rgba8, Srgb};
+use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, PremulRgba8, Rgba8, Srgb};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -22,6 +22,7 @@ use crate::floatfuncs::FloatFuncs;
 /// for spline interpolation. For cylindrical color spaces, hue fixup should
 /// be applied before interpolation.
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct OpaqueColor<CS> {
     /// The components, which may be manipulated directly.
@@ -38,6 +39,7 @@ pub struct OpaqueColor<CS> {
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct AlphaColor<CS> {
     /// The components, which may be manipulated directly.
@@ -60,6 +62,7 @@ pub struct AlphaColor<CS> {
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct PremulColor<CS> {
     /// The components, which may be manipulated directly.
@@ -138,6 +141,20 @@ pub(crate) fn fixup_hues_for_interpolate(
 }
 
 impl<CS: ColorSpace> OpaqueColor<CS> {
+    /// A black color.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const BLACK: Self = Self::new([0., 0., 0.]);
+
+    /// A white color.
+    ///
+    /// This value is specific to the color space.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const WHITE: Self = Self::new(CS::WHITE_COMPONENTS);
+
     /// Create a new color from the given components.
     pub const fn new(components: [f32; 3]) -> Self {
         let cs = PhantomData;
@@ -292,6 +309,28 @@ pub(crate) const fn add_alpha([x, y, z]: [f32; 3], a: f32) -> [f32; 4] {
 }
 
 impl<CS: ColorSpace> AlphaColor<CS> {
+    /// A black color.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const BLACK: Self = Self::new([0., 0., 0., 1.]);
+
+    /// A transparent color.
+    ///
+    /// This is a black color with full alpha.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const TRANSPARENT: Self = Self::new([0., 0., 0., 0.]);
+
+    /// A white color.
+    ///
+    /// This value is specific to the color space.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const WHITE: Self = Self::new(add_alpha(CS::WHITE_COMPONENTS, 1.));
+
     /// Create a new color from the given components.
     pub const fn new(components: [f32; 4]) -> Self {
         let cs = PhantomData;
@@ -351,7 +390,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 
     /// Multiply alpha by the given factor.
     #[must_use]
-    pub const fn mul_alpha(self, rhs: f32) -> Self {
+    pub const fn multiply_alpha(self, rhs: f32) -> Self {
         let (opaque, alpha) = split_alpha(self.components);
         Self::new(add_alpha(opaque, alpha * rhs))
     }
@@ -428,6 +467,28 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 }
 
 impl<CS: ColorSpace> PremulColor<CS> {
+    /// A black color.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const BLACK: Self = Self::new([0., 0., 0., 1.]);
+
+    /// A transparent color.
+    ///
+    /// This is a black color with full alpha.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const TRANSPARENT: Self = Self::new([0., 0., 0., 0.]);
+
+    /// A white color.
+    ///
+    /// This value is specific to the color space.
+    ///
+    /// More comprehensive pre-defined colors are available
+    /// in the [`color::palette`](crate::palette) module.
+    pub const WHITE: Self = Self::new(add_alpha(CS::WHITE_COMPONENTS, 1.));
+
     /// Create a new color from the given components.
     pub const fn new(components: [f32; 4]) -> Self {
         let cs = PhantomData;
@@ -497,7 +558,7 @@ impl<CS: ColorSpace> PremulColor<CS> {
 
     /// Multiply alpha by the given factor.
     #[must_use]
-    pub const fn mul_alpha(self, rhs: f32) -> Self {
+    pub const fn multiply_alpha(self, rhs: f32) -> Self {
         let (multiplied, alpha) = split_alpha(self.components);
         Self::new(add_alpha(CS::LAYOUT.scale(multiplied, rhs), alpha * rhs))
     }
@@ -507,6 +568,17 @@ impl<CS: ColorSpace> PremulColor<CS> {
     pub fn difference(self, other: Self) -> f32 {
         let d = (self - other).components;
         (d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + d[3] * d[3]).sqrt()
+    }
+
+    /// Pack into 8 bit per component encoding.
+    #[must_use]
+    pub fn to_rgba8(self) -> PremulRgba8 {
+        #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
+        let [r, g, b, a] = self
+            .convert::<Srgb>()
+            .components
+            .map(|x| (x.clamp(0., 1.) * 255.0).round() as u8);
+        PremulRgba8 { r, g, b, a }
     }
 }
 
@@ -628,7 +700,7 @@ impl<CS: ColorSpace> core::ops::Sub for AlphaColor<CS> {
 /// Multiply components by a scalar.
 ///
 /// For rectangular color spaces, this is equivalent to multiplying
-/// alpha, but for cylindrical color spaces, [`PremulColor::mul_alpha`]
+/// alpha, but for cylindrical color spaces, [`PremulColor::multiply_alpha`]
 /// is the preferred method.
 impl<CS: ColorSpace> core::ops::Mul<f32> for PremulColor<CS> {
     type Output = Self;
