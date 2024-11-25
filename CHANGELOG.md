@@ -34,8 +34,8 @@ This release has an [MSRV][] of 1.82.
 
 This is the initial release.
 
-[@waywardmonkeys]: https://github.com/waywardmonkeys
 [@MightyBurger]: https://github.com/MightyBurger
+[@waywardmonkeys]: https://github.com/waywardmonkeys
 
 [#54]: https://github.com/linebender/color/pull/54
 [#61]: https://github.com/linebender/color/pull/61
