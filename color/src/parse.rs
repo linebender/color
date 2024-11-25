@@ -39,8 +39,8 @@ pub enum ParseError {
     ExpectedColorSpaceIdentifier,
     /// Expected comma
     ExpectedComma,
-    /// Invalid hex digit
-    InvalidHexDigit,
+    /// Expected end of string
+    ExpectedEndOfString,
     /// Wrong number of hex digits
     WrongNumberOfHexDigits,
 }
@@ -61,7 +61,7 @@ impl fmt::Display for ParseError {
             Self::ExpectedClosingParenthesis => "expected closing parenthesis",
             Self::ExpectedColorSpaceIdentifier => "expected color space identifier",
             Self::ExpectedComma => "expected comma",
-            Self::InvalidHexDigit => "invalid hex digit",
+            Self::ExpectedEndOfString => "expected end of string",
             Self::WrongNumberOfHexDigits => "wrong number of hex digits",
         };
         f.write_str(msg)
@@ -451,21 +451,24 @@ impl<'a> Parser<'a> {
     }
 }
 
-// Arguably this should be an implementation of FromStr.
-/// Parse a color string in CSS syntax into a color.
+/// Parse a color string prefix in CSS syntax into a color.
+///
+/// Returns the byte offset of the unparsed remainder of the string and the parsed color. See also
+/// [`parse_color`].
 ///
 /// # Errors
 ///
 /// Tries to return a suitable error for any invalid string, but may be
 /// a little lax on some details.
-pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
+pub fn parse_color_with_remainder(s: &str) -> Result<(usize, DynamicColor), ParseError> {
     if let Some(stripped) = s.strip_prefix('#') {
-        let color = color_from_4bit_hex(get_4bit_hex_channels(stripped)?);
-        return Ok(DynamicColor::from_alpha_color(color));
+        let (ix, channels) = get_4bit_hex_channels(stripped)?;
+        let color = color_from_4bit_hex(channels);
+        return Ok((ix + 1, DynamicColor::from_alpha_color(color)));
     }
     let mut parser = Parser::new(s);
     if let Some(id) = parser.ident() {
-        match id {
+        let color = match id {
             "rgb" | "rgba" => parser.rgb(),
             "lab" => parser.lab(100.0, 1.25, ColorSpaceTag::Lab),
             "lch" => parser.lch(100.0, 1.25, ColorSpaceTag::Lch),
@@ -482,43 +485,70 @@ pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
                     Err(ParseError::UnknownColorIdentifier)
                 }
             }
-        }
-        // TODO: should we validate that the parser is at eof?
+        }?;
+        Ok((parser.ix, color))
     } else {
         Err(ParseError::UnknownColorSyntax)
     }
 }
 
-const fn get_4bit_hex_channels(hex_str: &str) -> Result<[u8; 8], ParseError> {
-    let mut four_bit_channels = match *hex_str.as_bytes() {
-        [r, g, b] => [r, r, g, g, b, b, b'f', b'f'],
-        [r, g, b, a] => [r, r, g, g, b, b, a, a],
-        [r0, r1, g0, g1, b0, b1] => [r0, r1, g0, g1, b0, b1, b'f', b'f'],
-        [r0, r1, g0, g1, b0, b1, a0, a1] => [r0, r1, g0, g1, b0, b1, a0, a1],
+// Arguably this should be an implementation of FromStr.
+/// Parse a color string in CSS syntax into a color.
+///
+/// This parses the entire string; trailing characters cause an
+/// [`ExpectedEndOfString`](ParseError::ExpectedEndOfString) parse error. See also
+/// [`parse_color_with_remainder`].
+///
+/// # Errors
+///
+/// Tries to return a suitable error for any invalid string, but may be
+/// a little lax on some details.
+pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
+    let (ix, color) = parse_color_with_remainder(s)?;
+
+    if ix == s.len() {
+        Ok(color)
+    } else {
+        Err(ParseError::ExpectedEndOfString)
+    }
+}
+
+/// Parse 4-bit color channels from a hex-encoded string.
+///
+/// Returns the parsed channels and the byte offset to the remainder of the string (i.e., the
+/// number of hex characters parsed).
+const fn get_4bit_hex_channels(hex_str: &str) -> Result<(usize, [u8; 8]), ParseError> {
+    let mut hex = [0; 8];
+
+    let mut i = 0;
+    while i < 8 && i < hex_str.len() {
+        if let Ok(h) = hex_from_ascii_byte(hex_str.as_bytes()[i]) {
+            hex[i] = h;
+            i += 1;
+        } else {
+            break;
+        }
+    }
+
+    let four_bit_channels = match i {
+        3 => [hex[0], hex[0], hex[1], hex[1], hex[2], hex[2], 15, 15],
+        4 => [
+            hex[0], hex[0], hex[1], hex[1], hex[2], hex[2], hex[3], hex[3],
+        ],
+        6 => [hex[0], hex[1], hex[2], hex[3], hex[4], hex[5], 15, 15],
+        8 => hex,
         _ => return Err(ParseError::WrongNumberOfHexDigits),
     };
 
-    // convert to hex in-place
-    // this is written without a for loop to satisfy `const`
-    let mut i = 0;
-    while i < four_bit_channels.len() {
-        let ascii = four_bit_channels[i];
-        let as_hex = match hex_from_ascii_byte(ascii) {
-            Ok(hex) => hex,
-            Err(e) => return Err(e),
-        };
-        four_bit_channels[i] = as_hex;
-        i += 1;
-    }
-    Ok(four_bit_channels)
+    Ok((i, four_bit_channels))
 }
 
-const fn hex_from_ascii_byte(b: u8) -> Result<u8, ParseError> {
+const fn hex_from_ascii_byte(b: u8) -> Result<u8, ()> {
     match b {
         b'0'..=b'9' => Ok(b - b'0'),
         b'A'..=b'F' => Ok(b - b'A' + 10),
         b'a'..=b'f' => Ok(b - b'a' + 10),
-        _ => Err(ParseError::InvalidHexDigit),
+        _ => Err(()),
     }
 }
 
@@ -552,7 +582,7 @@ impl FromStr for ColorSpaceTag {
 mod tests {
     use crate::DynamicColor;
 
-    use super::parse_color;
+    use super::{parse_color, parse_color_with_remainder, ParseError};
 
     fn assert_close_color(c1: DynamicColor, c2: DynamicColor) {
         const EPSILON: f32 = 1e-4;
@@ -570,5 +600,46 @@ mod tests {
         assert_close_color(lgy, parse_color("rgb(250, 250, 210)").unwrap());
         let transparent = parse_color("transparent").unwrap();
         assert_close_color(transparent, parse_color("rgba(0, 0, 0, 0)").unwrap());
+    }
+
+    #[test]
+    fn hex() {
+        let red = parse_color("red").unwrap();
+        assert_close_color(red, parse_color("#f00").unwrap());
+        assert_close_color(red, parse_color("#f00f").unwrap());
+        assert_close_color(red, parse_color("#ff0000ff").unwrap());
+        assert_eq!(
+            parse_color("#f00fa").unwrap_err(),
+            ParseError::WrongNumberOfHexDigits
+        );
+    }
+
+    #[test]
+    fn consume_string() {
+        assert_eq!(
+            parse_color("#ff0000ffa").unwrap_err(),
+            ParseError::ExpectedEndOfString
+        );
+        assert_eq!(
+            parse_color("rgba(255, 100, 0, 1) ").unwrap_err(),
+            ParseError::ExpectedEndOfString
+        );
+    }
+
+    #[test]
+    fn remainder() {
+        for (color, trailing) in [
+            ("color(rec2020 0.2 0.3 0.4 / 0.85)trailing", "trailing"),
+            ("color(rec2020 0.2 0.3 0.4 / 0.85) ", " "),
+            ("color(rec2020 0.2 0.3 0.4 / 0.85)", ""),
+            ("red\0", "\0"),
+            ("#ffftrailing", "trailing"),
+            ("#fffffftr", "tr"),
+        ] {
+            assert_eq!(
+                &color[parse_color_with_remainder(color).unwrap().0..],
+                trailing
+            );
+        }
     }
 }
