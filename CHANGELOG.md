@@ -22,6 +22,7 @@ This release has an [MSRV][] of 1.82.
 * Conversion of a `Rgba8` to a `u32` is now provided. ([#66][] by [@waywardmonkeys][])
 * A new `PremulRgba8` type mirrors `Rgba8`, but for `PremulColor`. ([#66][] by [@waywardmonkeys][])
 * `AlphaColor::with_alpha` allows setting the alpha channel. ([#67][] by [@waywardmonkeys][])
+* Support for the `ACEScg` colorspace. ([#54][] by [@MightyBurger][])
 
 ### Changed
 
@@ -34,7 +35,9 @@ This release has an [MSRV][] of 1.82.
 This is the initial release.
 
 [@waywardmonkeys]: https://github.com/waywardmonkeys
+[@MightyBurger]: https://github.com/MightyBurger
 
+[#54]: https://github.com/linebender/color/pull/54
 [#61]: https://github.com/linebender/color/pull/61
 [#64]: https://github.com/linebender/color/pull/64
 [#65]: https://github.com/linebender/color/pull/65
