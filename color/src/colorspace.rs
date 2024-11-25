@@ -1175,6 +1175,7 @@ mod tests {
         ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
     };
 
+    #[must_use]
     fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3]) -> bool {
         OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) < 1e-4
     }
@@ -1182,14 +1183,14 @@ mod tests {
     #[test]
     fn white_components() {
         fn check_white<CS: ColorSpace>() {
-            almost_equal::<Srgb>(
+            assert!(almost_equal::<Srgb>(
                 Srgb::WHITE_COMPONENTS,
                 CS::convert::<Srgb>(CS::WHITE_COMPONENTS),
-            );
-            almost_equal::<CS>(
+            ));
+            assert!(almost_equal::<CS>(
                 CS::WHITE_COMPONENTS,
                 Srgb::convert::<CS>(Srgb::WHITE_COMPONENTS),
-            );
+            ));
         }
 
         check_white::<A98Rgb>();
