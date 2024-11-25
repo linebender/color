@@ -346,6 +346,22 @@ impl<CS: ColorSpace> AlphaColor<CS> {
         (OpaqueColor::new(opaque), alpha)
     }
 
+    /// Set the alpha channel.
+    ///
+    /// This replaces the existing alpha channel. To scale or
+    /// or otherwise modify the existing alpha channel, use
+    /// [`AlphaColor::multiply_alpha`] or [`AlphaColor::map`].
+    ///
+    /// ```
+    /// let c = color::palette::css::GOLDENROD.with_alpha(0.5);
+    /// assert_eq!(0.5, c.split().1);
+    /// ```
+    #[must_use]
+    pub const fn with_alpha(self, alpha: f32) -> Self {
+        let (opaque, _alpha) = split_alpha(self.components);
+        Self::new(add_alpha(opaque, alpha))
+    }
+
     /// Split out the opaque components, discarding the alpha.
     ///
     /// This is a shorthand for calling [`split`](Self::split).
