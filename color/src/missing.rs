@@ -4,7 +4,7 @@
 //! A simple bitset.
 
 /// A simple bitset for representing missing components.
-#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Missing(u8);
 

@@ -24,6 +24,7 @@ This release has an [MSRV][] of 1.82.
 * `AlphaColor::with_alpha` allows setting the alpha channel. ([#67][] by [@waywardmonkeys][])
 * Support for the `ACEScg` colorspace. ([#54][] by [@MightyBurger][])
 * `DynamicColor` gets `with_alpha` and `multiply_alpha`. ([#71][] by [@waywardmonkeys][])
+* `DynamicColor` now impls `Hash` and `PartialEq`. ([#75][] by [@waywardmonkeys][])
 
 ### Changed
 
@@ -46,6 +47,7 @@ This is the initial release.
 [#67]: https://github.com/linebender/color/pull/67
 [#70]: https://github.com/linebender/color/pull/70
 [#71]: https://github.com/linebender/color/pull/71
+[#75]: https://github.com/linebender/color/pull/75
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/linebender/color/releases/tag/v0.1.0

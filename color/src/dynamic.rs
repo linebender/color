@@ -7,6 +7,7 @@ use crate::{
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
     AlphaColor, ColorSpace, ColorSpaceLayout, ColorSpaceTag, HueDirection, LinearSrgb, Missing,
 };
+use core::hash::{Hash, Hasher};
 
 /// A color with a color space tag decided at runtime.
 ///
@@ -361,6 +362,31 @@ impl DynamicColor {
             ColorSpaceLayout::HueThird => self.map(|c0, c1, h, a| [c0, c1, f(h), a]),
             _ => self.map_in(ColorSpaceTag::Oklch, |l, c, h, a| [l, c, f(h), a]),
         }
+    }
+}
+
+impl Hash for DynamicColor {
+    /// The hash is computed from the bit representation of the component values.
+    /// That makes it suitable for use as a cache key or memoization, but does not
+    /// match behavior for Rust float types.
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.cs.hash(state);
+        self.missing.hash(state);
+        for c in self.components {
+            c.to_bits().hash(state);
+        }
+    }
+}
+
+impl PartialEq for DynamicColor {
+    /// Equality is determined based on the bit representation.
+    fn eq(&self, other: &Self) -> bool {
+        self.cs == other.cs
+            && self.missing == other.missing
+            && self.components[0].to_bits() == other.components[0].to_bits()
+            && self.components[1].to_bits() == other.components[1].to_bits()
+            && self.components[2].to_bits() == other.components[2].to_bits()
+            && self.components[3].to_bits() == other.components[3].to_bits()
     }
 }
 
