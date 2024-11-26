@@ -18,6 +18,7 @@ use crate::{
 ///
 /// Note: when adding an RGB-like color space, add to `same_analogous`.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[non_exhaustive]
 pub enum ColorSpaceTag {
     /// The [`Srgb`] color space.

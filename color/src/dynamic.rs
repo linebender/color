@@ -26,6 +26,7 @@ use crate::{
 ///
 /// [Oklch]: crate::Oklch
 #[derive(Clone, Copy, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct DynamicColor {
     /// The color space.
     pub cs: ColorSpaceTag,
