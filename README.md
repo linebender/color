@@ -13,7 +13,8 @@ A library for representing and manipulating colors
 
 </div>
 
-The Color library provides functionality for representing, converting, parsing, serializing, and manipulating colors in a variety of color spaces. It closely follows the [CSS Color Level 4] draft spec.
+The Color library provides functionality for representing, converting, parsing, serializing, and manipulating colors in a variety of color spaces.
+It closely follows the [CSS Color Level 4] draft spec.
 
 ## Minimum supported Rust Version (MSRV)
 
