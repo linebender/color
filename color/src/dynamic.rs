@@ -146,6 +146,52 @@ impl DynamicColor {
         self
     }
 
+    /// Multiply alpha by the given factor.
+    ///
+    /// If the alpha channel is missing, then the new alpha channel
+    /// will be ignored and the color returned unchanged.
+    #[must_use]
+    pub const fn multiply_alpha(self, rhs: f32) -> Self {
+        if self.missing.contains(3) {
+            self
+        } else {
+            let (opaque, alpha) = split_alpha(self.components);
+            Self {
+                cs: self.cs,
+                missing: self.missing,
+                components: add_alpha(opaque, alpha * rhs),
+            }
+        }
+    }
+
+    /// Set the alpha channel.
+    ///
+    /// This replaces the existing alpha channel. To scale or
+    /// or otherwise modify the existing alpha channel, use
+    /// [`DynamicColor::multiply_alpha`] or [`DynamicColor::map`].
+    ///
+    /// If the alpha channel is missing, then the new alpha channel
+    /// will be ignored and the color returned unchanged.
+    ///
+    /// ```
+    /// # use color::{parse_color, Srgb};
+    /// let c = parse_color("lavenderblush").unwrap().with_alpha(0.7);
+    /// assert_eq!(0.7, c.to_alpha_color::<Srgb>().split().1);
+    /// ```
+    #[must_use]
+    pub const fn with_alpha(self, alpha: f32) -> Self {
+        if self.missing.contains(3) {
+            self
+        } else {
+            let (opaque, _alpha) = split_alpha(self.components);
+            Self {
+                cs: self.cs,
+                missing: self.missing,
+                components: add_alpha(opaque, alpha),
+            }
+        }
+    }
+
     /// Scale the chroma by the given amount.
     ///
     /// See [`ColorSpace::scale_chroma`] for more details.
@@ -341,5 +387,26 @@ impl Interpolator {
             missing: self.missing,
             components,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{parse_color, Missing};
+
+    #[test]
+    fn missing_alpha() {
+        let c = parse_color("oklab(0.5 0.2 0 / none)").unwrap();
+        assert_eq!(0., c.components[3]);
+        assert_eq!(Missing::single(3), c.missing);
+
+        // Alpha is missing, so we shouldn't be able to get an alpha added.
+        let c2 = c.with_alpha(0.5);
+        assert_eq!(0., c2.components[3]);
+        assert_eq!(Missing::single(3), c2.missing);
+
+        let c3 = c.multiply_alpha(0.2);
+        assert_eq!(0., c3.components[3]);
+        assert_eq!(Missing::single(3), c3.missing);
     }
 }

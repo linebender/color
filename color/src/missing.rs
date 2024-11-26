@@ -10,7 +10,7 @@ pub struct Missing(u8);
 
 impl Missing {
     /// Returns `true` if the set contains the component index.
-    pub fn contains(self, ix: usize) -> bool {
+    pub const fn contains(self, ix: usize) -> bool {
         (self.0 & (1 << ix)) != 0
     }
 
@@ -20,12 +20,12 @@ impl Missing {
     }
 
     /// The set containing a single component index.
-    pub fn single(ix: usize) -> Self {
+    pub const fn single(ix: usize) -> Self {
         Self(1 << ix)
     }
 
     /// Returns `true` if the set contains no indices.
-    pub fn is_empty(self) -> bool {
+    pub const fn is_empty(self) -> bool {
         self.0 == 0
     }
 }

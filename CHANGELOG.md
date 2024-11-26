@@ -23,6 +23,7 @@ This release has an [MSRV][] of 1.82.
 * A new `PremulRgba8` type mirrors `Rgba8`, but for `PremulColor`. ([#66][] by [@waywardmonkeys][])
 * `AlphaColor::with_alpha` allows setting the alpha channel. ([#67][] by [@waywardmonkeys][])
 * Support for the `ACEScg` colorspace. ([#54][] by [@MightyBurger][])
+* `DynamicColor` gets `with_alpha` and `multiply_alpha`. ([#71][] by [@waywardmonkeys][])
 
 ### Changed
 
@@ -44,6 +45,7 @@ This is the initial release.
 [#66]: https://github.com/linebender/color/pull/66
 [#67]: https://github.com/linebender/color/pull/67
 [#70]: https://github.com/linebender/color/pull/70
+[#71]: https://github.com/linebender/color/pull/71
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/linebender/color/releases/tag/v0.1.0
