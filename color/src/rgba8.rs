@@ -29,7 +29,7 @@ impl Rgba8 {
     /// `a` the least.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
-        ((self.r as u32) << 24) | ((self.g as u32) << 16) | ((self.b as u32) << 8) | self.a as u32
+        u32::from_be_bytes([self.r, self.g, self.b, self.a])
     }
 }
 
@@ -63,12 +63,36 @@ impl PremulRgba8 {
     /// `a` the least.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
-        ((self.r as u32) << 24) | ((self.g as u32) << 16) | ((self.b as u32) << 8) | self.a as u32
+        u32::from_be_bytes([self.r, self.g, self.b, self.a])
     }
 }
 
 impl From<Rgba8> for PremulColor<Srgb> {
     fn from(value: Rgba8) -> Self {
         Self::from_rgba8(value.r, value.g, value.b, value.a)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{PremulRgba8, Rgba8};
+
+    #[test]
+    fn to_u32() {
+        let c = Rgba8 {
+            r: 1,
+            g: 2,
+            b: 3,
+            a: 4,
+        };
+        assert_eq!(0x01020304_u32, c.to_u32());
+
+        let p = PremulRgba8 {
+            r: 0xaa,
+            g: 0xbb,
+            b: 0xcc,
+            a: 0xff,
+        };
+        assert_eq!(0xaabbccff_u32, p.to_u32());
     }
 }
