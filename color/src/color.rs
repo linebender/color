@@ -21,7 +21,7 @@ use crate::floatfuncs::FloatFuncs;
 /// major motivation for including these is to enable weighted sums, including
 /// for spline interpolation. For cylindrical color spaces, hue fixup should
 /// be applied before interpolation.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct OpaqueColor<CS> {
@@ -38,7 +38,7 @@ pub struct OpaqueColor<CS> {
 /// A color in a color space known at compile time, with an alpha channel.
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct AlphaColor<CS> {
@@ -61,7 +61,7 @@ pub struct AlphaColor<CS> {
 /// give undesirable results.
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct PremulColor<CS> {
