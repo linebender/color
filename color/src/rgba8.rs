@@ -25,11 +25,17 @@ pub struct Rgba8 {
 }
 
 impl Rgba8 {
-    /// Returns the color as a packed value, with `r` as the most significant byte and
-    /// `a` the least.
+    /// Returns the color as a `[u8; 4]`.
+    #[must_use]
+    pub const fn to_u8_array(self) -> [u8; 4] {
+        [self.r, self.g, self.b, self.a]
+    }
+
+    /// Returns the color as a little endian packed value, with `a` as the
+    /// most significant byte and `r` the least.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
-        u32::from_be_bytes([self.r, self.g, self.b, self.a])
+        u32::from_le_bytes(self.to_u8_array())
     }
 }
 
@@ -59,11 +65,17 @@ pub struct PremulRgba8 {
 }
 
 impl PremulRgba8 {
-    /// Returns the color as a packed value, with `r` as the most significant byte and
-    /// `a` the least.
+    /// Returns the color as a `[u8; 4]`.
+    #[must_use]
+    pub const fn to_u8_array(self) -> [u8; 4] {
+        [self.r, self.g, self.b, self.a]
+    }
+
+    /// Returns the color as a little endian packed value, with `a` as the
+    /// most significant byte and `r` the least.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
-        u32::from_be_bytes([self.r, self.g, self.b, self.a])
+        u32::from_le_bytes(self.to_u8_array())
     }
 }
 
@@ -85,7 +97,7 @@ mod tests {
             b: 3,
             a: 4,
         };
-        assert_eq!(0x01020304_u32, c.to_u32());
+        assert_eq!(0x04030201_u32, c.to_u32());
 
         let p = PremulRgba8 {
             r: 0xaa,
@@ -93,6 +105,6 @@ mod tests {
             b: 0xcc,
             a: 0xff,
         };
-        assert_eq!(0xaabbccff_u32, p.to_u32());
+        assert_eq!(0xffccbbaa_u32, p.to_u32());
     }
 }

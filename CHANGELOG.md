@@ -19,7 +19,7 @@ This release has an [MSRV][] of 1.82.
 
 * Add `BLACK`, `WHITE`, and `TRANSPARENT` constants to the color types. ([#64][] by [@waywardmonkeys][])
 * The `serde` feature enables using `serde` with `AlphaColor`, `DynamicColor`, `OpaqueColor`, `PremulColor`, and `Rgba8`. ([#61][], [#70][] by [@waywardmonkeys][])
-* Conversion of a `Rgba8` to a `u32` is now provided. ([#66][] by [@waywardmonkeys][])
+* Conversion of a `Rgba8` to a `u32` is now provided. ([#66][], [#77][] by [@waywardmonkeys][])
 * A new `PremulRgba8` type mirrors `Rgba8`, but for `PremulColor`. ([#66][] by [@waywardmonkeys][])
 * `AlphaColor::with_alpha` allows setting the alpha channel. ([#67][] by [@waywardmonkeys][])
 * Support for the `ACEScg` colorspace. ([#54][] by [@MightyBurger][])
@@ -48,6 +48,7 @@ This is the initial release.
 [#70]: https://github.com/linebender/color/pull/70
 [#71]: https://github.com/linebender/color/pull/71
 [#75]: https://github.com/linebender/color/pull/75
+[#77]: https://github.com/linebender/color/pull/77
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/linebender/color/releases/tag/v0.1.0
