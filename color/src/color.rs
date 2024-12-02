@@ -248,7 +248,7 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     ///
     /// In a color space that naturally has a lightness component, map that value.
     /// Otherwise, do the mapping in [Oklab]. The lightness range is normalized so
-    /// that 1.0 is white. That is the normal range for Oklab but differs from the
+    /// that 1.0 is white. That is the normal range for [Oklab] but differs from the
     /// range in [Lab], [Lch], and [Hsl].
     ///
     /// # Examples
@@ -449,7 +449,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     ///
     /// In a color space that naturally has a lightness component, map that value.
     /// Otherwise, do the mapping in [Oklab]. The lightness range is normalized so
-    /// that 1.0 is white. That is the normal range for Oklab but differs from the
+    /// that 1.0 is white. That is the normal range for [Oklab] but differs from the
     /// range in [Lab], [Lch], and [Hsl].
     ///
     /// # Examples
