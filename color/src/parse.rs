@@ -460,7 +460,7 @@ impl<'a> Parser<'a> {
 ///
 /// Tries to return a suitable error for any invalid string, but may be
 /// a little lax on some details.
-pub fn parse_color_with_remainder(s: &str) -> Result<(usize, DynamicColor), ParseError> {
+pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> {
     if let Some(stripped) = s.strip_prefix('#') {
         let (ix, channels) = get_4bit_hex_channels(stripped)?;
         let color = color_from_4bit_hex(channels);
@@ -496,15 +496,16 @@ pub fn parse_color_with_remainder(s: &str) -> Result<(usize, DynamicColor), Pars
 /// Parse a color string in CSS syntax into a color.
 ///
 /// This parses the entire string; trailing characters cause an
-/// [`ExpectedEndOfString`](ParseError::ExpectedEndOfString) parse error. See also
-/// [`parse_color_with_remainder`].
+/// [`ExpectedEndOfString`](ParseError::ExpectedEndOfString) parse error. Leading and trailing
+/// whitespace are ignored. See also [`parse_color_prefix`].
 ///
 /// # Errors
 ///
 /// Tries to return a suitable error for any invalid string, but may be
 /// a little lax on some details.
 pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
-    let (ix, color) = parse_color_with_remainder(s)?;
+    let s = s.trim();
+    let (ix, color) = parse_color_prefix(s)?;
 
     if ix == s.len() {
         Ok(color)
@@ -582,7 +583,7 @@ impl FromStr for ColorSpaceTag {
 mod tests {
     use crate::DynamicColor;
 
-    use super::{parse_color, parse_color_with_remainder, ParseError};
+    use super::{parse_color, parse_color_prefix, ParseError};
 
     fn assert_close_color(c1: DynamicColor, c2: DynamicColor) {
         const EPSILON: f32 = 1e-4;
@@ -596,6 +597,7 @@ mod tests {
     fn x11_color_names() {
         let red = parse_color("red").unwrap();
         assert_close_color(red, parse_color("rgb(255, 0, 0)").unwrap());
+        assert_close_color(red, parse_color("\n rgb(255, 0, 0)\t ").unwrap());
         let lgy = parse_color("lightgoldenrodyellow").unwrap();
         assert_close_color(lgy, parse_color("rgb(250, 250, 210)").unwrap());
         let transparent = parse_color("transparent").unwrap();
@@ -621,13 +623,13 @@ mod tests {
             ParseError::ExpectedEndOfString
         );
         assert_eq!(
-            parse_color("rgba(255, 100, 0, 1) ").unwrap_err(),
+            parse_color("rgba(255, 100, 0, 1)a").unwrap_err(),
             ParseError::ExpectedEndOfString
         );
     }
 
     #[test]
-    fn remainder() {
+    fn prefix() {
         for (color, trailing) in [
             ("color(rec2020 0.2 0.3 0.4 / 0.85)trailing", "trailing"),
             ("color(rec2020 0.2 0.3 0.4 / 0.85) ", " "),
@@ -636,10 +638,7 @@ mod tests {
             ("#ffftrailing", "trailing"),
             ("#fffffftr", "tr"),
         ] {
-            assert_eq!(
-                &color[parse_color_with_remainder(color).unwrap().0..],
-                trailing
-            );
+            assert_eq!(&color[parse_color_prefix(color).unwrap().0..], trailing);
         }
     }
 }
