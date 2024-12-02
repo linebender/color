@@ -461,7 +461,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     /// let lighter = color.map_lightness(|l| l + 0.2);
     /// let expected = AlphaColor::<Lab>::new([60., 4., -17., 1.]);
     ///
-    /// assert!(lighter.discard_alpha().difference(expected.discard_alpha()) < 1e-4);
+    /// assert!(lighter.premultiply().difference(expected.premultiply()) < 1e-4);
     /// ```
     ///
     /// [Lab]: crate::Lab
@@ -495,7 +495,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     /// let complementary = color.map_hue(|h| (h + 180.) % 360.);
     /// let expected = AlphaColor::<Oklab>::new([0.5, -0.2, 0.1, 1.]);
     ///
-    /// assert!(complementary.discard_alpha().difference(expected.discard_alpha()) < 1e-4);
+    /// assert!(complementary.premultiply().difference(expected.premultiply()) < 1e-4);
     /// ```
     #[must_use]
     pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
