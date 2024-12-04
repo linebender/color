@@ -113,11 +113,11 @@ impl core::fmt::Display for Rgba8 {
 impl core::fmt::LowerHex for Rgba8 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.a == 255 {
-            write!(f, "#{:02x}{:02x}{:02x})", self.r, self.g, self.b)
+            write!(f, "#{:02x}{:02x}{:02x}", self.r, self.g, self.b)
         } else {
             write!(
                 f,
-                "#{:02x}{:02x}{:02x}{:02x})",
+                "#{:02x}{:02x}{:02x}{:02x}",
                 self.r, self.g, self.b, self.a
             )
         }
@@ -127,13 +127,28 @@ impl core::fmt::LowerHex for Rgba8 {
 impl core::fmt::UpperHex for Rgba8 {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.a == 255 {
-            write!(f, "#{:02X}{:02X}{:02X})", self.r, self.g, self.b)
+            write!(f, "#{:02X}{:02X}{:02X}", self.r, self.g, self.b)
         } else {
             write!(
                 f,
-                "#{:02X}{:02X}{:02X}{:02X})",
+                "#{:02X}{:02X}{:02X}{:02X}",
                 self.r, self.g, self.b, self.a
             )
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{parse_color, Srgb};
+
+    #[test]
+    fn rgb8() {
+        let c = parse_color("#abcdef").unwrap().to_alpha_color::<Srgb>();
+        assert_eq!(format!("{:x}", c.to_rgba8()), "#abcdef");
+        assert_eq!(format!("{:X}", c.to_rgba8()), "#ABCDEF");
+        let c_alpha = c.with_alpha(1. / 3.);
+        assert_eq!(format!("{:x}", c_alpha.to_rgba8()), "#abcdef55");
+        assert_eq!(format!("{:X}", c_alpha.to_rgba8()), "#ABCDEF55");
     }
 }

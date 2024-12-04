@@ -29,6 +29,7 @@ This release has an [MSRV][] of 1.82.
 ### Changed
 
 * The `mul_alpha` method was renamed to `multiply_alpha`. ([#65][] by [@waywardmonkeys][])
+* Stray parenthesis in hex serialization of Rgba8 fixed (NUMBER_TODO by [@raphlinus][])
 
 ## [0.1.0][] (2024-11-20)
 
@@ -38,6 +39,7 @@ This is the initial release.
 
 [@MightyBurger]: https://github.com/MightyBurger
 [@waywardmonkeys]: https://github.com/waywardmonkeys
+[@raphlinus]: https://github.com/waywardmonkeys
 
 [#54]: https://github.com/linebender/color/pull/54
 [#61]: https://github.com/linebender/color/pull/61
