@@ -25,11 +25,15 @@ This release has an [MSRV][] of 1.82.
 * Support for the `ACEScg` colorspace. ([#54][] by [@MightyBurger][])
 * `DynamicColor` gets `with_alpha` and `multiply_alpha`. ([#71][] by [@waywardmonkeys][])
 * `DynamicColor` now impls `Hash` and `PartialEq`. ([#75][] by [@waywardmonkeys][])
+* `HueDirection` now impls `PartialEq`. ([#79][] by [@waywardmonkeys][])
 
 ### Changed
 
 * The `mul_alpha` method was renamed to `multiply_alpha`. ([#65][] by [@waywardmonkeys][])
-* Stray parenthesis in hex serialization of Rgba8 fixed ([#78][] by [@raphlinus][])
+
+### Fixed
+
+* Stray parenthesis in hex serialization of `Rgba8` fixed. ([#78][] by [@raphlinus][])
 
 ## [0.1.0][] (2024-11-20)
 
@@ -52,6 +56,7 @@ This is the initial release.
 [#75]: https://github.com/linebender/color/pull/75
 [#77]: https://github.com/linebender/color/pull/77
 [#78]: https://github.com/linebender/color/pull/78
+[#79]: https://github.com/linebender/color/pull/79
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/linebender/color/releases/tag/v0.1.0

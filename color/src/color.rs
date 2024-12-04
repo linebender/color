@@ -86,7 +86,7 @@ pub struct PremulColor<CS> {
 /// 4 spec.
 ///
 /// [`hue-interpolation-method`]: https://developer.mozilla.org/en-US/docs/Web/CSS/hue-interpolation-method
-#[derive(Clone, Copy, Default, Debug)]
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
 #[non_exhaustive]
 pub enum HueDirection {
     /// Hue angles take the shorter of the two arcs between starting and ending values.
