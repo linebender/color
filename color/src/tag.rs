@@ -20,37 +20,39 @@ use crate::{
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[non_exhaustive]
+#[repr(u8)]
 pub enum ColorSpaceTag {
     /// The [`Srgb`] color space.
-    Srgb,
+    Srgb = 0,
     /// The [`LinearSrgb`] color space.
-    LinearSrgb,
+    LinearSrgb = 1,
     /// The [`Lab`] color space.
-    Lab,
+    Lab = 2,
     /// The [`Lch`] color space.
-    Lch,
+    Lch = 3,
     /// The [`Hsl`] color space.
-    Hsl,
+    Hsl = 4,
     /// The [`Hwb`] color space.
-    Hwb,
+    Hwb = 5,
     /// The [`Oklab`] color space.
-    Oklab,
+    Oklab = 6,
     /// The [`Oklch`] color space.
-    Oklch,
+    Oklch = 7,
     /// The [`DisplayP3`] color space.
-    DisplayP3,
+    DisplayP3 = 8,
     /// The [`A98Rgb`] color space.
-    A98Rgb,
+    A98Rgb = 9,
     /// The [`ProphotoRgb`] color space.
-    ProphotoRgb,
+    ProphotoRgb = 10,
     /// The [`Rec2020`] color space.
-    Rec2020,
+    Rec2020 = 11,
     /// The [`AcesCg`] color space.
-    AcesCg,
+    AcesCg = 12,
     /// The [`XyzD50`] color space.
-    XyzD50,
+    XyzD50 = 13,
     /// The [`XyzD65`] color space.
-    XyzD65,
+    XyzD65 = 14,
+    // NOTICE: If a new value is added, be sure to add modify `MAX_VALUE` in the bytemuck impl.
 }
 
 impl ColorSpaceTag {

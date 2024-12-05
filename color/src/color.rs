@@ -89,17 +89,19 @@ pub struct PremulColor<CS> {
 #[derive(Clone, Copy, Default, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[non_exhaustive]
+#[repr(u8)]
 pub enum HueDirection {
     /// Hue angles take the shorter of the two arcs between starting and ending values.
     #[default]
-    Shorter,
+    Shorter = 0,
     /// Hue angles take the longer of the two arcs between starting and ending values.
-    Longer,
+    Longer = 1,
     /// Hue angles increase as they are interpolated.
-    Increasing,
+    Increasing = 2,
     /// Hue angles decrease as they are interpolated.
-    Decreasing,
+    Decreasing = 3,
     // It's possible we'll add "raw"; color.js has it.
+    // NOTICE: If a new value is added, be sure to add modify `MAX_VALUE` in the bytemuck impl.
 }
 
 /// Fixup hue based on specified hue direction.

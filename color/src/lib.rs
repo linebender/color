@@ -62,8 +62,8 @@
 //! - `std` (enabled by default): Get floating point functions from the standard library
 //!   (likely using your target's libc).
 //! - `libm`: Use floating point implementations from [libm][].
-//! - `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`], [`OpaqueColor`],
-//!   [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
+//! - `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`], [`ColorSpaceTag`],
+//!   [`HueDirection`], [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
 //! - `serde`: Implement `serde::Deserialize` and `serde::Serialize` on [`AlphaColor`],
 //!   [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
 //!
