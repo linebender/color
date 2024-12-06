@@ -103,7 +103,7 @@ mod tests {
         AlphaColor, ColorSpaceTag, HueDirection, OpaqueColor, PremulColor, PremulRgba8, Rgba8, Srgb,
     };
     use bytemuck::{checked::try_from_bytes, Contiguous, TransparentWrapper, Zeroable};
-    use core::marker::PhantomData;
+    use core::{marker::PhantomData, ptr};
 
     fn assert_is_pod(_pod: impl bytemuck::Pod) {}
 
@@ -245,4 +245,74 @@ mod tests {
         let hd = HueDirection::zeroed();
         assert_eq!(hd, HueDirection::Shorter);
     }
+
+    /// Tests that the [`Contiguous`] impl for [`HueDirection`] is not trivially incorrect.
+    const _: () = {
+        let mut value = 0;
+        while value <= HueDirection::MAX_VALUE {
+            // Safety: In a const context, therefore if this makes an invalid HueDirection, that will be detected.
+            let it: HueDirection = unsafe { ptr::read((&raw const value).cast()) };
+            // Evaluate the enum value to ensure it actually has a valid tag
+            if it as u8 != value {
+                unreachable!();
+            }
+            value += 1;
+        }
+    };
+
+    /// Tests that the [`Contiguous`] impl for [`ColorSpaceTag`] is not trivially incorrect.
+    const _: () = {
+        let mut value = 0;
+        while value <= ColorSpaceTag::MAX_VALUE {
+            // Safety: In a const context, therefore if this makes an invalid HueDirection, that will be detected.
+            let it: ColorSpaceTag = unsafe { ptr::read((&raw const value).cast()) };
+            // Evaluate the enum value to ensure it actually has a valid tag
+            if it as u8 != value {
+                unreachable!();
+            }
+            value += 1;
+        }
+    };
+}
+
+#[cfg(doctest)]
+/// Doctests aren't collected under `cfg(test)`; we can use `cfg(doctest)` instead
+mod doctests {
+    /// Validates that any new variants in `HueDirection` has led to a change in the `Contiguous` impl.
+    /// Note that to test this robustly, we'd need 256 tests, which is impractical.
+    /// We make the assumption that all new variants will maintain contiguousness.
+    ///
+    /// ```compile_fail,E0080
+    /// use bytemuck::Contiguous;
+    /// use color::HueDirection;
+    /// const {
+    ///     let value = HueDirection::MAX_VALUE + 1;
+    ///     // Safety: In a const context, therefore if this makes an invalid HueDirection, that will be detected.
+    ///     // (Indeed, we rely upon that)
+    ///     let it: HueDirection = unsafe { core::ptr::read((&raw const value).cast()) };
+    ///     // Evaluate the enum value to ensure it actually has an invalid tag
+    ///     if it as u8 != value {
+    ///         unreachable!();
+    ///     }
+    /// }
+    /// ```
+    const _HUE_DIRECTION: () = {};
+
+    /// Validates that any new variants in `ColorSpaceTag` has led to a change in the `Contiguous` impl.
+    /// Note that to test this robustly, we'd need 256 tests, which is impractical.
+    /// We make the assumption that all new variants will maintain contiguousness.
+    ///
+    /// ```compile_fail,E0080
+    /// use bytemuck::Contiguous;
+    /// use color::ColorSpaceTag;
+    /// const {
+    ///     let value = ColorSpaceTag::MAX_VALUE + 1;
+    ///     let it: ColorSpaceTag = unsafe { core::ptr::read((&raw const value).cast()) };
+    ///     // Evaluate the enum value to ensure it actually has an invalid tag
+    ///     if it as u8 != value {
+    ///         unreachable!();
+    ///     }
+    /// }
+    /// ```
+    const _COLOR_SPACE_TAG: () = {};
 }
