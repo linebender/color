@@ -101,7 +101,7 @@ pub enum HueDirection {
     /// Hue angles decrease as they are interpolated.
     Decreasing = 3,
     // It's possible we'll add "raw"; color.js has it.
-    // NOTICE: If a new value is added, be sure to add modify `MAX_VALUE` in the bytemuck impl.
+    // NOTICE: If a new value is added, be sure to modify `MAX_VALUE` in the bytemuck impl.
 }
 
 /// Fixup hue based on specified hue direction.

@@ -52,7 +52,7 @@ pub enum ColorSpaceTag {
     XyzD50 = 13,
     /// The [`XyzD65`] color space.
     XyzD65 = 14,
-    // NOTICE: If a new value is added, be sure to add modify `MAX_VALUE` in the bytemuck impl.
+    // NOTICE: If a new value is added, be sure to modify `MAX_VALUE` in the bytemuck impl.
 }
 
 impl ColorSpaceTag {
