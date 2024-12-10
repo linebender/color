@@ -25,7 +25,7 @@ This release has an [MSRV][] of 1.82.
 * Support for the `ACEScg` colorspace. ([#54][] by [@MightyBurger][])
 * `DynamicColor` gets `with_alpha` and `multiply_alpha`. ([#71][] by [@waywardmonkeys][])
 * `DynamicColor` now impls `Hash` and `PartialEq`. ([#75][] by [@waywardmonkeys][])
-* `AlphaColor`, `OpaqueColor`, and `PremulColor` now impl `PartialEq`. ([#76][] by [@waywardmonkeys][])
+* `AlphaColor`, `OpaqueColor`, and `PremulColor` now impl `PartialEq`. ([#76][], [#86][] by [@waywardmonkeys][])
 * `HueDirection` now impls `PartialEq`. ([#79][] by [@waywardmonkeys][])
 * `ColorSpaceTag` and `HueDirection` now have bytemuck support. ([#81][] by [@waywardmonkeys][])
 
@@ -61,7 +61,8 @@ This is the initial release.
 [#78]: https://github.com/linebender/color/pull/78
 [#79]: https://github.com/linebender/color/pull/79
 [#80]: https://github.com/linebender/color/pull/80
-[#81]: https://github.com/linebender/color/pull/80
+[#81]: https://github.com/linebender/color/pull/81
+[#86]: https://github.com/linebender/color/pull/86
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/linebender/color/releases/tag/v0.1.0

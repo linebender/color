@@ -21,7 +21,7 @@ use crate::floatfuncs::FloatFuncs;
 /// major motivation for including these is to enable weighted sums, including
 /// for spline interpolation. For cylindrical color spaces, hue fixup should
 /// be applied before interpolation.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct OpaqueColor<CS> {
@@ -38,7 +38,7 @@ pub struct OpaqueColor<CS> {
 /// A color in a color space known at compile time, with an alpha channel.
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct AlphaColor<CS> {
@@ -61,7 +61,7 @@ pub struct AlphaColor<CS> {
 /// give undesirable results.
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
 pub struct PremulColor<CS> {
@@ -648,6 +648,26 @@ impl<CS: ColorSpace> From<OpaqueColor<CS>> for AlphaColor<CS> {
 impl<CS: ColorSpace> From<OpaqueColor<CS>> for PremulColor<CS> {
     fn from(value: OpaqueColor<CS>) -> Self {
         Self::new(add_alpha(value.components, 1.0))
+    }
+}
+
+// Partial equality - Hand derive to avoid needing ColorSpace to be PartialEq
+
+impl<CS: ColorSpace> PartialEq for AlphaColor<CS> {
+    fn eq(&self, other: &Self) -> bool {
+        self.components == other.components
+    }
+}
+
+impl<CS: ColorSpace> PartialEq for OpaqueColor<CS> {
+    fn eq(&self, other: &Self) -> bool {
+        self.components == other.components
+    }
+}
+
+impl<CS: ColorSpace> PartialEq for PremulColor<CS> {
+    fn eq(&self, other: &Self) -> bool {
+        self.components == other.components
     }
 }
 
