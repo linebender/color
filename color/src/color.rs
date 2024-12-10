@@ -21,6 +21,9 @@ use crate::floatfuncs::FloatFuncs;
 /// major motivation for including these is to enable weighted sums, including
 /// for spline interpolation. For cylindrical color spaces, hue fixup should
 /// be applied before interpolation.
+///
+/// The default value is an opaque white. We don't recommend relying upon this
+/// default.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(transparent)]
@@ -36,6 +39,9 @@ pub struct OpaqueColor<CS> {
 /// A color with an alpha channel.
 ///
 /// A color in a color space known at compile time, with an alpha channel.
+///
+/// The default value is an opaque white. We don't recommend relying upon this
+/// default.
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
@@ -59,6 +65,9 @@ pub struct AlphaColor<CS> {
 /// Following the convention of CSS Color 4, in cylindrical color spaces
 /// the hue channel is not premultiplied. If it were, interpolation would
 /// give undesirable results.
+///
+/// The default value is an opaque white. We don't recommend relying upon this
+/// default.
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
@@ -634,6 +643,26 @@ impl<CS: ColorSpace> PremulColor<CS> {
             .components
             .map(|x| (x.clamp(0., 1.) * 255.0).round() as u8);
         PremulRgba8 { r, g, b, a }
+    }
+}
+
+// Defaults
+
+impl<CS: ColorSpace> Default for AlphaColor<CS> {
+    fn default() -> Self {
+        Self::WHITE
+    }
+}
+
+impl<CS: ColorSpace> Default for OpaqueColor<CS> {
+    fn default() -> Self {
+        Self::WHITE
+    }
+}
+
+impl<CS: ColorSpace> Default for PremulColor<CS> {
+    fn default() -> Self {
+        Self::WHITE
     }
 }
 

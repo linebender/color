@@ -6,6 +6,7 @@
 use crate::{
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
     AlphaColor, ColorSpace, ColorSpaceLayout, ColorSpaceTag, HueDirection, LinearSrgb, Missing,
+    Srgb,
 };
 use core::hash::{Hash, Hasher};
 
@@ -24,6 +25,9 @@ use core::hash::{Hash, Hasher};
 /// In other contexts, missing colors are interpreted as a zero value.
 /// When manipulating components directly, setting them nonzero when the
 /// corresponding missing flag is set may yield unexpected results.
+///
+/// The default value is an opaque white in the [sRGB](Srgb) color space with
+/// no missing components. We don't recommend relying upon this default.
 ///
 /// [Oklch]: crate::Oklch
 #[derive(Clone, Copy, Debug)]
@@ -362,6 +366,12 @@ impl DynamicColor {
             ColorSpaceLayout::HueThird => self.map(|c0, c1, h, a| [c0, c1, f(h), a]),
             _ => self.map_in(ColorSpaceTag::Oklch, |l, c, h, a| [l, c, f(h), a]),
         }
+    }
+}
+
+impl Default for DynamicColor {
+    fn default() -> Self {
+        Self::from_alpha_color(AlphaColor::<Srgb>::default())
     }
 }
 
