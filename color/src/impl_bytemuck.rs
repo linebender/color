@@ -264,7 +264,7 @@ mod tests {
     const _: () = {
         let mut value = 0;
         while value <= ColorSpaceTag::MAX_VALUE {
-            // Safety: In a const context, therefore if this makes an invalid HueDirection, that will be detected.
+            // Safety: In a const context, therefore if this makes an invalid ColorSpaceTag, that will be detected.
             let it: ColorSpaceTag = unsafe { ptr::read((&raw const value).cast()) };
             // Evaluate the enum value to ensure it actually has a valid tag
             if it as u8 != value {
