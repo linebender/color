@@ -512,11 +512,13 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     /// Pack into 8 bit per component encoding.
     #[must_use]
     pub fn to_rgba8(self) -> Rgba8 {
+        // This does not need clamping as the behavior of a `f32` to `u8`
+        // cast in Rust is to saturate.
         #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
         let [r, g, b, a] = self
             .convert::<Srgb>()
             .components
-            .map(|x| (x.clamp(0., 1.) * 255.0).round() as u8);
+            .map(|x| (x * 255.0).round() as u8);
         Rgba8 { r, g, b, a }
     }
 }
@@ -628,11 +630,13 @@ impl<CS: ColorSpace> PremulColor<CS> {
     /// Pack into 8 bit per component encoding.
     #[must_use]
     pub fn to_rgba8(self) -> PremulRgba8 {
+        // This does not need clamping as the behavior of a `f32` to `u8`
+        // cast in Rust is to saturate.
         #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
         let [r, g, b, a] = self
             .convert::<Srgb>()
             .components
-            .map(|x| (x.clamp(0., 1.) * 255.0).round() as u8);
+            .map(|x| (x * 255.0).round() as u8);
         PremulRgba8 { r, g, b, a }
     }
 }
@@ -828,7 +832,20 @@ impl<CS: ColorSpace> core::ops::Sub for PremulColor<CS> {
 
 #[cfg(test)]
 mod tests {
-    use super::{fixup_hue, HueDirection};
+    use super::{fixup_hue, AlphaColor, HueDirection, PremulColor, PremulRgba8, Rgba8, Srgb};
+
+    #[test]
+    fn to_rgba8_saturation() {
+        // This is just testing the Rust compiler behavior described in
+        // <https://github.com/rust-lang/rust/issues/10184>.
+        let (r, g, b, a) = (0, 0, 255, 255);
+
+        let ac = AlphaColor::<Srgb>::new([-1.01, -0.5, 1.01, 2.0]);
+        assert_eq!(ac.to_rgba8(), Rgba8 { r, g, b, a });
+
+        let pc = PremulColor::<Srgb>::new([-1.01, -0.5, 1.01, 2.0]);
+        assert_eq!(pc.to_rgba8(), PremulRgba8 { r, g, b, a });
+    }
 
     #[test]
     fn hue_fixup() {
