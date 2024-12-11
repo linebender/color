@@ -21,7 +21,7 @@ fn main() {
     let c2 = color::parse_color(&c2_s).expect("error parsing color 2");
     let cs_s_raw = args.next();
     let cs_s = cs_s_raw.as_deref().unwrap_or("srgb");
-    let cs: ColorSpaceTag = cs_s.parse().expect("error parsing colorspace");
+    let cs: ColorSpaceTag = cs_s.parse().expect("error parsing color space");
     let gradient: GradientIter<Srgb> = gradient(c1, c2, cs, HueDirection::default(), 0.02);
     println!("<!DOCTYPE html>");
     println!("<html>");
