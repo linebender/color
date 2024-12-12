@@ -188,6 +188,8 @@ mod tests {
             // currently fails, but should succeed (values should be clamped at parse-time)
             // ("rgb(1.1,1,1)", "rgb(1, 1, 1)"),
             ("color(srgb 1.0 1.0 1.0)", "color(srgb 1 1 1)"),
+            ("oklab(0.4 0.2 -0.2)", "oklab(0.4 0.2 -0.2)"),
+            ("lab(20% 0 60)", "lab(20 0 60)"),
         ] {
             let result = format!("{}", parse_color(specified).unwrap());
             assert_eq!(
