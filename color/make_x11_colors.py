@@ -244,7 +244,7 @@ for (name, rgba) in keys:
     print(f'    "{name}",')
 print("];")
 print(f"""
-/// sRGBA color components of the named X11 colors, in the same order as [`NAMES`].
+/// RGBA8 color components of the named X11 colors, in the same order as [`NAMES`].
 ///
 /// Use [`lookup_palette_index`] to efficiently find the color components for a given color name
 /// string.
