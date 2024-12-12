@@ -77,43 +77,33 @@ fn write_legacy_function(
 
 impl core::fmt::Display for DynamicColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        if self.flags.named() {
-            // The color was parsed from a named color or named color space function.
+        if let Some(color_name) = self.flags.color_name() {
+            return write!(f, "{}", color_name);
+        }
 
-            if let Some(color_name) = self.flags.color_name() {
-                return write!(f, "{}", color_name);
+        match self.cs {
+            ColorSpaceTag::Srgb if self.flags.named() => {
+                write_legacy_function(self, "rgb", 255.0, f)
             }
-
-            match self.cs {
-                ColorSpaceTag::Srgb => write_legacy_function(self, "rgb", 255.0, f),
-                ColorSpaceTag::Hsl | ColorSpaceTag::Hwb => {
-                    let srgb = self.convert(ColorSpaceTag::Srgb);
-                    write_legacy_function(&srgb, "rgb", 255.0, f)
-                }
-                ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
-                ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
-                ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
-                ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
-                _ => unreachable!(),
+            ColorSpaceTag::Hsl | ColorSpaceTag::Hwb if self.flags.named() => {
+                let srgb = self.convert(ColorSpaceTag::Srgb);
+                return write_legacy_function(&srgb, "rgb", 255.0, f);
             }
-        } else {
-            match self.cs {
-                ColorSpaceTag::Srgb => write_color_function(self, "srgb", f),
-                ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
-                ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
-                ColorSpaceTag::A98Rgb => write_color_function(self, "a98-rgb", f),
-                ColorSpaceTag::ProphotoRgb => write_color_function(self, "prophoto-rgb", f),
-                ColorSpaceTag::Rec2020 => write_color_function(self, "rec2020", f),
-                ColorSpaceTag::AcesCg => write_color_function(self, "--acescg", f),
-                ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
-                ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
-                ColorSpaceTag::XyzD50 => write_color_function(self, "xyz-d50", f),
-                ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
-                ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
-                ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
-                ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
-                ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
-            }
+            ColorSpaceTag::Srgb => write_color_function(self, "srgb", f),
+            ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
+            ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
+            ColorSpaceTag::A98Rgb => write_color_function(self, "a98-rgb", f),
+            ColorSpaceTag::ProphotoRgb => write_color_function(self, "prophoto-rgb", f),
+            ColorSpaceTag::Rec2020 => write_color_function(self, "rec2020", f),
+            ColorSpaceTag::AcesCg => write_color_function(self, "--acescg", f),
+            ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
+            ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
+            ColorSpaceTag::XyzD50 => write_color_function(self, "xyz-d50", f),
+            ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
+            ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
+            ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
+            ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
+            ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
         }
     }
 }
@@ -227,6 +217,11 @@ mod tests {
             (
                 DynamicColor::from_alpha_color(AlphaColor::<Oklab>::new([0.4, 0.2, -0.2, 1.])),
                 "oklab(0.4 0.2 -0.2)",
+            ),
+            // Perhaps this should actually serialize to `rgb(...)`.
+            (
+                DynamicColor::from_alpha_color(AlphaColor::<Hsl>::new([120., 50., 25., 1.])),
+                "hsl(120, 50, 25)",
             ),
         ] {
             let result = format!("{}", color);
