@@ -19,6 +19,7 @@ use crate::x11_colors;
 /// [css-named-colors]: https://www.w3.org/TR/css-color-4/#named-colors
 /// [css-named-color-spaces]: https://www.w3.org/TR/css-color-4/#color-syntax
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Flags {
     /// A bitset of missing color components.
     missing: Missing,
@@ -41,6 +42,7 @@ const _: () = const {
 /// Missing color components, extracted from [`Flags`]. Some bitwise operations are implemented on
 /// this type, making certain manipulations more ergonomic.
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Missing(u8);
 
 impl Flags {
