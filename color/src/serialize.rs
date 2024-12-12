@@ -178,8 +178,7 @@ mod tests {
             // be lowercased)
             // ("ReD", "red"),
             // ("RgB(1,1,1)", "rgb(1, 1, 1)"),
-            // currently fails, but should succeed (values should be clamped at parse-time)
-            // ("rgb(1.1,1,1)", "rgb(1, 1, 1)"),
+            ("rgb(257,-2,50)", "rgb(255, 0, 50)"),
             ("color(srgb 1.0 1.0 1.0)", "color(srgb 1 1 1)"),
             ("oklab(0.4 0.2 -0.2)", "oklab(0.4 0.2 -0.2)"),
             ("lab(20% 0 60)", "lab(20 0 60)"),
