@@ -174,6 +174,7 @@ mod tests {
     fn specified_to_serialized() {
         for (specified, expected) in [
             ("rgb(1,1,1)", "rgb(1, 1, 1)"),
+            ("rgba(1,1,1,0.50)", "rgba(1, 1, 1, 0.5)"),
             // TODO: output rounding? Otherwise the tests should check for approximate equality
             // (and not string equality) for these conversion cases
             // (
@@ -199,7 +200,10 @@ mod tests {
         // TODO: this can be removed when the "output rounding" TODO above is resolved. Here we
         // just check the prefix is as expected.
         for (specified, expected_prefix) in [
+            ("hwb(740deg 20% 30%)", "rgb("),
             ("hwb(740deg 20% 30% / 50%)", "rgba("),
+            ("hsl(120deg 50% 25%)", "rgb("),
+            ("hsla(0.4turn 50% 25% / 50%)", "rgba("),
         ] {
             let result = format!("{}", parse_color(specified).unwrap());
             assert!(
