@@ -87,7 +87,7 @@ impl core::fmt::Display for DynamicColor {
             }
             ColorSpaceTag::Hsl | ColorSpaceTag::Hwb if self.flags.named() => {
                 let srgb = self.convert(ColorSpaceTag::Srgb);
-                return write_legacy_function(&srgb, "rgb", 255.0, f);
+                write_legacy_function(&srgb, "rgb", 255.0, f)
             }
             ColorSpaceTag::Srgb => write_color_function(self, "srgb", f),
             ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
