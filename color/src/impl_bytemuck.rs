@@ -4,8 +4,8 @@
 #![allow(unsafe_code, reason = "unsafe is required for bytemuck unsafe impls")]
 
 use crate::{
-    AlphaColor, ColorSpace, ColorSpaceTag, HueDirection, OpaqueColor, PremulColor, PremulRgba8,
-    Rgba8,
+    cache_key::CacheKey, AlphaColor, ColorSpace, ColorSpaceTag, HueDirection, OpaqueColor,
+    PremulColor, PremulRgba8, Rgba8,
 };
 
 // Safety: The struct is `repr(transparent)` and the data member is bytemuck::Pod.
@@ -97,10 +97,14 @@ unsafe impl bytemuck::Contiguous for HueDirection {
     const MAX_VALUE: u8 = Self::Decreasing as u8;
 }
 
+// Safety: The struct is `repr(transparent)`.
+unsafe impl<T> bytemuck::TransparentWrapper<T> for CacheKey<T> {}
+
 #[cfg(test)]
 mod tests {
     use crate::{
-        AlphaColor, ColorSpaceTag, HueDirection, OpaqueColor, PremulColor, PremulRgba8, Rgba8, Srgb,
+        cache_key::CacheKey, AlphaColor, ColorSpaceTag, HueDirection, OpaqueColor, PremulColor,
+        PremulRgba8, Rgba8, Srgb,
     };
     use bytemuck::{checked::try_from_bytes, Contiguous, TransparentWrapper, Zeroable};
     use core::{marker::PhantomData, ptr};
@@ -215,6 +219,10 @@ mod tests {
         let pc = PremulColor::<Srgb>::new([1., 2., 3., 0.]);
         let pi: [f32; 4] = PremulColor::<Srgb>::peel(pc);
         assert_eq!(pi, [1., 2., 3., 0.]);
+
+        let ck = CacheKey::<f32>::new(1.);
+        let ci: f32 = CacheKey::<f32>::peel(ck);
+        assert_eq!(ci, 1.);
     }
 
     #[test]

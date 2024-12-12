@@ -6,7 +6,10 @@
 use core::any::TypeId;
 use core::marker::PhantomData;
 
-use crate::{ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, PremulRgba8, Rgba8, Srgb};
+use crate::{
+    cache_key::{BitEq, BitHash},
+    ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, PremulRgba8, Rgba8, Srgb,
+};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -726,6 +729,18 @@ impl<CS: ColorSpace> core::ops::Sub for OpaqueColor<CS> {
     }
 }
 
+impl<CS> BitEq for OpaqueColor<CS> {
+    fn bit_eq(&self, other: &Self) -> bool {
+        self.components.bit_eq(&other.components)
+    }
+}
+
+impl<CS> BitHash for OpaqueColor<CS> {
+    fn bit_hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.components.bit_hash(state);
+    }
+}
+
 /// Multiply components by a scalar.
 impl<CS: ColorSpace> core::ops::Mul<f32> for AlphaColor<CS> {
     type Output = Self;
@@ -773,6 +788,18 @@ impl<CS: ColorSpace> core::ops::Sub for AlphaColor<CS> {
         let x = self.components;
         let y = rhs.components;
         Self::new([x[0] - y[0], x[1] - y[1], x[2] - y[2], x[3] - y[3]])
+    }
+}
+
+impl<CS> BitEq for AlphaColor<CS> {
+    fn bit_eq(&self, other: &Self) -> bool {
+        self.components.bit_eq(&other.components)
+    }
+}
+
+impl<CS> BitHash for AlphaColor<CS> {
+    fn bit_hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.components.bit_hash(state);
     }
 }
 
@@ -827,6 +854,18 @@ impl<CS: ColorSpace> core::ops::Sub for PremulColor<CS> {
         let x = self.components;
         let y = rhs.components;
         Self::new([x[0] - y[0], x[1] - y[1], x[2] - y[2], x[3] - y[3]])
+    }
+}
+
+impl<CS> BitEq for PremulColor<CS> {
+    fn bit_eq(&self, other: &Self) -> bool {
+        self.components.bit_eq(&other.components)
+    }
+}
+
+impl<CS> BitHash for PremulColor<CS> {
+    fn bit_hash<H: core::hash::Hasher>(&self, state: &mut H) {
+        self.components.bit_hash(state);
     }
 }
 

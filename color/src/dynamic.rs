@@ -4,6 +4,7 @@
 //! CSS colors and syntax.
 
 use crate::{
+    cache_key::{BitEq, BitHash},
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
     AlphaColor, ColorSpace, ColorSpaceLayout, ColorSpaceTag, Flags, HueDirection, LinearSrgb,
     Missing,
@@ -376,28 +377,29 @@ impl DynamicColor {
     }
 }
 
-impl Hash for DynamicColor {
-    /// The hash is computed from the bit representation of the component values.
-    /// That makes it suitable for use as a cache key or memoization, but does not
-    /// match behavior for Rust float types.
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.cs.hash(state);
-        self.flags.hash(state);
-        for c in self.components {
-            c.to_bits().hash(state);
-        }
+impl PartialEq for DynamicColor {
+    /// Equality is not perceptual, but requires the component values to be equal.
+    ///
+    /// See also [`CacheKey`](crate::cache_key::CacheKey).
+    fn eq(&self, other: &Self) -> bool {
+        // Same as the derive implementation, but we want a doc comment.
+        self.cs == other.cs && self.flags == other.flags && self.components == other.components
     }
 }
 
-impl PartialEq for DynamicColor {
-    /// Equality is determined based on the bit representation.
-    fn eq(&self, other: &Self) -> bool {
+impl BitEq for DynamicColor {
+    fn bit_eq(&self, other: &Self) -> bool {
         self.cs == other.cs
             && self.flags == other.flags
-            && self.components[0].to_bits() == other.components[0].to_bits()
-            && self.components[1].to_bits() == other.components[1].to_bits()
-            && self.components[2].to_bits() == other.components[2].to_bits()
-            && self.components[3].to_bits() == other.components[3].to_bits()
+            && self.components.bit_eq(&other.components)
+    }
+}
+
+impl BitHash for DynamicColor {
+    fn bit_hash<H: Hasher>(&self, state: &mut H) {
+        self.cs.hash(state);
+        self.flags.hash(state);
+        self.components.bit_hash(state);
     }
 }
 
