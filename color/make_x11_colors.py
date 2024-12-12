@@ -243,7 +243,6 @@ print(f"pub(crate) const NAMES: [&str; {n}] = [")
 for (name, rgba) in keys:
     print(f'    "{name}",')
 print("];")
-print()
 print(f"""
 /// sRGBA color components of the named X11 colors, in the same order as [`NAMES`].
 ///
