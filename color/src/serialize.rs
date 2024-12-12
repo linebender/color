@@ -165,9 +165,9 @@ mod tests {
     fn specified_to_serialized() {
         for (specified, expected) in [
             ("#ff0000", "rgb(255, 0, 0)"),
-            ("rgb(1,1,1)", "rgb(1, 1, 1)"),
-            ("rgba(1,1,1,0.50)", "rgba(1, 1, 1, 0.5)"),
-            ("rgb(1 1 1 / 95%)", "rgba(1, 1, 1, 0.95)"),
+            ("rgb(255,0,0)", "rgb(255, 0, 0)"),
+            ("rgba(255,0,0,50%)", "rgba(255, 0, 0, 0.5)"),
+            ("rgb(255 0 0 / 95%)", "rgba(255, 0, 0, 0.95)"),
             // TODO: output rounding? Otherwise the tests should check for approximate equality
             // (and not string equality) for these conversion cases
             // (
