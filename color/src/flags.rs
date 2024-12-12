@@ -94,7 +94,7 @@ impl Flags {
     /// Returns `true` if the flags indicate the color was generated from a named color or named
     /// color space function.
     #[inline]
-    pub fn named(self) -> bool {
+    pub const fn named(self) -> bool {
         self.name != 0
     }
 
