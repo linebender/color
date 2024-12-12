@@ -28,6 +28,7 @@ This release has an [MSRV][] of 1.82.
 * `AlphaColor`, `OpaqueColor`, and `PremulColor` now impl `PartialEq`. ([#76][], [#86][] by [@waywardmonkeys][])
 * `HueDirection` now impls `PartialEq`. ([#79][] by [@waywardmonkeys][])
 * `ColorSpaceTag` and `HueDirection` now have bytemuck support. ([#81][] by [@waywardmonkeys][])
+* A `DynamicColor` parsed from a named color or named color space function now serializes back to that name, as per the CSS Color Level 4 spec ([#39][] by [@tomcur][]).
 
 ### Changed
 
@@ -45,8 +46,10 @@ This is the initial release.
 
 [@MightyBurger]: https://github.com/MightyBurger
 [@raphlinus]: https://github.com/raphlinus
+[@tomcur]: https://github.com/tomcur
 [@waywardmonkeys]: https://github.com/waywardmonkeys
 
+[#39]: https://github.com/linebender/color/pull/39
 [#54]: https://github.com/linebender/color/pull/54
 [#61]: https://github.com/linebender/color/pull/61
 [#64]: https://github.com/linebender/color/pull/64
