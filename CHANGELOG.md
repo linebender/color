@@ -24,11 +24,12 @@ This release has an [MSRV][] of 1.82.
 * `AlphaColor::with_alpha` allows setting the alpha channel. ([#67][] by [@waywardmonkeys][])
 * Support for the `ACEScg` color space. ([#54][] by [@MightyBurger][])
 * `DynamicColor` gets `with_alpha` and `multiply_alpha`. ([#71][] by [@waywardmonkeys][])
-* `DynamicColor` now impls `Hash` and `PartialEq`. ([#75][] by [@waywardmonkeys][])
+* `DynamicColor` now impls `PartialEq`. ([#75][] by [@waywardmonkeys][])
 * `AlphaColor`, `OpaqueColor`, and `PremulColor` now impl `PartialEq`. ([#76][], [#86][] by [@waywardmonkeys][])
 * `HueDirection` now impls `PartialEq`. ([#79][] by [@waywardmonkeys][])
 * `ColorSpaceTag` and `HueDirection` now have bytemuck support. ([#81][] by [@waywardmonkeys][])
 * A `DynamicColor` parsed from a named color or named color space function now serializes back to that name, as per the CSS Color Level 4 spec ([#39][] by [@tomcur][]).
+* `CacheKey` to allow using colors as keys for resource caching. ([#92][] by [@DJMcNab][])
 
 ### Changed
 
@@ -44,6 +45,7 @@ This release has an [MSRV][] of 1.82.
 
 This is the initial release.
 
+[@DJMcNab]: https://github.com/DJMcNab
 [@MightyBurger]: https://github.com/MightyBurger
 [@raphlinus]: https://github.com/raphlinus
 [@tomcur]: https://github.com/tomcur
@@ -66,6 +68,7 @@ This is the initial release.
 [#80]: https://github.com/linebender/color/pull/80
 [#81]: https://github.com/linebender/color/pull/81
 [#86]: https://github.com/linebender/color/pull/86
+[#92]: https://github.com/linebender/color/pull/92
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/linebender/color/releases/tag/v0.1.0
