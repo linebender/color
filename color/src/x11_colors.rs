@@ -156,6 +156,10 @@ pub(crate) const NAMES: [&str; 142] = [
     "yellowgreen",
 ];
 
+/// sRGBA color components of the named X11 colors, in the same order as [`NAMES`].
+///
+/// Use [`lookup_palette_index`] to efficiently find the color components for a given color name
+/// string.
 pub(crate) const COLORS: [[u8; 4]; 142] = [
     [188, 143, 143, 255],
     [34, 139, 34, 255],
@@ -312,7 +316,9 @@ fn weak_hash(key: u32, salt: u32, n: usize) -> usize {
     (((y as u64) * (n as u64)) >> 32) as usize
 }
 
-pub(crate) fn lookup_palette(s: &str) -> Option<usize> {
+/// Given a named color (e.g., "red", "mediumorchid"), returns the index of that color into
+/// [`COLORS`] and [`NAMES`].
+pub(crate) fn lookup_palette_index(s: &str) -> Option<usize> {
     let mut key = 0_u32;
     for b in s.as_bytes() {
         key = key.wrapping_mul(9).wrapping_add(*b as u32);

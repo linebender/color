@@ -492,7 +492,7 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
             "hwb" => parser.hwb().map(set_from_named_color_space),
             "color" => parser.color(),
             _ => {
-                if let Some(ix) = crate::x11_colors::lookup_palette(id) {
+                if let Some(ix) = crate::x11_colors::lookup_palette_index(id) {
                     let [r, g, b, a] = crate::x11_colors::COLORS[ix];
                     let mut color =
                         DynamicColor::from_alpha_color(AlphaColor::from_rgba8(r, g, b, a));
