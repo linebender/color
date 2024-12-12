@@ -470,7 +470,11 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
     if let Some(stripped) = s.strip_prefix('#') {
         let (ix, channels) = get_4bit_hex_channels(stripped)?;
         let color = color_from_4bit_hex(channels);
-        return Ok((ix + 1, DynamicColor::from_alpha_color(color)));
+        // Hex colors are seen as if they are generated from the named `rgb()` color space
+        // function.
+        let mut color = DynamicColor::from_alpha_color(color);
+        color.flags.set_named_color_space();
+        return Ok((ix + 1, color));
     }
     let mut parser = Parser::new(s);
     if let Some(id) = parser.ident() {

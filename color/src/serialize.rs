@@ -164,6 +164,7 @@ mod tests {
     #[test]
     fn specified_to_serialized() {
         for (specified, expected) in [
+            ("#ff0000", "rgb(255, 0, 0)"),
             ("rgb(1,1,1)", "rgb(1, 1, 1)"),
             ("rgba(1,1,1,0.50)", "rgba(1, 1, 1, 0.5)"),
             ("rgb(1 1 1 / 95%)", "rgba(1, 1, 1, 0.95)"),
