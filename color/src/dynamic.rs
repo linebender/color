@@ -43,12 +43,6 @@ pub struct DynamicColor {
     pub components: [f32; 4],
 }
 
-// `DynamicColor` was carefully packed. Ensure its size doesn't accidentally change.
-#[cfg(test)]
-const _: () = if size_of::<DynamicColor>() != 20 {
-    panic!("`DynamicColor` size changed");
-};
-
 /// An intermediate struct used for interpolating between colors.
 ///
 /// This is the return value of [`DynamicColor::interpolate`].
@@ -435,7 +429,12 @@ impl Interpolator {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_color, Missing};
+    use crate::{parse_color, DynamicColor, Missing};
+
+    // `DynamicColor` was carefully packed. Ensure its size doesn't accidentally change.
+    const _: () = if size_of::<DynamicColor>() != 20 {
+        panic!("`DynamicColor` size changed");
+    };
 
     #[test]
     fn missing_alpha() {
