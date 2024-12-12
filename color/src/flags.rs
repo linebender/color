@@ -54,7 +54,10 @@ impl Flags {
 
     /// Set the missing components.
     #[inline]
-    #[warn(clippy::missing_const_for_fn, reason = "can be made const with MSRV 1.83")]
+    #[warn(
+        clippy::missing_const_for_fn,
+        reason = "can be made const with MSRV 1.83"
+    )]
     pub fn set_missing(&mut self, missing: Missing) {
         self.missing = missing;
     }
@@ -86,7 +89,10 @@ impl Flags {
 
     /// Set the flags to indicate the color was specified using one of the named color space
     /// functions.
-    #[warn(clippy::missing_const_for_fn, reason = "can be made const with MSRV 1.83")]
+    #[warn(
+        clippy::missing_const_for_fn,
+        reason = "can be made const with MSRV 1.83"
+    )]
     pub(crate) fn set_named_color_space(&mut self) {
         self.name = 255;
     }
@@ -112,7 +118,10 @@ impl Flags {
 
     /// Discard the color name or color space name from the flags.
     #[inline]
-    #[warn(clippy::missing_const_for_fn, reason = "can be made const with MSRV 1.83")]
+    #[warn(
+        clippy::missing_const_for_fn,
+        reason = "can be made const with MSRV 1.83"
+    )]
     pub fn discard_name(&mut self) {
         self.name = 0;
     }
@@ -145,7 +154,10 @@ impl Missing {
 
     /// Add a missing component index to the set.
     #[inline]
-    #[warn(clippy::missing_const_for_fn, reason = "can be made const with MSRV 1.83")]
+    #[warn(
+        clippy::missing_const_for_fn,
+        reason = "can be made const with MSRV 1.83"
+    )]
     pub fn insert(&mut self, ix: usize) {
         self.0 |= Self::single(ix).0;
     }
