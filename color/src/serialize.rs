@@ -78,6 +78,8 @@ fn write_legacy_function(
 impl core::fmt::Display for DynamicColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if self.flags.named() {
+            // The color was parsed from a named color or named color space function.
+
             if let Some(color_name) = self.flags.color_name() {
                 return write!(f, "{}", color_name);
             }
@@ -95,24 +97,23 @@ impl core::fmt::Display for DynamicColor {
                 _ => unreachable!(),
             }
         } else {
-            let color_space = match self.cs {
-                ColorSpaceTag::Srgb => "srgb",
-                ColorSpaceTag::LinearSrgb => "srgb-linear",
-                ColorSpaceTag::DisplayP3 => "display-p3",
-                ColorSpaceTag::A98Rgb => "a98-rgb",
-                ColorSpaceTag::ProphotoRgb => "prophoto-rgb",
-                ColorSpaceTag::Rec2020 => "rec2020",
-                ColorSpaceTag::AcesCg => "--acescg",
-                ColorSpaceTag::Hsl => "hsl",
-                ColorSpaceTag::Hwb => "hwb",
-                ColorSpaceTag::XyzD50 => "xyz-d50",
-                ColorSpaceTag::XyzD65 => "xyz",
-                ColorSpaceTag::Lab => "lab",
-                ColorSpaceTag::Lch => "lch",
-                ColorSpaceTag::Oklab => "oklab",
-                ColorSpaceTag::Oklch => "oklch",
-            };
-            write_color_function(self, color_space, f)
+            match self.cs {
+                ColorSpaceTag::Srgb => write_color_function(self, "srgb", f),
+                ColorSpaceTag::LinearSrgb => write_color_function(self, "srgb-linear", f),
+                ColorSpaceTag::DisplayP3 => write_color_function(self, "display-p3", f),
+                ColorSpaceTag::A98Rgb => write_color_function(self, "a98-rgb", f),
+                ColorSpaceTag::ProphotoRgb => write_color_function(self, "prophoto-rgb", f),
+                ColorSpaceTag::Rec2020 => write_color_function(self, "rec2020", f),
+                ColorSpaceTag::AcesCg => write_color_function(self, "--acescg", f),
+                ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
+                ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
+                ColorSpaceTag::XyzD50 => write_color_function(self, "xyz-d50", f),
+                ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
+                ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
+                ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
+                ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
+                ColorSpaceTag::Oklch => write_modern_function(self, "oklch", f),
+            }
         }
     }
 }
@@ -158,7 +159,7 @@ impl core::fmt::UpperHex for Rgba8 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_color, Srgb};
+    use crate::{parse_color, AlphaColor, DynamicColor, Hsl, Oklab, Srgb};
 
     #[test]
     fn rgb8() {
@@ -175,6 +176,7 @@ mod tests {
         for (specified, expected) in [
             ("rgb(1,1,1)", "rgb(1, 1, 1)"),
             ("rgba(1,1,1,0.50)", "rgba(1, 1, 1, 0.5)"),
+            ("rgb(1 1 1 / 95%)", "rgba(1, 1, 1, 0.95)"),
             // TODO: output rounding? Otherwise the tests should check for approximate equality
             // (and not string equality) for these conversion cases
             // (
@@ -211,6 +213,27 @@ mod tests {
             assert!(
                 result.starts_with(expected_prefix),
                 "Failed serializing specified color `{specified}`. Expected the serialization to start with: `{expected_prefix}`. Got: `{result}`."
+            );
+        }
+    }
+
+    #[test]
+    fn generated_to_serialized() {
+        for (color, expected) in [
+            (
+                DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0.5, 0.2, 1.1, 0.5])),
+                "color(srgb 0.5 0.2 1.1 / 0.5)",
+            ),
+            (
+                DynamicColor::from_alpha_color(AlphaColor::<Oklab>::new([0.4, 0.2, -0.2, 1.])),
+                "oklab(0.4 0.2 -0.2)",
+            ),
+        ] {
+            let result = format!("{}", color);
+            assert_eq!(
+                result,
+                expected,
+                "Failed serializing specified color `{color}`. Expected: `{expected}`. Got: `{result}`."
             );
         }
     }
