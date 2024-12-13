@@ -8,6 +8,7 @@
 
 # Match Identifier - Case Sensitive
 [default.extend-identifiers]
+colour = "color"
 
 # Match Inside a Word - Case Insensitive
 [default.extend-words]
