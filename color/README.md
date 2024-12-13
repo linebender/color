@@ -94,7 +94,7 @@ this trait for new color spaces.
 - `bytemuck`: Implement traits from `bytemuck` on [`AlphaColor`], [`ColorSpaceTag`],
   [`HueDirection`], [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
 - `serde`: Implement `serde::Deserialize` and `serde::Serialize` on [`AlphaColor`],
-  [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
+  [`DynamicColor`], [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
 
 At least one of `std` and `libm` is required; `std` overrides `libm`.
 

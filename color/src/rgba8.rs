@@ -8,6 +8,14 @@ use crate::{AlphaColor, PremulColor, Srgb};
 /// Encoding sRGB with 8 bits per component is extremely common, as
 /// it is efficient and convenient, even if limited in accuracy and
 /// gamut.
+///
+/// This is not meant to be a general purpose color type and is
+/// intended for use with [`AlphaColor::to_rgba8`] and [`OpaqueColor::to_rgba8`].
+///
+/// For a pre-multiplied packed representation, see [`PremulRgba8`].
+///
+/// [`AlphaColor::to_rgba8`]: crate::AlphaColor::to_rgba8
+/// [`OpaqueColor::to_rgba8`]: crate::OpaqueColor::to_rgba8
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(C)]
@@ -26,6 +34,8 @@ pub struct Rgba8 {
 
 impl Rgba8 {
     /// Returns the color as a `[u8; 4]`.
+    ///
+    /// The color values will be in the order `[r, g, b, a]`.
     #[must_use]
     pub const fn to_u8_array(self) -> [u8; 4] {
         [self.r, self.g, self.b, self.a]
@@ -50,6 +60,13 @@ impl From<Rgba8> for AlphaColor<Srgb> {
 /// Encoding sRGB with 8 bits per component is extremely common, as
 /// it is efficient and convenient, even if limited in accuracy and
 /// gamut.
+///
+/// This is not meant to be a general purpose color type and is
+/// intended for use with [`PremulColor::to_rgba8`].
+///
+/// For a non-pre-multiplied packed representation, see [`Rgba8`].
+///
+/// [`PremulColor::to_rgba8`]: crate::PremulColor::to_rgba8
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[repr(C)]
@@ -66,6 +83,8 @@ pub struct PremulRgba8 {
 
 impl PremulRgba8 {
     /// Returns the color as a `[u8; 4]`.
+    ///
+    /// The color values will be in the order `[r, g, b, a]`.
     #[must_use]
     pub const fn to_u8_array(self) -> [u8; 4] {
         [self.r, self.g, self.b, self.a]
