@@ -580,8 +580,24 @@ const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb> {
     AlphaColor::from_rgba8(r0 << 4 | r1, g0 << 4 | g1, b0 << 4 | b1, a0 << 4 | a1)
 }
 
+/// Error type for [`FromStr`] with [`ColorSpaceTag`].
+///
+/// For the error type when parsing a color, see [`ParseError`].
+/// This type differs from that in that it does not permit references
+/// to the data in the string slice being parsed for error reporting.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct UnknownColorSpaceError;
+
+impl Error for UnknownColorSpaceError {}
+
+impl fmt::Display for UnknownColorSpaceError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("unknown color space")
+    }
+}
+
 impl FromStr for ColorSpaceTag {
-    type Err = ParseError;
+    type Err = UnknownColorSpaceError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
@@ -596,7 +612,7 @@ impl FromStr for ColorSpaceTag {
             "prophoto-rgb" => Ok(Self::ProphotoRgb),
             "xyz-d50" => Ok(Self::XyzD50),
             "xyz" | "xyz-d65" => Ok(Self::XyzD65),
-            _ => Err(ParseError::UnknownColorSpace),
+            _ => Err(UnknownColorSpaceError),
         }
     }
 }

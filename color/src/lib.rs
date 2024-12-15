@@ -114,7 +114,7 @@ pub use colorspace::{
 pub use dynamic::{DynamicColor, Interpolator};
 pub use flags::{Flags, Missing};
 pub use gradient::{gradient, GradientIter};
-pub use parse::{parse_color, parse_color_prefix, ParseError};
+pub use parse::{parse_color, parse_color_prefix, ParseError, UnknownColorSpaceError};
 pub use rgba8::{PremulRgba8, Rgba8};
 pub use tag::ColorSpaceTag;
 
