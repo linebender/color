@@ -605,7 +605,7 @@ impl FromStr for ColorSpaceTag {
 mod tests {
     use crate::DynamicColor;
 
-    use super::{parse_color, parse_color_prefix, ParseError};
+    use super::{parse_color, parse_color_prefix, ParseError, Parser};
 
     fn assert_close_color(c1: DynamicColor, c2: DynamicColor) {
         const EPSILON: f32 = 1e-4;
@@ -613,6 +613,10 @@ mod tests {
         for i in 0..4 {
             assert!((c1.components[i] - c2.components[i]).abs() < EPSILON);
         }
+    }
+
+    fn assert_err(c: &str, err: ParseError) {
+        assert_eq!(parse_color(c).unwrap_err(), err);
     }
 
     #[test]
@@ -662,5 +666,43 @@ mod tests {
         ] {
             assert_eq!(&color[parse_color_prefix(color).unwrap().0..], trailing);
         }
+    }
+
+    #[test]
+    fn consume_comments() {
+        for (s, remaining) in [
+            ("/* abc */ def", " def"),
+            ("/* *//* */abc", "abc"),
+            ("/* /* */abc", "abc"),
+        ] {
+            let mut parser = Parser::new(s);
+            assert!(parser.consume_comments().is_ok());
+            assert_eq!(&parser.s[parser.ix..], remaining);
+        }
+    }
+
+    #[test]
+    fn angles() {
+        for (angle, expected) in [
+            ("90deg", 90.),
+            ("1.5707963rad", 90.),
+            ("100grad", 90.),
+            ("0.25turn", 90.),
+        ] {
+            let mut parser = Parser::new(angle);
+            let result = parser.angle().unwrap().unwrap();
+            assert!((result - expected).abs() < 1e-4,
+                    "Failed parsing specified angle `{angle}`. Expected: `{expected:?}`. Got: `{result:?}`.");
+        }
+
+        {
+            let mut parser = Parser::new("none");
+            assert_eq!(parser.angle().unwrap(), None);
+        }
+
+        assert_err(
+            "hwb(1turns 20% 30% / 50%)",
+            ParseError::UnknownAngleDimension,
+        );
     }
 }
