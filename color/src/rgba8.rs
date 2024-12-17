@@ -45,7 +45,7 @@ impl Rgba8 {
     /// most significant byte and `r` the least.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
-        u32::from_le_bytes(self.to_u8_array())
+        u32::from_ne_bytes(self.to_u8_array())
     }
 }
 
@@ -94,7 +94,7 @@ impl PremulRgba8 {
     /// most significant byte and `r` the least.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
-        u32::from_le_bytes(self.to_u8_array())
+        u32::from_ne_bytes(self.to_u8_array())
     }
 }
 
