@@ -269,6 +269,32 @@ jobs:
       - name: cargo check
         run: cargo hack check ${{ env.RUST_MIN_VER_PKGS }} --locked --target wasm32-unknown-unknown --optional-deps --each-feature --ignore-unknown-features --features std
 
+  miri:
+    name: cargo miri
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: install nightly toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: miri
+          targets: s390x-unknown-linux-gnu
+
+      - name: install cargo-hack
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-hack
+
+      - name: restore cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          save-if: ${{ github.event_name != 'merge_group' }}
+
+      - name: cargo miri
+        run: cargo hack miri test --locked --target s390x-unknown-linux-gnu --optional-deps --each-feature --ignore-unknown-features --features std
+
   doc:
     name: cargo doc
     # NOTE: We don't have any platform specific docs in this workspace, so we only run on Ubuntu.
