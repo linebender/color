@@ -116,7 +116,7 @@ mod tests {
             b: 3,
             a: 4,
         };
-        assert_eq!(0x04030201_u32, c.to_u32());
+        assert_eq!(0x04030201_u32.to_le(), c.to_u32());
 
         let p = PremulRgba8 {
             r: 0xaa,
@@ -124,6 +124,26 @@ mod tests {
             b: 0xcc,
             a: 0xff,
         };
-        assert_eq!(0xffccbbaa_u32, p.to_u32());
+        assert_eq!(0xffccbbaa_u32.to_le(), p.to_u32());
+    }
+
+    #[test]
+    #[cfg(feature = "bytemuck")]
+    fn bytemuck_to_u32() {
+        let c = Rgba8 {
+            r: 1,
+            g: 2,
+            b: 3,
+            a: 4,
+        };
+        assert_eq!(c.to_u32(), bytemuck::cast(c));
+
+        let p = PremulRgba8 {
+            r: 0xaa,
+            g: 0xbb,
+            b: 0xcc,
+            a: 0xff,
+        };
+        assert_eq!(p.to_u32(), bytemuck::cast(p));
     }
 }
