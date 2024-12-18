@@ -293,7 +293,7 @@ jobs:
           save-if: ${{ github.event_name != 'merge_group' }}
 
       - name: cargo miri
-        run: cargo hack miri test --locked --target s390x-unknown-linux-gnu --optional-deps --each-feature --ignore-unknown-features --features std
+        run: cargo miri test --workspace --locked --all-features --target s390x-unknown-linux-gnu --no-fail-fast
 
   doc:
     name: cargo doc
