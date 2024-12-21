@@ -15,6 +15,10 @@ You can find its changes [documented below](#020-2024-12-17).
 
 This release has an [MSRV][] of 1.82.
 
+### Fixed
+
+* Make color parsing case insensitive. ([#109][] by [@raphlinus][])
+
 ## [0.2.0][] (2024-12-17)
 
 This release has an [MSRV][] of 1.82.
@@ -74,6 +78,7 @@ This is the initial release.
 [#86]: https://github.com/linebender/color/pull/86
 [#92]: https://github.com/linebender/color/pull/92
 [#100]: https://github.com/linebender/color/pull/100
+[#109]: https://github.com/linebender/color/pull/109
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/linebender/color/releases/tag/v0.2.0
