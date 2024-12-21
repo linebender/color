@@ -9,7 +9,10 @@ use core::fmt;
 use core::str;
 use core::str::FromStr;
 
-use crate::{AlphaColor, ColorSpaceTag, DynamicColor, Flags, Missing, Srgb};
+use crate::{
+    AlphaColor, ColorSpace, ColorSpaceTag, DynamicColor, Flags, Missing, OpaqueColor, PremulColor,
+    Srgb,
+};
 
 // TODO: maybe include string offset
 /// Error type for parse errors.
@@ -521,7 +524,6 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
     }
 }
 
-// Arguably this should be an implementation of FromStr.
 /// Parse a color string in CSS syntax into a color.
 ///
 /// This parses the entire string; trailing characters cause an
@@ -540,6 +542,42 @@ pub fn parse_color(s: &str) -> Result<DynamicColor, ParseError> {
         Ok(color)
     } else {
         Err(ParseError::ExpectedEndOfString)
+    }
+}
+
+impl FromStr for DynamicColor {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        parse_color(s)
+    }
+}
+
+impl<CS: ColorSpace> FromStr for AlphaColor<CS> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        parse_color(s).map(DynamicColor::to_alpha_color)
+    }
+}
+
+impl<CS: ColorSpace> FromStr for OpaqueColor<CS> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        parse_color(s)
+            .map(DynamicColor::to_alpha_color)
+            .map(AlphaColor::discard_alpha)
+    }
+}
+
+impl<CS: ColorSpace> FromStr for PremulColor<CS> {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        parse_color(s)
+            .map(DynamicColor::to_alpha_color)
+            .map(AlphaColor::premultiply)
     }
 }
 

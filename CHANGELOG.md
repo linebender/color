@@ -15,6 +15,10 @@ You can find its changes [documented below](#020-2024-12-17).
 
 This release has an [MSRV][] of 1.82.
 
+###
+
+* Added `FromStr` impl for `AlphaColor`, `DynamicColor`, `OpaqueColor`, `PremulColor`. ([#111][] by [@waywardmonkeys][])
+
 ### Changed
 
 * Don't enable `serde`'s `std` feature when enabling our `std` feature. ([#108][] by @waywardmonkeys][])
