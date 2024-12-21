@@ -24,10 +24,13 @@ See https://linebender.org/blog/doc-include/ for related discussion. -->
 
 [`DynamicColor`]: https://docs.rs/color/latest/color/struct.DynamicColor.html
 [`AlphaColor`]: https://docs.rs/color/latest/color/struct.AlphaColor.html
-[`PremulColor`]: https://docs.rs/color/latest/color/struct.PremulColor.html
-[`OpaqueColor`]: https://docs.rs/color/latest/color/struct.OpaqueColor.html
-[`Rgba8`]: https://docs.rs/color/latest/color/struct.Rgba8.html
 [`ColorSpace`]: https://docs.rs/color/latest/color/trait.ColorSpace.html
+[`ColorSpaceTag`]: https://docs.rs/color/latest/color/enum.ColorSpaceTag.html
+[`HueDirection`]: https://docs.rs/color/latest/color/enum.HueDirection.html
+[`OpaqueColor`]: https://docs.rs/color/latest/color/struct.OpaqueColor.html
+[`PremulColor`]: https://docs.rs/color/latest/color/struct.PremulColor.html
+[`PremulRgba8`]: https://docs.rs/color/latest/color/struct.PremulRgba8.html
+[`Rgba8`]: https://docs.rs/color/latest/color/struct.Rgba8.html
 <!-- cargo-rdme start -->
 
 Color is a Rust crate which implements color space conversions, targeting at least
