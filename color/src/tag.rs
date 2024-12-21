@@ -8,7 +8,7 @@ use crate::{
     Missing, Oklab, Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
 
-/// The color space tag for dynamic colors.
+/// The color space tag for [dynamic colors].
 ///
 /// This represents a fixed set of known color spaces. The set is
 /// based on the CSS Color 4 spec, but might also extend to a small
@@ -17,6 +17,8 @@ use crate::{
 /// Note: this has some tags not yet implemented.
 ///
 /// Note: when adding an RGB-like color space, add to `same_analogous`.
+///
+/// [dynamic colors]: crate::DynamicColor
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[non_exhaustive]

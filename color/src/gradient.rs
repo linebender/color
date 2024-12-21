@@ -10,7 +10,7 @@ use crate::{
 /// This will yield a value for each gradient stop, including `t` values
 /// of 0 and 1 at the endpoints.
 ///
-/// Use the `gradient` function to generate this iterator.
+/// Use the [`gradient`] function to generate this iterator.
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
 pub struct GradientIter<CS: ColorSpace> {
     interpolator: Interpolator,

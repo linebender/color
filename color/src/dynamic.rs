@@ -11,7 +11,7 @@ use crate::{
 };
 use core::hash::{Hash, Hasher};
 
-/// A color with a color space tag decided at runtime.
+/// A color with a [color space tag] decided at runtime.
 ///
 /// This type is roughly equivalent to [`AlphaColor`] except with a tag
 /// for color space as opposed being determined at compile time. It can
@@ -27,6 +27,7 @@ use core::hash::{Hash, Hasher};
 /// When manipulating components directly, setting them nonzero when the
 /// corresponding missing flag is set may yield unexpected results.
 ///
+/// [color space tag]: ColorSpaceTag
 /// [Oklch]: crate::Oklch
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
