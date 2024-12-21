@@ -15,6 +15,10 @@ You can find its changes [documented below](#020-2024-12-17).
 
 This release has an [MSRV][] of 1.82.
 
+### Changed
+
+* Don't enable `serde`'s `std` feature when enabling our `std` feature. ([#108][] by @waywardmonkeys][])
+
 ### Fixed
 
 * Make color parsing case insensitive. ([#109][] by [@raphlinus][])
@@ -78,6 +82,7 @@ This is the initial release.
 [#86]: https://github.com/linebender/color/pull/86
 [#92]: https://github.com/linebender/color/pull/92
 [#100]: https://github.com/linebender/color/pull/100
+[#108]: https://github.com/linebender/color/pull/108
 [#109]: https://github.com/linebender/color/pull/109
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.0...HEAD
