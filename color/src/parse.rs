@@ -6,6 +6,7 @@
 use core::error::Error;
 use core::f64;
 use core::fmt;
+use core::str;
 use core::str::FromStr;
 
 use crate::{AlphaColor, ColorSpaceTag, DynamicColor, Flags, Missing, Srgb};
@@ -277,7 +278,7 @@ impl<'a> Parser<'a> {
         match value {
             Some(Value::Number(n)) => Ok(Some(n * scale)),
             Some(Value::Percent(n)) => Ok(Some(n * pct_scale)),
-            Some(Value::Symbol("none")) => Ok(None),
+            Some(Value::Symbol(s)) if s.eq_ignore_ascii_case("none") => Ok(None),
             _ => Err(ParseError::UnknownColorComponent),
         }
     }
@@ -287,9 +288,11 @@ impl<'a> Parser<'a> {
         let value = self.value();
         match value {
             Some(Value::Number(n)) => Ok(Some(n)),
-            Some(Value::Symbol("none")) => Ok(None),
+            Some(Value::Symbol(s)) if s.eq_ignore_ascii_case("none") => Ok(None),
             Some(Value::Dimension(n, dim)) => {
-                let scale = match dim {
+                let mut buf = [0; LOWERCASE_BUF_SIZE];
+                let dim_lc = make_lowercase(dim, &mut buf);
+                let scale = match dim_lc {
                     "deg" => 1.0,
                     "rad" => 180.0 / f64::consts::PI,
                     "grad" => 0.9,
@@ -429,7 +432,9 @@ impl<'a> Parser<'a> {
         let Some(id) = self.ident() else {
             return Err(ParseError::ExpectedColorSpaceIdentifier);
         };
-        let cs = match id {
+        let mut buf = [0; LOWERCASE_BUF_SIZE];
+        let id_lc = make_lowercase(id, &mut buf);
+        let cs = match id_lc {
             "srgb" => ColorSpaceTag::Srgb,
             "srgb-linear" => ColorSpaceTag::LinearSrgb,
             "display-p3" => ColorSpaceTag::DisplayP3,
@@ -478,7 +483,9 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
     }
     let mut parser = Parser::new(s);
     if let Some(id) = parser.ident() {
-        let color = match id {
+        let mut buf = [0; LOWERCASE_BUF_SIZE];
+        let id_lc = make_lowercase(id, &mut buf);
+        let color = match id_lc {
             "rgb" | "rgba" => parser.rgb().map(set_from_named_color_space),
             "lab" => parser
                 .lab(100.0, 1.25, ColorSpaceTag::Lab)
@@ -496,7 +503,7 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
             "hwb" => parser.hwb().map(set_from_named_color_space),
             "color" => parser.color(),
             _ => {
-                if let Some(ix) = crate::x11_colors::lookup_palette_index(id) {
+                if let Some(ix) = crate::x11_colors::lookup_palette_index(id_lc) {
                     let [r, g, b, a] = crate::x11_colors::COLORS[ix];
                     let mut color =
                         DynamicColor::from_alpha_color(AlphaColor::from_rgba8(r, g, b, a));
@@ -584,7 +591,8 @@ impl FromStr for ColorSpaceTag {
     type Err = ParseError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
+        let mut buf = [0; LOWERCASE_BUF_SIZE];
+        match make_lowercase(s, &mut buf) {
             "srgb" => Ok(Self::Srgb),
             "srgb-linear" => Ok(Self::LinearSrgb),
             "lab" => Ok(Self::Lab),
@@ -598,6 +606,28 @@ impl FromStr for ColorSpaceTag {
             "xyz" | "xyz-d65" => Ok(Self::XyzD65),
             _ => Err(ParseError::UnknownColorSpace),
         }
+    }
+}
+
+const LOWERCASE_BUF_SIZE: usize = 32;
+
+/// If the string contains any uppercase characters, make a lowercase copy
+/// in the provided buffer space.
+///
+/// If anything goes wrong (including the buffer size being exceeded), return
+/// the original string.
+fn make_lowercase<'a>(s: &'a str, buf: &'a mut [u8; LOWERCASE_BUF_SIZE]) -> &'a str {
+    let len = s.len();
+    if len <= LOWERCASE_BUF_SIZE && s.as_bytes().iter().any(|c| c.is_ascii_uppercase()) {
+        buf[..len].copy_from_slice(s.as_bytes());
+        if let Ok(s_copy) = str::from_utf8_mut(&mut buf[..len]) {
+            s_copy.make_ascii_lowercase();
+            s_copy
+        } else {
+            s
+        }
+    } else {
+        s
     }
 }
 
@@ -704,5 +734,22 @@ mod tests {
             "hwb(1turns 20% 30% / 50%)",
             ParseError::UnknownAngleDimension,
         );
+    }
+
+    #[test]
+    fn case_insensitive() {
+        for (c1, c2) in [
+            ("red", "ReD"),
+            ("lightgoldenrodyellow", "LightGoldenRodYellow"),
+            ("rgb(102, 51, 153)", "RGB(102, 51, 153)"),
+            (
+                "color(rec2020 0.2 0.3 0.4 / 0.85)",
+                "CoLoR(ReC2020 0.2 0.3 0.4 / 0.85)",
+            ),
+            ("hwb(120deg 30% 50%)", "HwB(120DeG 30% 50%)"),
+            ("hsl(none none none)", "HSL(NONE NONE NONE)"),
+        ] {
+            assert_close_color(parse_color(c1).unwrap(), parse_color(c2).unwrap());
+        }
     }
 }
