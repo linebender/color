@@ -98,8 +98,15 @@ impl PremulRgba8 {
     }
 }
 
+/// This is deprecated and will be removed in 0.3.0.
 impl From<Rgba8> for PremulColor<Srgb> {
     fn from(value: Rgba8) -> Self {
+        Self::from_rgba8(value.r, value.g, value.b, value.a)
+    }
+}
+
+impl From<PremulRgba8> for PremulColor<Srgb> {
+    fn from(value: PremulRgba8) -> Self {
         Self::from_rgba8(value.r, value.g, value.b, value.a)
     }
 }

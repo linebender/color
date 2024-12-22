@@ -18,6 +18,7 @@ This release has an [MSRV][] of 1.82.
 ### Changed
 
 * Don't enable `serde`'s `std` feature when enabling our `std` feature. ([#108][] by @waywardmonkeys][])
+* `From<Rgba8>` for `PremulColor` is deprecated and replaced by `From<PremulRgba8>`. ([#113][] by @waywardmonkeys][])
 
 ### Fixed
 
