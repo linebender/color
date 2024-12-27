@@ -8,14 +8,18 @@ Subheadings to categorize changes are `added, changed, deprecated, removed, fixe
 
 # Changelog
 
-The latest published Color release is [0.2.0](#020-2024-12-17) which was released on 2024-12-17.
-You can find its changes [documented below](#020-2024-12-17).
+The latest published Color release is [0.2.1](#021-2024-12-27) which was released on 2024-12-27.
+You can find its changes [documented below](#021-2024-12-27).
 
 ## [Unreleased]
 
 This release has an [MSRV][] of 1.82.
 
-###
+## [0.2.1][] (2024-12-27)
+
+This release has an [MSRV][] of 1.82.
+
+### Added
 
 * Add `FromStr` impl for `AlphaColor`, `DynamicColor`, `OpaqueColor`, `PremulColor`. ([#111][] by [@waywardmonkeys][])
 
@@ -92,7 +96,8 @@ This is the initial release.
 [#111]: https://github.com/linebender/color/pull/111
 [#113]: https://github.com/linebender/color/pull/113
 
-[Unreleased]: https://github.com/linebender/color/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/linebender/color/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/linebender/color/releases/tag/v0.2.1
 [0.2.0]: https://github.com/linebender/color/releases/tag/v0.2.0
 [0.1.0]: https://github.com/linebender/color/releases/tag/v0.1.0
 
