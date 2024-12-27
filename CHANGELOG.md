@@ -17,12 +17,12 @@ This release has an [MSRV][] of 1.82.
 
 ###
 
-* Added `FromStr` impl for `AlphaColor`, `DynamicColor`, `OpaqueColor`, `PremulColor`. ([#111][] by [@waywardmonkeys][])
+* Add `FromStr` impl for `AlphaColor`, `DynamicColor`, `OpaqueColor`, `PremulColor`. ([#111][] by [@waywardmonkeys][])
 
 ### Changed
 
-* Don't enable `serde`'s `std` feature when enabling our `std` feature. ([#108][] by @waywardmonkeys][])
-* `From<Rgba8>` for `PremulColor` is deprecated and replaced by `From<PremulRgba8>`. ([#113][] by @waywardmonkeys][])
+* Don't enable `serde`'s `std` feature when enabling our `std` feature. ([#108][] by [@waywardmonkeys][])
+* `From<Rgba8>` for `PremulColor` is deprecated and replaced by `From<PremulRgba8>`. ([#113][] by [@waywardmonkeys][])
 
 ### Fixed
 
@@ -89,6 +89,8 @@ This is the initial release.
 [#100]: https://github.com/linebender/color/pull/100
 [#108]: https://github.com/linebender/color/pull/108
 [#109]: https://github.com/linebender/color/pull/109
+[#111]: https://github.com/linebender/color/pull/111
+[#113]: https://github.com/linebender/color/pull/113
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.0...HEAD
 [0.2.0]: https://github.com/linebender/color/releases/tag/v0.2.0
