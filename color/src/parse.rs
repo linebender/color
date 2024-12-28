@@ -622,7 +622,12 @@ const fn hex_from_ascii_byte(b: u8) -> Result<u8, ()> {
 
 const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb> {
     let [r0, r1, g0, g1, b0, b1, a0, a1] = components;
-    AlphaColor::from_rgba8(r0 << 4 | r1, g0 << 4 | g1, b0 << 4 | b1, a0 << 4 | a1)
+    AlphaColor::from_rgba8(
+        (r0 << 4) | r1,
+        (g0 << 4) | g1,
+        (b0 << 4) | b1,
+        (a0 << 4) | a1,
+    )
 }
 
 impl FromStr for ColorSpaceTag {
