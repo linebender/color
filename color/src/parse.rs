@@ -87,6 +87,22 @@ enum Value<'a> {
     Dimension(f64, &'a str),
 }
 
+/// Whether or not we are parsing modern or legacy mode syntax.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Mode {
+    Legacy,
+    Modern,
+}
+
+impl Mode {
+    fn alpha_separator(self) -> u8 {
+        match self {
+            Self::Legacy => b',',
+            Self::Modern => b'/',
+        }
+    }
+}
+
 #[expect(
     clippy::cast_possible_truncation,
     reason = "deliberate choice of f32 for colors"
@@ -317,11 +333,6 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn opacity_separator(&mut self, comma: bool) -> bool {
-        self.ws();
-        self.ch(if comma { b',' } else { b'/' })
-    }
-
     fn rgb(&mut self) -> Result<DynamicColor, ParseError> {
         if !self.raw_ch(b'(') {
             return Err(ParseError::ExpectedArguments);
@@ -333,6 +344,7 @@ impl<'a> Parser<'a> {
             .map(|x| x.clamp(0., 1.));
         self.ws();
         let comma = self.ch(b',');
+        let mode = if comma { Mode::Legacy } else { Mode::Modern };
         let g = self
             .scaled_component(1. / 255., 0.01)?
             .map(|x| x.clamp(0., 1.));
@@ -340,10 +352,7 @@ impl<'a> Parser<'a> {
         let b = self
             .scaled_component(1. / 255., 0.01)?
             .map(|x| x.clamp(0., 1.));
-        let mut alpha = Some(1.0);
-        if self.opacity_separator(comma) {
-            alpha = self.scaled_component(1., 0.01)?.map(|a| a.clamp(0., 1.));
-        }
+        let alpha = self.alpha(mode)?;
         self.ws();
         if !self.ch(b')') {
             return Err(ParseError::ExpectedClosingParenthesis);
@@ -351,14 +360,26 @@ impl<'a> Parser<'a> {
         Ok(color_from_components([r, g, b, alpha], ColorSpaceTag::Srgb))
     }
 
-    fn optional_alpha(&mut self) -> Result<Option<f64>, ParseError> {
-        let mut alpha = Some(1.0);
+    /// Read a slash separator and an alpha value.
+    ///
+    /// The value may be either number or a percentage.
+    ///
+    /// The alpha value defaults to `1.0` if not present. The value will be clamped
+    /// to the range [0, 1].
+    ///
+    /// If the value is `"none"`, then `Ok(None)` will be returned.
+    ///
+    /// The separator will be a `'/'` in modern mode and a `','` in legacy mode.
+    /// If no separator is present, then the default value will be returned.
+    ///
+    /// Reference: § 4.2 of CSS Color 4 spec.
+    fn alpha(&mut self, mode: Mode) -> Result<Option<f64>, ParseError> {
         self.ws();
-        if self.ch(b'/') {
-            alpha = self.scaled_component(1., 0.01)?;
+        if self.ch(mode.alpha_separator()) {
+            Ok(self.scaled_component(1., 0.01)?.map(|a| a.clamp(0., 1.)))
+        } else {
+            Ok(Some(1.0))
         }
-        self.ws();
-        Ok(alpha)
     }
 
     fn lab(&mut self, lmax: f64, c: f64, tag: ColorSpaceTag) -> Result<DynamicColor, ParseError> {
@@ -370,7 +391,8 @@ impl<'a> Parser<'a> {
             .map(|x| x.clamp(0., lmax));
         let a = self.scaled_component(1., c)?;
         let b = self.scaled_component(1., c)?;
-        let alpha = self.optional_alpha()?;
+        let alpha = self.alpha(Mode::Modern)?;
+        self.ws();
         if !self.ch(b')') {
             return Err(ParseError::ExpectedClosingParenthesis);
         }
@@ -386,7 +408,8 @@ impl<'a> Parser<'a> {
             .map(|x| x.clamp(0., lmax));
         let c = self.scaled_component(1., c)?.map(|x| x.max(0.));
         let h = self.angle()?;
-        let alpha = self.optional_alpha()?;
+        let alpha = self.alpha(Mode::Modern)?;
+        self.ws();
         if !self.ch(b')') {
             return Err(ParseError::ExpectedClosingParenthesis);
         }
@@ -399,13 +422,11 @@ impl<'a> Parser<'a> {
         }
         let h = self.angle()?;
         let comma = self.ch(b',');
+        let mode = if comma { Mode::Legacy } else { Mode::Modern };
         let s = self.scaled_component(1., 1.)?.map(|x| x.max(0.));
         self.optional_comma(comma)?;
         let l = self.scaled_component(1., 1.)?;
-        let mut alpha = Some(1.0);
-        if self.opacity_separator(comma) {
-            alpha = self.scaled_component(1., 0.01)?.map(|a| a.clamp(0., 1.));
-        }
+        let alpha = self.alpha(mode)?;
         self.ws();
         if !self.ch(b')') {
             return Err(ParseError::ExpectedClosingParenthesis);
@@ -420,7 +441,8 @@ impl<'a> Parser<'a> {
         let h = self.angle()?;
         let w = self.scaled_component(1., 1.)?;
         let b = self.scaled_component(1., 1.)?;
-        let alpha = self.optional_alpha()?;
+        let alpha = self.alpha(Mode::Modern)?;
+        self.ws();
         if !self.ch(b')') {
             return Err(ParseError::ExpectedClosingParenthesis);
         }
@@ -451,7 +473,8 @@ impl<'a> Parser<'a> {
         let r = self.scaled_component(1., 0.01)?;
         let g = self.scaled_component(1., 0.01)?;
         let b = self.scaled_component(1., 0.01)?;
-        let alpha = self.optional_alpha()?;
+        let alpha = self.alpha(Mode::Modern)?;
+        self.ws();
         if !self.ch(b')') {
             return Err(ParseError::ExpectedClosingParenthesis);
         }
@@ -678,7 +701,7 @@ fn make_lowercase<'a>(s: &'a str, buf: &'a mut [u8; LOWERCASE_BUF_SIZE]) -> &'a 
 mod tests {
     use crate::DynamicColor;
 
-    use super::{parse_color, parse_color_prefix, ParseError, Parser};
+    use super::{parse_color, parse_color_prefix, Mode, ParseError, Parser};
 
     fn assert_close_color(c1: DynamicColor, c2: DynamicColor) {
         const EPSILON: f32 = 1e-4;
@@ -751,6 +774,23 @@ mod tests {
             let mut parser = Parser::new(s);
             assert!(parser.consume_comments().is_ok());
             assert_eq!(&parser.s[parser.ix..], remaining);
+        }
+    }
+
+    #[test]
+    fn alpha() {
+        for (alpha, expected, mode) in [
+            (", 10%", Ok(Some(0.1)), Mode::Legacy),
+            ("/ 0.25", Ok(Some(0.25)), Mode::Modern),
+            ("/ -0.3", Ok(Some(0.)), Mode::Modern),
+            ("/ 110%", Ok(Some(1.)), Mode::Modern),
+            ("", Ok(Some(1.)), Mode::Legacy),
+            ("/ none", Ok(None), Mode::Modern),
+        ] {
+            let mut parser = Parser::new(alpha);
+            let result = parser.alpha(mode);
+            assert_eq!(result, expected,
+                "Failed parsing specified alpha `{alpha}`. Expected: `{expected:?}`. Got: `{result:?}`.");
         }
     }
 

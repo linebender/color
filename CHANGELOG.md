@@ -18,6 +18,7 @@ This release has an [MSRV][] of 1.82.
 ### Fixed
 
 * Colors in `XyzD65` are serialized as `xyz-d65` rather than `xyz`. ([#118][] by [@waywardmonkeys][])
+* Alpha values are clamped at parse time. ([#119][] by [@waywardmonkeys][])
 
 ## [0.2.1][] (2024-12-27)
 
@@ -100,6 +101,7 @@ This is the initial release.
 [#111]: https://github.com/linebender/color/pull/111
 [#113]: https://github.com/linebender/color/pull/113
 [#118]: https://github.com/linebender/color/pull/118
+[#119]: https://github.com/linebender/color/pull/119
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.1...HEAD
 [0.2.1]: https://github.com/linebender/color/releases/tag/v0.2.1
