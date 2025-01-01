@@ -99,7 +99,7 @@ impl core::fmt::Display for DynamicColor {
             ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
             ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
             ColorSpaceTag::XyzD50 => write_color_function(self, "xyz-d50", f),
-            ColorSpaceTag::XyzD65 => write_color_function(self, "xyz", f),
+            ColorSpaceTag::XyzD65 => write_color_function(self, "xyz-d65", f),
             ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
             ColorSpaceTag::Lch => write_modern_function(self, "lch", f),
             ColorSpaceTag::Oklab => write_modern_function(self, "oklab", f),
@@ -149,7 +149,7 @@ impl core::fmt::UpperHex for Rgba8 {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_color, AlphaColor, DynamicColor, Hsl, Oklab, Srgb};
+    use crate::{parse_color, AlphaColor, DynamicColor, Hsl, Oklab, Srgb, XyzD65};
 
     #[test]
     fn rgb8() {
@@ -215,6 +215,12 @@ mod tests {
             (
                 DynamicColor::from_alpha_color(AlphaColor::<Oklab>::new([0.4, 0.2, -0.2, 1.])),
                 "oklab(0.4 0.2 -0.2)",
+            ),
+            (
+                DynamicColor::from_alpha_color(AlphaColor::<XyzD65>::new([
+                    0.472, 0.372, 0.131, 1.,
+                ])),
+                "color(xyz-d65 0.472 0.372 0.131)",
             ),
             // Perhaps this should actually serialize to `rgb(...)`.
             (
