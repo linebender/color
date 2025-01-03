@@ -6,7 +6,7 @@
 
 [![Linebender Zulip, #color channel](https://img.shields.io/badge/Linebender-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
 [![dependency status](https://deps.rs/repo/github/linebender/color/status.svg)](https://deps.rs/repo/github/linebender/color)
-[![MIT/Apache 2.0](https://img.shields.io/badge/license-MIT%2FApache-blue.svg)](#license)
+[![Apache 2.0 or MIT license.](https://img.shields.io/badge/license-Apache--2.0_OR_MIT-blue.svg)](#license)
 [![Build status](https://github.com/linebender/color/workflows/CI/badge.svg)](https://github.com/linebender/color/actions)
 [![Crates.io](https://img.shields.io/crates/v/color.svg)](https://crates.io/crates/color)
 [![Docs](https://docs.rs/color/badge.svg)](https://docs.rs/color)
