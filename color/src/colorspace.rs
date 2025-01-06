@@ -540,22 +540,80 @@ impl ColorSpace for Rec2020 {
     }
 }
 
-/// 🌌 The ACEScg color space.
+/// 🌌 The ACES2065-1 color space.
 ///
-/// This color space is defined by the Academy Color Encoding System [specification][acescg].
+/// This is a linear color space with a very wide gamut. It is is often used for archival and
+/// interchange.
+///
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black and `[1, 1, 1]` white. The natural bounds of the components are
+/// `[-65504.0, 65504.0]`.
+///
+/// This color space is [characterized by the Academy Color Encoding System][aces20651] and is
+/// specified in [SMPTE ST 2065-1:2021][smpte].
+///
+/// ACES2065-1 has a reference white [near D60][aceswp]; see the [XYZ-D65 color space](`XyzD65`)
+/// documentation for some background information on the meaning of "reference white."
+///
+/// See also [`AcesCg`].
+///
+/// [aces20651]: https://draftdocs.acescentral.com/specifications/encodings/aces2065-1/
+/// [smpte]: https://pub.smpte.org/doc/st2065-1/20200909-pub/st2065-1-2021.pdf
+/// [aceswp]: https://docs.acescentral.com/tb/white-point
+#[derive(Clone, Copy, Debug)]
+pub struct Aces2065_1;
+
+impl ColorSpace for Aces2065_1 {
+    const IS_LINEAR: bool = true;
+
+    const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Aces2065_1);
+
+    const WHITE_COMPONENTS: [f32; 3] = [1.0, 1.0, 1.0];
+
+    fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_sRGB * ACESwp_to_D65 * ACES2065_1_to_XYZ
+        const ACES2065_1_TO_LINEAR_SRGB: [[f32; 3]; 3] = [
+            [2.521_686, -1.134_131, -0.387_555_2],
+            [-0.276_479_9, 1.372_719, -0.096_239_17],
+            [-0.015_378_065, -0.152_975_34, 1.168_353_4],
+        ];
+        matmul(&ACES2065_1_TO_LINEAR_SRGB, src)
+    }
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_ACES2065_1 * D65_to_ACESwp * lin_sRGB_to_XYZ
+        const LINEAR_SRGB_TO_ACES2065_1: [[f32; 3]; 3] = [
+            [0.439_632_98, 0.382_988_7, 0.177_378_33],
+            [0.089_776_44, 0.813_439_4, 0.096_784_13],
+            [0.017_541_17, 0.111_546_55, 0.870_912_25],
+        ];
+        matmul(&LINEAR_SRGB_TO_ACES2065_1, src)
+    }
+
+    fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
+        [
+            r.clamp(-65504., 65504.),
+            g.clamp(-65504., 65504.),
+            b.clamp(-65504., 65504.),
+        ]
+    }
+}
+
+/// 🌌 The ACEScg color space.
 ///
 /// The ACEScg color space is a linear color space. The wide gamut makes this color space useful as
 /// a working space for computer graphics.
 ///
-/// Other ACES color spaces include ACES2065-1, ACEScc, and ACEScct. This crate currently does not
-/// support these color spaces.
+/// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
+/// pure black and `[1, 1, 1]` white. The natural bounds of the components are
+/// `[-65504.0, 65504.0]`, though it is unusual to clip in this color space.
 ///
-/// The ACEScg components are `[R, G, B]`. The components are bounded to `[-65504.0, 65504.0]`,
-/// though it is unusual to clip in this color space.
+/// This color space is defined by the Academy Color Encoding System [specification][acescg].
 ///
-/// ACEScg has a reference white [near D60][aceswp]; see the
-/// [XYZ-D65 color space](`XyzD65`) documentation for some background information on the meaning of
-/// "reference white."
+/// ACEScg has a reference white [near D60][aceswp]; see the [XYZ-D65 color space](`XyzD65`)
+/// documentation for some background information on the meaning of "reference white."
+///
+/// See also [`Aces2065_1`].
 ///
 /// [acescg]: https://docs.acescentral.com/specifications/acescg/
 /// [aceswp]: https://docs.acescentral.com/tb/white-point
@@ -1229,8 +1287,8 @@ impl ColorSpace for Hwb {
 #[cfg(test)]
 mod tests {
     use crate::{
-        A98Rgb, AcesCg, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab, Oklch,
-        OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+        A98Rgb, Aces2065_1, AcesCg, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab,
+        Oklch, OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
     };
 
     #[must_use]
@@ -1328,6 +1386,7 @@ mod tests {
         check_white::<Oklch>();
         check_white::<ProphotoRgb>();
         check_white::<Rec2020>();
+        check_white::<Aces2065_1>();
         check_white::<AcesCg>();
         check_white::<XyzD50>();
         check_white::<XyzD65>();
@@ -1386,6 +1445,25 @@ mod tests {
             assert!(almost_equal::<Rec2020>(
                 rec2020,
                 Srgb::convert::<Rec2020>(srgb),
+                1e-4
+            ));
+        }
+    }
+
+    #[test]
+    fn aces2065_1_srgb() {
+        for (srgb, aces2065_1) in [
+            ([0.6, 0.5, 0.4], [0.245_59, 0.215_57, 0.145_18]),
+            ([0.0, 0.5, 1.0], [0.259_35, 0.270_89, 0.894_79]),
+        ] {
+            assert!(almost_equal::<Srgb>(
+                srgb,
+                Aces2065_1::convert::<Srgb>(aces2065_1),
+                1e-4
+            ));
+            assert!(almost_equal::<Aces2065_1>(
+                aces2065_1,
+                Srgb::convert::<Aces2065_1>(srgb),
                 1e-4
             ));
         }

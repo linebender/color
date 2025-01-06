@@ -69,7 +69,7 @@ unsafe impl bytemuck::checked::CheckedBitPattern for ColorSpaceTag {
 unsafe impl bytemuck::Contiguous for ColorSpaceTag {
     type Int = u8;
     const MIN_VALUE: u8 = Self::Srgb as u8;
-    const MAX_VALUE: u8 = Self::XyzD65 as u8;
+    const MAX_VALUE: u8 = Self::Aces2065_1 as u8;
 }
 
 // Safety: The enum is `repr(u8)` and has only fieldless variants.

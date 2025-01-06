@@ -4,8 +4,8 @@
 //! The color space tag enum.
 
 use crate::{
-    A98Rgb, AcesCg, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb,
-    Missing, Oklab, Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+    A98Rgb, Aces2065_1, AcesCg, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch,
+    LinearSrgb, Missing, Oklab, Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
 
 /// The color space tag for [dynamic colors].
@@ -46,6 +46,8 @@ pub enum ColorSpaceTag {
     ProphotoRgb = 10,
     /// The [`Rec2020`] color space.
     Rec2020 = 11,
+    /// The [`Aces2065_1`] color space.
+    Aces2065_1 = 15,
     /// The [`AcesCg`] color space.
     AcesCg = 12,
     /// The [`XyzD50`] color space.
@@ -164,6 +166,7 @@ impl ColorSpaceTag {
             Self::A98Rgb => A98Rgb::from_linear_srgb(rgb),
             Self::ProphotoRgb => ProphotoRgb::from_linear_srgb(rgb),
             Self::Rec2020 => Rec2020::from_linear_srgb(rgb),
+            Self::Aces2065_1 => Aces2065_1::from_linear_srgb(rgb),
             Self::AcesCg => AcesCg::from_linear_srgb(rgb),
             Self::XyzD50 => XyzD50::from_linear_srgb(rgb),
             Self::XyzD65 => XyzD65::from_linear_srgb(rgb),
@@ -187,6 +190,7 @@ impl ColorSpaceTag {
             Self::A98Rgb => A98Rgb::to_linear_srgb(src),
             Self::ProphotoRgb => ProphotoRgb::to_linear_srgb(src),
             Self::Rec2020 => Rec2020::to_linear_srgb(src),
+            Self::Aces2065_1 => Aces2065_1::to_linear_srgb(src),
             Self::AcesCg => AcesCg::to_linear_srgb(src),
             Self::XyzD50 => XyzD50::to_linear_srgb(src),
             Self::XyzD65 => XyzD65::to_linear_srgb(src),
@@ -244,6 +248,7 @@ impl ColorSpaceTag {
             Self::A98Rgb => A98Rgb::clip(src),
             Self::ProphotoRgb => ProphotoRgb::clip(src),
             Self::Rec2020 => Rec2020::clip(src),
+            Self::Aces2065_1 => Aces2065_1::clip(src),
             Self::AcesCg => AcesCg::clip(src),
             Self::XyzD50 => XyzD50::clip(src),
             Self::XyzD65 => XyzD65::clip(src),

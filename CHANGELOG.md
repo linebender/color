@@ -15,6 +15,10 @@ You can find its changes [documented below](#022-2025-01-03).
 
 This release has an [MSRV][] of 1.82.
 
+### Added
+
+* Support for the ACES2065-1 color space. ([#124][] by [@tomcur][])
+
 ## [0.2.2][] (2025-01-03)
 
 This release has an [MSRV][] of 1.82.
