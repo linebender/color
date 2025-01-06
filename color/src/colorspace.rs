@@ -1349,6 +1349,8 @@ mod tests {
         test_roundtrips::<A98Rgb, Srgb>(&rectangular_values);
         test_roundtrips::<ProphotoRgb, Srgb>(&rectangular_values);
         test_roundtrips::<Rec2020, Srgb>(&rectangular_values);
+        test_roundtrips::<Aces2065_1, Srgb>(&rectangular_values);
+        test_roundtrips::<AcesCg, Srgb>(&rectangular_values);
         test_roundtrips::<XyzD50, Srgb>(&rectangular_values);
         test_roundtrips::<XyzD65, Srgb>(&rectangular_values);
 
