@@ -10,9 +10,9 @@ use crate::{
 
 /// The color space tag for [dynamic colors].
 ///
-/// This represents a fixed set of known color spaces. The set is
-/// based on the CSS Color 4 spec, but might also extend to a small
-/// set of color spaces used in 3D graphics.
+/// This represents a fixed set of known color spaces. The set contains all
+/// color spaces in the CSS Color 4 spec and includes some other color spaces
+/// useful for computer graphics.
 ///
 /// The integer values of these variants can change in breaking releases.
 ///
