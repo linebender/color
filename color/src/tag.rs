@@ -14,6 +14,8 @@ use crate::{
 /// based on the CSS Color 4 spec, but might also extend to a small
 /// set of color spaces used in 3D graphics.
 ///
+/// The integer values of these variants can change in breaking releases.
+///
 /// [dynamic colors]: crate::DynamicColor
 //
 // Note: when adding an RGB-like color space, add to `same_analogous`.
