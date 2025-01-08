@@ -679,7 +679,7 @@ impl ColorSpace for XyzD50 {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::XyzD50);
 
-    const WHITE_COMPONENTS: [f32; 3] = [0.9642956, 1., 0.8251046];
+    const WHITE_COMPONENTS: [f32; 3] = [3457. / 3585., 1., 986. / 1195.];
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * D50_to_D65
@@ -764,7 +764,7 @@ impl ColorSpace for XyzD65 {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::XyzD65);
 
-    const WHITE_COMPONENTS: [f32; 3] = [0.9504559, 1., 1.0890577];
+    const WHITE_COMPONENTS: [f32; 3] = [3127. / 3290., 1., 3583. / 3290.];
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         const XYZ_TO_LINEAR_SRGB: [[f32; 3]; 3] = [

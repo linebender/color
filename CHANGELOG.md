@@ -19,6 +19,10 @@ This release has an [MSRV][] of 1.82.
 
 * Support for the ACES2065-1 color space. ([#124][] by [@tomcur][])
 
+### Fixed
+
+* Specify some `ColorSpace::WHITE_COMPONENTS` to higher precision. ([#128][], [#129][] by [@tomcur][])
+
 ## [0.2.2][] (2025-01-03)
 
 This release has an [MSRV][] of 1.82.
@@ -111,6 +115,8 @@ This is the initial release.
 [#118]: https://github.com/linebender/color/pull/118
 [#119]: https://github.com/linebender/color/pull/119
 [#124]: https://github.com/linebender/color/pull/124
+[#128]: https://github.com/linebender/color/pull/128
+[#129]: https://github.com/linebender/color/pull/129
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.2...HEAD
 [0.2.2]: https://github.com/linebender/color/releases/tag/v0.2.2
