@@ -267,7 +267,7 @@ pub struct DisplayP3;
 impl ColorSpace for DisplayP3 {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::DisplayP3);
 
-    const WHITE_COMPONENTS: [f32; 3] = [0.99999994, 0.99999994, 0.99999994];
+    const WHITE_COMPONENTS: [f32; 3] = [1., 1., 1.];
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         const LINEAR_DISPLAYP3_TO_SRGB: [[f32; 3]; 3] = [
@@ -389,7 +389,7 @@ pub struct ProphotoRgb;
 impl ColorSpace for ProphotoRgb {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::ProphotoRgb);
 
-    const WHITE_COMPONENTS: [f32; 3] = [1., 0.99999994, 1.];
+    const WHITE_COMPONENTS: [f32; 3] = [1., 1., 1.];
 
     fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
         // XYZ_to_lin_sRGB * D50_to_D65 * lin_prophoto_to_XYZ
