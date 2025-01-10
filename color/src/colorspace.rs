@@ -37,7 +37,6 @@ use crate::floatfuncs::FloatFuncs;
 /// chroma.
 ///
 /// ```rust
-/// use core::any::TypeId;
 /// use color::{ColorSpace, ColorSpaceLayout};
 ///
 /// /// The Rec. 709 color space, using the electro-optical transfer function
