@@ -1048,7 +1048,7 @@ impl ColorSpace for Oklch {
 
 /// 🌌 The Okhsv color space, intended to be a perceptually uniform color picker for [sRGB](Srgb).
 ///
-/// The Okhsv color space is a cilindrical color picker for [sRGB](Srgb)'s natural gamut. It is
+/// The Okhsv color space is a cylindrical color picker for [sRGB](Srgb)'s natural gamut. It is
 /// based on the [Oklab] color space, with a slightly different formulation to achieve better
 /// perceptual uniformity within sRGB's natural gamut.
 ///
@@ -1127,7 +1127,7 @@ impl Okhsv {
 
         let l = Oklab::lightness_toe(l / scale_l);
 
-        // Compute the cilindrical v and s.
+        // Compute the cylindrical v and s.
         let v = l / l_v;
         let s = (S0 + t_max) * c_v / ((t_max * S0) + t_max * k * c_v);
 
