@@ -31,6 +31,11 @@ use crate::floatfuncs::FloatFuncs;
 /// The following is an example implementation of the
 /// [Rec. 709](https://www.color.org/chardata/rgb/BT2020.xalter) color space.
 ///
+/// **Note:**
+/// - [`ColorSpace::convert`] can be implemented to specialize specific conversions;
+/// - implement [`ColorSpace::scale_chroma`] if your color space has a natural representation of
+/// chroma.
+///
 /// ```rust
 /// use core::any::TypeId;
 /// use color::{ColorSpace, ColorSpaceLayout};
@@ -55,15 +60,6 @@ use crate::floatfuncs::FloatFuncs;
 ///
 ///     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
 ///         src.map(|x| x.powf(1. / 2.4))
-///     }
-///
-///     fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
-///         if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
-///             src
-///         } else {
-///             let lin_srgb = Self::to_linear_srgb(src);
-///             TargetCS::from_linear_srgb(lin_srgb)
-///         }
 ///     }
 ///
 ///     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
