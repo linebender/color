@@ -34,7 +34,7 @@ use crate::floatfuncs::FloatFuncs;
 /// **Note:**
 /// - [`ColorSpace::convert`] can be implemented to specialize specific conversions;
 /// - implement [`ColorSpace::scale_chroma`] if your color space has a natural representation of
-/// chroma.
+///   chroma.
 ///
 /// ```rust
 /// use color::{ColorSpace, ColorSpaceLayout};
