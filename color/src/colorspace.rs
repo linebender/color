@@ -969,7 +969,7 @@ impl Oklab {
         const K2: f32 = 0.03;
         const K3: f32 = (1. + K1) / (1. + K2);
 
-        0.5 * (K3 * l - K1 + ((K3 * l - K1).powi(2) + 4. * K2 * K3 * l).sqrt())
+        0.5 * (K3 * l - K1 + ((K3 * l - K1) * (K3 * l - K1) + 4. * K2 * K3 * l).sqrt())
     }
 
     fn lightness_toe_inv(l_r: f32) -> f32 {
