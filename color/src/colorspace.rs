@@ -862,6 +862,8 @@ impl ColorSpace for Oklab {
             src
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklch>() {
             lab_to_lch(src)
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Okhsv>() {
+            Okhsv::from_oklab(src)
         } else {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)
@@ -870,6 +872,111 @@ impl ColorSpace for Oklab {
 
     fn clip([l, a, b]: [f32; 3]) -> [f32; 3] {
         [l.clamp(0., 1.), a, b]
+    }
+}
+
+impl Oklab {
+    /// Find the maximum saturation S = C / L given hue (a,b) that fits in sRGB's natural gamut.
+    ///
+    /// a and b must be normalized such that a^2 + b^2 = 1.
+    fn compute_max_srgb_saturation(a: f32, b: f32) -> f32 {
+        let (k0, k1, k2, k3, k4, wl, wm, ws) = if -1.88170328f32 * a - 0.80936493f32 * b > 1. {
+            // Red component
+            (
+                (1.19086277f32),
+                (1.76576728f32),
+                (0.59662641f32),
+                (0.75515197f32),
+                (0.56771245f32),
+                (4.0767416621f32),
+                (-3.3077115913f32),
+                (0.2309699292f32),
+            )
+        } else if 1.81444104f32 * a - 1.19445276f32 * b > 1. {
+            // Green component
+            (
+                (0.73956515f32),
+                (-0.45954404f32),
+                (0.08285427f32),
+                (0.12541070f32),
+                (0.14503204f32),
+                (-1.2684380046f32),
+                (2.6097574011f32),
+                (-0.3413193965f32),
+            )
+        } else {
+            // Blue component
+            (
+                (1.35733652f32),
+                (-0.00915799f32),
+                (-1.15130210f32),
+                (-0.50559606f32),
+                (0.00692167f32),
+                (-0.0041960863f32),
+                (-0.7034186147f32),
+                (1.7076147010f32),
+            )
+        };
+
+        let saturation = k0 + k1 * a + k2 * b + k3 * a * a + k4 * a * b;
+
+        let k_l = 0.3963377774 * a + 0.2158037573 * b;
+        let k_m = -0.1055613458 * a - 0.0638541728 * b;
+        let k_s = -0.0894841775 * a - 1.2914855480 * b;
+
+        let l_ = 1. + saturation * k_l;
+        let m_ = 1. + saturation * k_m;
+        let s_ = 1. + saturation * k_s;
+
+        let l = l_ * l_ * l_;
+        let m = m_ * m_ * m_;
+        let s = s_ * s_ * s_;
+
+        let l_ds = 3. * k_l * l_ * l_;
+        let m_ds = 3. * k_m * m_ * m_;
+        let s_ds = 3. * k_s * s_ * s_;
+
+        let l_ds2 = 6. * k_l * k_l * l_;
+        let m_ds2 = 6. * k_m * k_m * m_;
+        let s_ds2 = 6. * k_s * k_s * s_;
+
+        let f = wl * l + wm * m + ws * s;
+        let f1 = wl * l_ds + wm * m_ds + ws * s_ds;
+        let f2 = wl * l_ds2 + wm * m_ds2 + ws * s_ds2;
+
+        saturation - f * f1 / (f1 * f1 - 0.5 * f * f2)
+    }
+
+    /// For a given hue (a, b) computes (L_cusp, C_cusp) to be just within sRGB's natural gamut.
+    ///
+    /// a and b must be normalized such that a^2 + b^2 = 1.
+    fn find_srgb_cusp(a: f32, b: f32) -> (f32, f32) {
+        // First, find the maximum saturation (saturation S = C/L)
+        let s_cusp = Oklab::compute_max_srgb_saturation(a, b);
+
+        // Convert to linear sRGB to find the first point where at least one of r, g or b >= 1:
+        let [r, g, b] = Oklab::to_linear_srgb([1., s_cusp * a, s_cusp * b]);
+        // RGB rgb_at_max = oklab_to_linear_srgb({ 1, S_cusp * a, S_cusp * b });
+        let l_cusp = (1. / r.max(g).max(b)).cbrt();
+        // float L_cusp = cbrtf(1.f / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b));
+        let c_cusp = l_cusp * s_cusp;
+        (l_cusp, c_cusp)
+    }
+
+    fn lightness_toe(l: f32) -> f32 {
+        const K1: f32 = 0.206;
+        const K2: f32 = 0.03;
+        const K3: f32 = (1. + K1) / (1. + K2);
+
+        0.5 * (K3 * l - K1 + ((K3 * l - K1).powi(2) + 4. * K2 * K3 * l).sqrt())
+    }
+
+    fn lightness_toe_inv(l_r: f32) -> f32 {
+        const K1: f32 = 0.206;
+        const K2: f32 = 0.03;
+        const K3: f32 = (1. + K1) / (1. + K2);
+
+        (l_r * (l_r + K1)) / (K3 * (l_r + K2))
     }
 }
 
@@ -925,6 +1032,137 @@ impl ColorSpace for Oklch {
             src
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklab>() {
             lch_to_lab(src)
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Okhsv>() {
+            Okhsv::from_oklab(lch_to_lab(src))
+        } else {
+            let lin_rgb = Self::to_linear_srgb(src);
+            TargetCS::from_linear_srgb(lin_rgb)
+        }
+    }
+
+    fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
+        [l.clamp(0., 1.), c.max(0.), h]
+    }
+}
+
+/// 🌌 The Okhsv color space, intended to be a perceptually uniform color picker for [sRGB](Srgb).
+///
+/// The Okhsv color space is a cilindrical color picker for [sRGB](Srgb)'s natural gamut. It is
+/// based on the [Oklab] color space, with a slightly different formulation to achieve better
+/// perceptual uniformity within sRGB's natural gamut.
+///
+/// The Okhsv color space is described on [Björn Ottosson's blog][bjorn].
+///
+/// Its components are `[h, s, v]` with
+/// - `h` - the hue angle in degrees, with red at approx. 29°, green at approx. 142°, and blue at
+/// approx. 264°.
+/// - `s` - the saturation, where 0 is gray and 1 is maximally saturated.
+/// - `v` - the value, where 0 is black and 1 is white.
+///
+/// Note the conversions in and out of this color space are approximations.
+///
+/// (TODO) See also Okhsl.
+///
+/// [bjorn]: https://bottosson.github.io/posts/colorpicker/
+//
+// This is based on the reference implementation available at
+// https://github.com/bottosson/bottosson.github.io/blob/f6f08b7fde9436be1f20f66cebbc739d660898fd/misc/ok_color.h
+#[derive(Clone, Copy, Debug)]
+pub struct Okhsv;
+
+impl Okhsv {
+    fn to_oklab([h, s, v]: [f32; 3]) -> [f32; 3] {
+        const S0: f32 = 0.5;
+
+        let (b, a) = h.to_radians().sin_cos();
+
+        let (l_cusp, c_cusp) = Oklab::find_srgb_cusp(a, b);
+        let t_max = c_cusp / (1. - l_cusp);
+        let k = 1. - S0 / c_cusp * l_cusp;
+
+        // Compute components as if the gamut is a perfect triangle.
+        let l_v = 1. - S0 / (S0 + t_max - t_max * k * s) * s;
+        let c_v = S0 / (S0 + t_max - t_max * k * s) * s * t_max;
+
+        let l = v * l_v;
+        let c = v * c_v;
+
+        // Compensate for both the lightness toe and the curved top part of the triangle.
+        let l_vt = Oklab::lightness_toe_inv(l_v);
+        let c_vt = c_v * l_vt / l_v;
+
+        let l_new = Oklab::lightness_toe_inv(l);
+        let c = c * l_new / l;
+        let l = l_new;
+
+        let [r_scale, g_scale, b_scale] = Oklab::to_linear_srgb([l_vt, a * c_vt, b * c_vt]);
+        let scale_l = (1. / r_scale.max(g_scale).max(b_scale).max(0.)).cbrt();
+
+        let c = c * scale_l;
+        [l * scale_l, a * c, b * c]
+    }
+
+    fn from_oklab([l, a, b]: [f32; 3]) -> [f32; 3] {
+        const S0: f32 = 0.5;
+
+        let c = (a * a + b * b).sqrt();
+        let a_ = a / c;
+        let b_ = b / c;
+
+        let (l_cusp, c_cusp) = Oklab::find_srgb_cusp(a_, b_);
+        let t_max = c_cusp / (1. - l_cusp);
+        let k = 1. - S0 / c_cusp * l_cusp;
+
+        // First compute the components first we find L_v, C_v, L_vt and C_vt
+        let t = t_max / (c + l * t_max);
+        let l_v = t * l;
+        let c_v = t * c;
+
+        let l_vt = Oklab::lightness_toe_inv(l_v);
+        let c_vt = c_v * l_vt / l_v;
+
+        // Invert the lightness toe and the compensation for the curved top part of the triangle.
+        let [r_scale, g_scale, b_scale] = Oklab::to_linear_srgb([l_vt, a_ * c_vt, b_ * c_vt]);
+        let scale_l = (1. / r_scale.max(g_scale).max(b_scale).max(0.)).cbrt();
+
+        let l = Oklab::lightness_toe(l / scale_l);
+
+        // Compute the cilindrical v and s.
+        let v = l / l_v;
+        let s = (S0 + t_max) * c_v / ((t_max * S0) + t_max * k * c_v);
+
+        let h = f32::consts::PI + f32::atan2(-b_, -a_);
+        [h.to_degrees(), s, v]
+    }
+}
+
+impl ColorSpace for Okhsv {
+    // const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Oklch);
+    const TAG: Option<ColorSpaceTag> = None;
+
+    const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueFirst;
+
+    const WHITE_COMPONENTS: [f32; 3] = [0., 0., 1.];
+
+    fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
+        Okhsv::from_oklab(Oklab::from_linear_srgb(src))
+    }
+
+    fn to_linear_srgb([h, s, v]: [f32; 3]) -> [f32; 3] {
+        Oklab::to_linear_srgb(Self::to_oklab([h, s, v]))
+    }
+
+    fn scale_chroma([l, c, h]: [f32; 3], scale: f32) -> [f32; 3] {
+        [l, c * scale, h]
+    }
+
+    fn convert<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklab>() {
+            Okhsv::to_oklab(src)
+        } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklch>() {
+            lab_to_lch(Okhsv::to_oklab(src))
         } else {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)
@@ -1287,8 +1525,8 @@ impl ColorSpace for Hwb {
 #[cfg(test)]
 mod tests {
     use crate::{
-        A98Rgb, Aces2065_1, AcesCg, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab,
-        Oklch, OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+        A98Rgb, Aces2065_1, AcesCg, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Okhsv,
+        Oklab, Oklch, OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
     };
 
     #[must_use]
@@ -1466,6 +1704,40 @@ mod tests {
             assert!(almost_equal::<Aces2065_1>(
                 aces2065_1,
                 Srgb::convert::<Aces2065_1>(srgb),
+                1e-4
+            ));
+        }
+    }
+
+    #[test]
+    fn okhsv_srgb() {
+        // Test against the reference implementation
+        // https://github.com/bottosson/bottosson.github.io/blob/f6f08b7fde9436be1f20f66cebbc739d660898fd/misc/ok_color.h
+        //
+        // Note these are not exact conversion results; the reference implementation computes an
+        // approximation.
+
+        for (okhsv, srgb) in [
+            ([256., 1., 1.], [-0.00010300, 0.50359923, 0.99999982]),
+            ([30., 0.5, 0.25], [0.24300897, 0.12560070, 0.10679763]),
+        ] {
+            assert!(almost_equal::<Srgb>(
+                Okhsv::convert::<Srgb>(okhsv),
+                srgb,
+                1e-4
+            ));
+        }
+
+        dbg!(Srgb::convert::<Okhsv>(Okhsv::convert::<Srgb>([
+            40., 4.5, 4.4
+        ])));
+        for (srgb, okhsv) in [
+            ([0.6, 0.5, 0.4], [66.72554016, 0.28508663, 0.62701088]),
+            ([0., 0.5, 1.], [256.21524048, 0.99996287, 0.99999970]),
+        ] {
+            assert!(almost_equal::<Srgb>(
+                okhsv,
+                Srgb::convert::<Okhsv>(srgb),
                 1e-4
             ));
         }
