@@ -1094,13 +1094,12 @@ impl Okhsv {
 
         let l_new = Oklab::lightness_toe_inv(l);
         let c = c * l_new / l;
-        let l = l_new;
 
         let [r_scale, g_scale, b_scale] = Oklab::to_linear_srgb([l_vt, a * c_vt, b * c_vt]);
         let scale_l = (1. / r_scale.max(g_scale).max(b_scale).max(0.)).cbrt();
 
         let c = c * scale_l;
-        [l * scale_l, a * c, b * c]
+        [l_new * scale_l, a * c, b * c]
     }
 
     fn from_oklab([l, a, b]: [f32; 3]) -> [f32; 3] {
