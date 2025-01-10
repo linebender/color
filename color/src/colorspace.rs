@@ -42,6 +42,9 @@ use crate::floatfuncs::FloatFuncs;
 /// /// The Rec. 709 color space, using the electro-optical transfer function
 /// /// defined in ITU-R BT.1886.
 /// ///
+/// /// Rec. 709 is very similar to sRGB, having the same natural gamut, but
+/// /// does have a different transfer function.
+/// ///
 /// /// See https://www.color.org/chardata/rgb/BT709.xalter.
 /// #[derive(Clone, Copy, Debug)]
 /// pub struct Rec709;
