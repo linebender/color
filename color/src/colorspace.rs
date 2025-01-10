@@ -947,15 +947,16 @@ impl Oklab {
         saturation - f * f1 / (f1 * f1 - 0.5 * f * f2)
     }
 
-    /// For a given hue (a, b) computes (L_cusp, C_cusp) to be just within sRGB's natural gamut.
+    /// For a given hue `(a, b)` computes `(L_cusp, C_cusp)` to be just within sRGB's natural
+    /// gamut.
     ///
     /// a and b must be normalized such that a^2 + b^2 = 1.
     fn find_srgb_cusp(a: f32, b: f32) -> (f32, f32) {
         // First, find the maximum saturation (saturation S = C/L)
-        let s_cusp = Oklab::compute_max_srgb_saturation(a, b);
+        let s_cusp = Self::compute_max_srgb_saturation(a, b);
 
         // Convert to linear sRGB to find the first point where at least one of r, g or b >= 1:
-        let [r, g, b] = Oklab::to_linear_srgb([1., s_cusp * a, s_cusp * b]);
+        let [r, g, b] = Self::to_linear_srgb([1., s_cusp * a, s_cusp * b]);
         // RGB rgb_at_max = oklab_to_linear_srgb({ 1, S_cusp * a, S_cusp * b });
         let l_cusp = (1. / r.max(g).max(b)).cbrt();
         // float L_cusp = cbrtf(1.f / max(max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b));
@@ -1055,7 +1056,7 @@ impl ColorSpace for Oklch {
 ///
 /// Its components are `[h, s, v]` with
 /// - `h` - the hue angle in degrees, with red at approx. 29°, green at approx. 142°, and blue at
-/// approx. 264°.
+///   approx. 264°.
 /// - `s` - the saturation, where 0 is gray and 1 is maximally saturated.
 /// - `v` - the value, where 0 is black and 1 is white.
 ///
@@ -1145,7 +1146,7 @@ impl ColorSpace for Okhsv {
     const WHITE_COMPONENTS: [f32; 3] = [0., 0., 1.];
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
-        Okhsv::from_oklab(Oklab::from_linear_srgb(src))
+        Self::from_oklab(Oklab::from_linear_srgb(src))
     }
 
     fn to_linear_srgb([h, s, v]: [f32; 3]) -> [f32; 3] {
@@ -1160,9 +1161,9 @@ impl ColorSpace for Okhsv {
         if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
             src
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklab>() {
-            Okhsv::to_oklab(src)
+            Self::to_oklab(src)
         } else if TypeId::of::<TargetCS>() == TypeId::of::<Oklch>() {
-            lab_to_lch(Okhsv::to_oklab(src))
+            lab_to_lch(Self::to_oklab(src))
         } else {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)
