@@ -932,9 +932,9 @@ impl Oklab {
         let m = m_ * m_ * m_;
         let s = s_ * s_ * s_;
 
-        let l_ds = 3. * k_l * l_ * l_;
-        let m_ds = 3. * k_m * m_ * m_;
-        let s_ds = 3. * k_s * s_ * s_;
+        let l_ds = 3. * k_l * (l_ * l_);
+        let m_ds = 3. * k_m * (m_ * m_);
+        let s_ds = 3. * k_s * (s_ * s_);
 
         let l_ds2 = 6. * k_l * k_l * l_;
         let m_ds2 = 6. * k_m * k_m * m_;
