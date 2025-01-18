@@ -41,11 +41,26 @@ impl Rgba8 {
         [self.r, self.g, self.b, self.a]
     }
 
-    /// Returns the color as a little endian packed value, with `a` as the
-    /// most significant byte and `r` the least.
+    /// Convert the `[u8; 4]` byte array into an `Rgba8` color.
+    ///
+    /// The color values must be given in the order `[r, g, b, a]`.
+    #[must_use]
+    pub const fn from_u8_array([r, g, b, a]: [u8; 4]) -> Self {
+        Rgba8 { r, g, b, a }
+    }
+
+    /// Returns the color as a little-endian packed value, with `r` the least significant byte and
+    /// `a` the most significant.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
         u32::from_ne_bytes(self.to_u8_array())
+    }
+
+    /// Interpret the little-endian packed value as a color, with `r` the least significant byte
+    /// and `a` the most significant.
+    #[must_use]
+    pub const fn from_u32(packed_bytes: u32) -> Rgba8 {
+        Self::from_u8_array(u32::to_ne_bytes(packed_bytes))
     }
 }
 
@@ -90,11 +105,26 @@ impl PremulRgba8 {
         [self.r, self.g, self.b, self.a]
     }
 
-    /// Returns the color as a little endian packed value, with `a` as the
-    /// most significant byte and `r` the least.
+    /// Convert the `[u8; 4]` byte array into a `PremulRgba8` color.
+    ///
+    /// The color values must be given in the order `[r, g, b, a]`.
+    #[must_use]
+    pub const fn from_u8_array([r, g, b, a]: [u8; 4]) -> Self {
+        PremulRgba8 { r, g, b, a }
+    }
+
+    /// Returns the color as a little-endian packed value, with `r` the least significant byte and
+    /// `a` the most significant.
     #[must_use]
     pub const fn to_u32(self) -> u32 {
         u32::from_ne_bytes(self.to_u8_array())
+    }
+
+    /// Interpret the little-endian packed value as a color, with `r` the least significant byte
+    /// and `a` the most significant.
+    #[must_use]
+    pub const fn from_u32(packed_bytes: u32) -> PremulRgba8 {
+        Self::from_u8_array(u32::to_ne_bytes(packed_bytes))
     }
 }
 
@@ -135,6 +165,25 @@ mod tests {
     }
 
     #[test]
+    fn from_u32() {
+        let c = Rgba8 {
+            r: 1,
+            g: 2,
+            b: 3,
+            a: 4,
+        };
+        assert_eq!(Rgba8::from_u32(0x04030201_u32.to_le()), c);
+
+        let p = PremulRgba8 {
+            r: 0xaa,
+            g: 0xbb,
+            b: 0xcc,
+            a: 0xff,
+        };
+        assert_eq!(PremulRgba8::from_u32(0xffccbbaa_u32.to_le()), p);
+    }
+
+    #[test]
     #[cfg(feature = "bytemuck")]
     fn bytemuck_to_u32() {
         let c = Rgba8 {
@@ -152,5 +201,15 @@ mod tests {
             a: 0xff,
         };
         assert_eq!(p.to_u32(), bytemuck::cast(p));
+    }
+
+    #[test]
+    #[cfg(feature = "bytemuck")]
+    fn bytemuck_from_u32() {
+        let c = 0x04030201_u32.to_le();
+        assert_eq!(Rgba8::from_u32(c), bytemuck::cast(c));
+
+        let p = 0xffccbbaa_u32.to_le();
+        assert_eq!(PremulRgba8::from_u32(p), bytemuck::cast(p));
     }
 }

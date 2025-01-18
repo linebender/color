@@ -19,6 +19,7 @@ This release has an [MSRV][] of 1.82.
 
 * Support for the ACES2065-1 color space. ([#124][] by [@tomcur][])
 * A documentation example implementing `ColorSpace`. ([#130][] by [@tomcur][])
+* Conversions of `[u8; 4]` and packed `u32` into `Rgba8` and `PremulRgba8` are now provided. ([#135][] by [@tomcur][])
 
 ### Fixed
 
@@ -119,6 +120,7 @@ This is the initial release.
 [#128]: https://github.com/linebender/color/pull/128
 [#129]: https://github.com/linebender/color/pull/129
 [#130]: https://github.com/linebender/color/pull/130
+[#135]: https://github.com/linebender/color/pull/135
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.2...HEAD
 [0.2.2]: https://github.com/linebender/color/releases/tag/v0.2.2
