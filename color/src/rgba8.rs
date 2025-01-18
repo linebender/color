@@ -46,7 +46,7 @@ impl Rgba8 {
     /// The color values must be given in the order `[r, g, b, a]`.
     #[must_use]
     pub const fn from_u8_array([r, g, b, a]: [u8; 4]) -> Self {
-        Rgba8 { r, g, b, a }
+        Self { r, g, b, a }
     }
 
     /// Returns the color as a little-endian packed value, with `r` the least significant byte and
@@ -59,7 +59,7 @@ impl Rgba8 {
     /// Interpret the little-endian packed value as a color, with `r` the least significant byte
     /// and `a` the most significant.
     #[must_use]
-    pub const fn from_u32(packed_bytes: u32) -> Rgba8 {
+    pub const fn from_u32(packed_bytes: u32) -> Self {
         Self::from_u8_array(u32::to_ne_bytes(packed_bytes))
     }
 }
@@ -110,7 +110,7 @@ impl PremulRgba8 {
     /// The color values must be given in the order `[r, g, b, a]`.
     #[must_use]
     pub const fn from_u8_array([r, g, b, a]: [u8; 4]) -> Self {
-        PremulRgba8 { r, g, b, a }
+        Self { r, g, b, a }
     }
 
     /// Returns the color as a little-endian packed value, with `r` the least significant byte and
@@ -123,7 +123,7 @@ impl PremulRgba8 {
     /// Interpret the little-endian packed value as a color, with `r` the least significant byte
     /// and `a` the most significant.
     #[must_use]
-    pub const fn from_u32(packed_bytes: u32) -> PremulRgba8 {
+    pub const fn from_u32(packed_bytes: u32) -> Self {
         Self::from_u8_array(u32::to_ne_bytes(packed_bytes))
     }
 }
