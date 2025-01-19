@@ -138,6 +138,22 @@ impl AlphaColor<Srgb> {
         let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b), u8_to_f32(a)];
         Self::new(components)
     }
+
+    /// Create a color from 8-bit rgb values with an opaque alpha.
+    ///
+    /// Note: for conversion from the [`Rgba8`] type, just use the `From` trait.
+    pub const fn from_rgb8(r: u8, g: u8, b: u8) -> Self {
+        let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b), 1.];
+        Self::new(components)
+    }
+}
+
+impl OpaqueColor<Srgb> {
+    /// Create a color from 8-bit rgb values.
+    pub const fn from_rgb8(r: u8, g: u8, b: u8) -> Self {
+        let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b)];
+        Self::new(components)
+    }
 }
 
 impl PremulColor<Srgb> {
@@ -146,6 +162,14 @@ impl PremulColor<Srgb> {
     /// Note: for conversion from the [`PremulRgba8`] type, just use the `From` trait.
     pub const fn from_rgba8(r: u8, g: u8, b: u8, a: u8) -> Self {
         let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b), u8_to_f32(a)];
+        Self::new(components)
+    }
+
+    /// Create a color from 8-bit rgb values with an opaque alpha.
+    ///
+    /// Note: for conversion from the [`Rgba8`] type, just use the `From` trait.
+    pub const fn from_rgb8(r: u8, g: u8, b: u8) -> Self {
+        let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b), 1.];
         Self::new(components)
     }
 }
