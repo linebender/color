@@ -21,6 +21,7 @@ std = []
 libm = ["dep:libm"]
 bytemuck = ["dep:bytemuck"]
 serde = ["dep:serde"]
+temperature = []
 
 [dependencies]
 

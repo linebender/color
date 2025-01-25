@@ -52,6 +52,7 @@ define_float_funcs! {
     fn copysign(self, sign: Self) -> Self => copysignf;
     fn floor(self) -> Self => floorf;
     fn hypot(self, other: Self) -> Self => hypotf;
+    fn ln(self) -> Self => logf;
     // Note: powi is missing because its libm implementation is not efficient
     fn powf(self, n: Self) -> Self => powf;
     fn round(self) -> Self => roundf;
