@@ -158,9 +158,11 @@ const fn matmatmul(ma: &[[f32; 3]; 3], mb: &[[f32; 3]; 3]) -> [[f32; 3]; 3] {
 ///
 /// Diagonal matrix `mb` is given by
 ///
+/// ```text
 /// [ mb[0] 0     0     ]
 /// [ 0     mb[1] 0     ]
 /// [ 0     0     mb[2] ]
+/// ```
 const fn matdiagmatmul(ma: &[[f32; 3]; 3], mb: [f32; 3]) -> [[f32; 3]; 3] {
     [
         [ma[0][0] * mb[0], ma[0][1] * mb[1], ma[0][2] * mb[2]],
