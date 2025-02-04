@@ -3,7 +3,7 @@
 
 use core::{any::TypeId, f32};
 
-use crate::{matmul, tag::ColorSpaceTag};
+use crate::{matvecmul, tag::ColorSpaceTag, Chromaticity};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
@@ -18,9 +18,10 @@ use crate::floatfuncs::FloatFuncs;
 /// space does not explicitly define a gamut, so generally conversions
 /// will succeed and round-trip, subject to numerical precision.
 ///
-/// White point is not explicitly represented. For color spaces with a
-/// white point other than D65 (the native white point for sRGB), use
-/// a linear Bradford chromatic adaptation, following CSS Color 4.
+/// White point is handled implicitly in the general conversion methods. For color spaces with a
+/// white point other than D65 (the native white point for sRGB), use a linear Bradford chromatic
+/// adaptation, following CSS Color 4. The conversion methods suffixed with `_absolute` do not
+/// perform chromatic adaptation.
 ///
 /// See the [XYZ-D65 color space](`XyzD65`) documentation for some
 /// background information on color spaces.
@@ -86,29 +87,29 @@ pub trait ColorSpace: Clone + Copy + 'static {
     /// The tag corresponding to this color space, if a matching tag exists.
     const TAG: Option<ColorSpaceTag> = None;
 
+    /// The white point of the color space.
+    ///
+    /// See the [XYZ-D65 color space](`XyzD65`) documentation for some background information on
+    /// the meaning of "white point."
+    const WHITE_POINT: Chromaticity = Chromaticity::D65;
+
     /// The component values for the color white within this color space.
     const WHITE_COMPONENTS: [f32; 3];
 
     /// Convert an opaque color to linear sRGB.
     ///
     /// Values are likely to exceed [0, 1] for wide-gamut and HDR colors.
+    ///
+    /// This performs chromatic adaptation from the source color space's reference white to the
+    /// target color space's reference white; see the [XYZ-D65 color space](`XyzD65`) documentation
+    /// for some background information on the meaning of "reference white." Use
+    /// [`ColorSpace::to_linear_srgb_absolute`] to convert the absolute color instead.
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3];
 
     /// Convert an opaque color from linear sRGB.
     ///
     /// In general, this method should not do any gamut clipping.
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3];
-
-    /// Scale the chroma by the given amount.
-    ///
-    /// In color spaces with a natural representation of chroma, scale
-    /// directly. In other color spaces, equivalent results as scaling
-    /// chroma in Oklab.
-    fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
-        let rgb = Self::to_linear_srgb(src);
-        let scaled = LinearSrgb::scale_chroma(rgb, scale);
-        Self::from_linear_srgb(scaled)
-    }
 
     /// Convert to a different color space.
     ///
@@ -125,6 +126,132 @@ pub trait ColorSpace: Clone + Copy + 'static {
             let lin_rgb = Self::to_linear_srgb(src);
             TargetCS::from_linear_srgb(lin_rgb)
         }
+    }
+
+    /// Convert an opaque color to linear sRGB, without chromatic adaptation.
+    ///
+    /// For most use-cases you should consider using the chromatically-adapting
+    /// [`ColorSpace::to_linear_srgb`] instead.
+    ///
+    /// Values are likely to exceed [0, 1] for wide-gamut and HDR colors.
+    ///
+    /// This does not perform chromatic adaptation from the source color space's reference white to
+    /// sRGB's standard reference white; thereby representing the same absolute color in sRGB. See
+    /// the [XYZ-D65 color space](`XyzD65`) documentation for some background information on the
+    /// meaning of "reference white."
+    ///
+    /// # Note to implementers
+    ///
+    /// The default implementation undoes the chromatic adaptation performed by
+    /// [`ColorSpace::to_linear_srgb`]. This can be overriden for better performance and greater
+    /// calculation accuracy.
+    fn to_linear_srgb_absolute(src: [f32; 3]) -> [f32; 3] {
+        let lin_srgb = Self::to_linear_srgb(src);
+        if Self::WHITE_POINT == Chromaticity::D65 {
+            lin_srgb
+        } else if Self::WHITE_POINT == Chromaticity::D50 {
+            // NOTE: we can't use Self::WHITE_POINT in `const` contexts (yet?). We branch on the
+            // known values instead.
+            const LIN_SRGB_ADAPTATION_MATRIX: [[f32; 3]; 3] =
+                Chromaticity::D65.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D50);
+            matvecmul(&LIN_SRGB_ADAPTATION_MATRIX, lin_srgb)
+        } else {
+            let lin_srgb_adaptation_matrix =
+                Chromaticity::D65.linear_srgb_chromatic_adaptation_matrix(Self::WHITE_POINT);
+            matvecmul(&lin_srgb_adaptation_matrix, lin_srgb)
+        }
+    }
+
+    /// Convert an opaque color from linear sRGB, without chromatic adaptation.
+    ///
+    /// For most use-cases you should consider using the chromatically-adapting
+    /// [`ColorSpace::from_linear_srgb`] instead.
+    ///
+    /// In general, this method should not do any gamut clipping.
+    ///
+    /// This does not perform chromatic adaptation to the destination color space's reference white
+    /// from sRGB's standard reference white; thereby representing the same absolute color in the
+    /// target color space. See the [XYZ-D65 color space](`XyzD65`) documentation for some
+    /// background information on the meaning of "reference white."
+    ///
+    /// # Note to implementers
+    ///
+    /// The default implementation undoes the chromatic adaptation performed by
+    /// [`ColorSpace::from_linear_srgb`]. This can be overriden for better performance and greater
+    /// calculation accuracy.
+    fn from_linear_srgb_absolute(src: [f32; 3]) -> [f32; 3] {
+        if Self::WHITE_POINT == Chromaticity::D65 {
+            Self::from_linear_srgb(src)
+        } else if Self::WHITE_POINT == Chromaticity::D50 {
+            // NOTE: we can't use Self::WHITE_POINT in `const` contexts (yet?). We branch on the
+            // known values instead.
+            const LIN_SRGB_ADAPTATION_MATRIX: [[f32; 3]; 3] =
+                Chromaticity::D50.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D65);
+            Self::from_linear_srgb(matvecmul(&LIN_SRGB_ADAPTATION_MATRIX, src))
+        } else {
+            let lin_srgb_adaptation_matrix =
+                Chromaticity::ACES.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D65);
+            Self::from_linear_srgb(matvecmul(&lin_srgb_adaptation_matrix, src))
+        }
+    }
+
+    /// Convert to a different color space, without chromatic adaptation.
+    ///
+    /// For most use-cases you should consider using the chromatically-adapting
+    /// [`ColorSpace::convert`] instead.
+    ///
+    /// This does not perform chromatic adaptation from the source color space's reference white to
+    /// the destination color space's reference white; thereby representing the same absolute color
+    /// in the destination color space. See the [XYZ-D65 color space](`XyzD65`) documentation for
+    /// some background information on the meaning of "reference white."
+    ///
+    /// The default implementation is a no-op if the color spaces are the same, otherwise converts
+    /// from the source to linear sRGB, then from that to the target, without chromatic adaptation.
+    /// Implementations are encouraged to specialize further (using the [`TypeId`] of the color
+    /// spaces), effectively finding a shortest path in the conversion graph.
+    fn convert_absolute<TargetCS: ColorSpace>(src: [f32; 3]) -> [f32; 3] {
+        if TypeId::of::<Self>() == TypeId::of::<TargetCS>() {
+            src
+        } else {
+            let lin_rgb = Self::to_linear_srgb_absolute(src);
+            TargetCS::from_linear_srgb_absolute(lin_rgb)
+        }
+    }
+
+    /// Chromatically adapt the color between the given white point chromaticities.
+    ///
+    /// The color is assumed to be under a reference white point of `from` and is chromatically
+    /// adapted to the given white point `to`. The linear Bradford transform is used to perform the
+    /// chromatic adaptation.
+    fn chromatically_adapt(src: [f32; 3], from: Chromaticity, to: Chromaticity) -> [f32; 3] {
+        if from == to {
+            return src;
+        }
+
+        let lin_srgb_adaptation_matrix = if from == Chromaticity::D65 && to == Chromaticity::D50 {
+            Chromaticity::D65.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D50)
+        } else if from == Chromaticity::D50 && to == Chromaticity::D65 {
+            Chromaticity::D50.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D65)
+        } else {
+            from.linear_srgb_chromatic_adaptation_matrix(to)
+        };
+
+        let lin_srgb_adapted = matvecmul(
+            &lin_srgb_adaptation_matrix,
+            Self::to_linear_srgb_absolute(src),
+        );
+        Self::from_linear_srgb_absolute(lin_srgb_adapted)
+    }
+
+    /// Scale the chroma by the given amount.
+    ///
+    /// In color spaces with a natural representation of chroma, scale
+    /// directly. In other color spaces, equivalent results as scaling
+    /// chroma in Oklab.
+    fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
+        let rgb = Self::to_linear_srgb(src);
+        let scaled = LinearSrgb::scale_chroma(rgb, scale);
+        Self::from_linear_srgb(scaled)
     }
 
     /// Clip the color's components to fit within the natural gamut of the color space.
@@ -216,7 +343,7 @@ impl ColorSpace for LinearSrgb {
     }
 
     fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
-        let lms = matmul(&OKLAB_SRGB_TO_LMS, src).map(f32::cbrt);
+        let lms = matvecmul(&OKLAB_SRGB_TO_LMS, src).map(f32::cbrt);
         let l = OKLAB_LMS_TO_LAB[0];
         let lightness = l[0] * lms[0] + l[1] * lms[1] + l[2] * lms[2];
         let lms_scaled = [
@@ -224,7 +351,7 @@ impl ColorSpace for LinearSrgb {
             lightness + scale * (lms[1] - lightness),
             lightness + scale * (lms[2] - lightness),
         ];
-        matmul(&OKLAB_LMS_TO_SRGB, lms_scaled.map(|x| x * x * x))
+        matvecmul(&OKLAB_LMS_TO_SRGB, lms_scaled.map(|x| x * x * x))
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -320,7 +447,7 @@ impl ColorSpace for DisplayP3 {
             [-0.042_056_955, 1.042_056_9, 0.0],
             [-0.019_637_555, -0.078_636_04, 1.098_273_6],
         ];
-        matmul(&LINEAR_DISPLAYP3_TO_SRGB, src.map(srgb_to_lin))
+        matvecmul(&LINEAR_DISPLAYP3_TO_SRGB, src.map(srgb_to_lin))
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -329,7 +456,7 @@ impl ColorSpace for DisplayP3 {
             [0.033_194_2, 0.966_805_8, 0.0],
             [0.017_082_632, 0.072_397_44, 0.910_519_96],
         ];
-        matmul(&LINEAR_SRGB_TO_DISPLAYP3, src).map(lin_to_srgb)
+        matvecmul(&LINEAR_SRGB_TO_DISPLAYP3, src).map(lin_to_srgb)
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -378,7 +505,7 @@ impl ColorSpace for A98Rgb {
                 (279_685_764. / 268_173_353.) as f32,
             ],
         ];
-        matmul(
+        matvecmul(
             &LINEAR_A98RGB_TO_SRGB,
             [r, g, b].map(|x| x.abs().powf(563. / 256.).copysign(x)),
         )
@@ -403,7 +530,7 @@ impl ColorSpace for A98Rgb {
                 (268_173_353. / 279_685_764.) as f32,
             ],
         ];
-        matmul(&LINEAR_SRGB_TO_A98RGB, [r, g, b]).map(|x| x.abs().powf(256. / 563.).copysign(x))
+        matvecmul(&LINEAR_SRGB_TO_A98RGB, [r, g, b]).map(|x| x.abs().powf(256. / 563.).copysign(x))
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -434,6 +561,7 @@ pub struct ProphotoRgb;
 impl ColorSpace for ProphotoRgb {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::ProphotoRgb);
 
+    const WHITE_POINT: Chromaticity = Chromaticity::D50;
     const WHITE_COMPONENTS: [f32; 3] = [1., 1., 1.];
 
     fn to_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -452,7 +580,7 @@ impl ColorSpace for ProphotoRgb {
             }
         }
 
-        matmul(&LINEAR_PROPHOTORGB_TO_SRGB, [r, g, b].map(transfer))
+        matvecmul(&LINEAR_PROPHOTORGB_TO_SRGB, [r, g, b].map(transfer))
     }
 
     fn from_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -471,7 +599,7 @@ impl ColorSpace for ProphotoRgb {
             }
         }
 
-        matmul(&LINEAR_SRGB_TO_PROPHOTORGB, [r, g, b]).map(transfer)
+        matvecmul(&LINEAR_SRGB_TO_PROPHOTORGB, [r, g, b]).map(transfer)
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -543,7 +671,7 @@ impl ColorSpace for Rec2020 {
             }
         }
 
-        matmul(&LINEAR_REC2020_TO_SRGB, [r, g, b].map(transfer))
+        matvecmul(&LINEAR_REC2020_TO_SRGB, [r, g, b].map(transfer))
     }
 
     fn from_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -577,7 +705,7 @@ impl ColorSpace for Rec2020 {
                 (Rec2020::A * x.abs().powf(0.45) - (Rec2020::A - 1.)).copysign(x)
             }
         }
-        matmul(&LINEAR_SRGB_TO_REC2020, [r, g, b]).map(transfer)
+        matvecmul(&LINEAR_SRGB_TO_REC2020, [r, g, b]).map(transfer)
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -613,6 +741,7 @@ impl ColorSpace for Aces2065_1 {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Aces2065_1);
 
+    const WHITE_POINT: Chromaticity = Chromaticity::ACES;
     const WHITE_COMPONENTS: [f32; 3] = [1.0, 1.0, 1.0];
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -622,7 +751,7 @@ impl ColorSpace for Aces2065_1 {
             [-0.276_479_9, 1.372_719, -0.096_239_17],
             [-0.015_378_065, -0.152_975_34, 1.168_353_4],
         ];
-        matmul(&ACES2065_1_TO_LINEAR_SRGB, src)
+        matvecmul(&ACES2065_1_TO_LINEAR_SRGB, src)
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -632,7 +761,7 @@ impl ColorSpace for Aces2065_1 {
             [0.089_776_44, 0.813_439_4, 0.096_784_13],
             [0.017_541_17, 0.111_546_55, 0.870_912_25],
         ];
-        matmul(&LINEAR_SRGB_TO_ACES2065_1, src)
+        matvecmul(&LINEAR_SRGB_TO_ACES2065_1, src)
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -670,6 +799,7 @@ impl ColorSpace for AcesCg {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::AcesCg);
 
+    const WHITE_POINT: Chromaticity = Chromaticity::ACES;
     const WHITE_COMPONENTS: [f32; 3] = [1.0, 1.0, 1.0];
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -679,7 +809,7 @@ impl ColorSpace for AcesCg {
             [-0.130_256_41, 1.140_804_8, -0.010_548_319],
             [-0.024_003_357, -0.128_968_97, 1.152_972_3],
         ];
-        matmul(&ACESCG_TO_LINEAR_SRGB, src)
+        matvecmul(&ACESCG_TO_LINEAR_SRGB, src)
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -689,7 +819,7 @@ impl ColorSpace for AcesCg {
             [0.070_193_72, 0.916_353_9, 0.013_452_399],
             [0.020_615_593, 0.109_569_77, 0.869_814_63],
         ];
-        matmul(&LINEAR_SRGB_TO_ACESCG, src)
+        matvecmul(&LINEAR_SRGB_TO_ACESCG, src)
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -724,6 +854,7 @@ impl ColorSpace for XyzD50 {
 
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::XyzD50);
 
+    const WHITE_POINT: Chromaticity = Chromaticity::D50;
     const WHITE_COMPONENTS: [f32; 3] = [3457. / 3585., 1., 986. / 1195.];
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -733,7 +864,7 @@ impl ColorSpace for XyzD50 {
             [-0.978_795_47, 1.916_254_4, 0.033_442_874],
             [0.071_955_39, -0.228_976_76, 1.405_386_1],
         ];
-        matmul(&XYZ_TO_LINEAR_SRGB, src)
+        matvecmul(&XYZ_TO_LINEAR_SRGB, src)
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -743,7 +874,7 @@ impl ColorSpace for XyzD50 {
             [0.222_493_17, 0.716_887, 0.060_619_81],
             [0.013_923_922, 0.097_081_326, 0.714_099_35],
         ];
-        matmul(&LINEAR_SRGB_TO_XYZ, src)
+        matvecmul(&LINEAR_SRGB_TO_XYZ, src)
     }
 
     fn clip([x, y, z]: [f32; 3]) -> [f32; 3] {
@@ -817,7 +948,7 @@ impl ColorSpace for XyzD65 {
             [-0.969_243_65, 1.875_967_5, 0.041_555_06],
             [0.055_630_08, -0.203_976_96, 1.056_971_5],
         ];
-        matmul(&XYZ_TO_LINEAR_SRGB, src)
+        matvecmul(&XYZ_TO_LINEAR_SRGB, src)
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
@@ -826,7 +957,7 @@ impl ColorSpace for XyzD65 {
             [0.212_639, 0.715_168_65, 0.072_192_32],
             [0.019_330_818, 0.119_194_78, 0.950_532_14],
         ];
-        matmul(&LINEAR_SRGB_TO_XYZ, src)
+        matvecmul(&LINEAR_SRGB_TO_XYZ, src)
     }
 
     fn clip([x, y, z]: [f32; 3]) -> [f32; 3] {
@@ -889,13 +1020,13 @@ impl ColorSpace for Oklab {
     const WHITE_COMPONENTS: [f32; 3] = [1., 0., 0.];
 
     fn to_linear_srgb(src: [f32; 3]) -> [f32; 3] {
-        let lms = matmul(&OKLAB_LAB_TO_LMS, src).map(|x| x * x * x);
-        matmul(&OKLAB_LMS_TO_SRGB, lms)
+        let lms = matvecmul(&OKLAB_LAB_TO_LMS, src).map(|x| x * x * x);
+        matvecmul(&OKLAB_LMS_TO_SRGB, lms)
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
-        let lms = matmul(&OKLAB_SRGB_TO_LMS, src).map(f32::cbrt);
-        matmul(&OKLAB_LMS_TO_LAB, lms)
+        let lms = matvecmul(&OKLAB_SRGB_TO_LMS, src).map(f32::cbrt);
+        matvecmul(&OKLAB_LMS_TO_LAB, lms)
     }
 
     fn scale_chroma([l, a, b]: [f32; 3], scale: f32) -> [f32; 3] {
@@ -1051,11 +1182,11 @@ impl ColorSpace for Lab {
                 (116. / KAPPA) * value - (16. / KAPPA)
             }
         });
-        matmul(&LAB_XYZ_TO_SRGB, xyz)
+        matvecmul(&LAB_XYZ_TO_SRGB, xyz)
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
-        let xyz = matmul(&LAB_SRGB_TO_XYZ, src);
+        let xyz = matvecmul(&LAB_SRGB_TO_XYZ, src);
         let f = xyz.map(|value| {
             if value > EPSILON {
                 value.cbrt()
@@ -1332,8 +1463,8 @@ impl ColorSpace for Hwb {
 #[cfg(test)]
 mod tests {
     use crate::{
-        A98Rgb, Aces2065_1, AcesCg, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch, LinearSrgb, Oklab,
-        Oklch, OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
+        A98Rgb, Aces2065_1, AcesCg, Chromaticity, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch,
+        LinearSrgb, Oklab, Oklch, OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
     };
 
     #[must_use]
@@ -1514,5 +1645,31 @@ mod tests {
                 1e-4
             ));
         }
+    }
+
+    #[test]
+    fn absolute_conversion() {
+        assert!(almost_equal::<AcesCg>(
+            Srgb::convert_absolute::<AcesCg>([0.5, 0.2, 0.4]),
+            // Calculated using colour-science (https://github.com/colour-science/colour) with
+            // `chromatic_adaptation_transform=None`
+            [0.14628284, 0.04714393, 0.13361104],
+            1e-4,
+        ));
+
+        assert!(almost_equal::<XyzD65>(
+            Srgb::convert_absolute::<XyzD50>([0.5, 0.2, 0.4]),
+            Srgb::convert::<XyzD65>([0.5, 0.2, 0.4]),
+            1e-4,
+        ));
+    }
+
+    #[test]
+    fn chromatic_adaptation() {
+        assert!(almost_equal::<Srgb>(
+            XyzD50::convert_absolute::<Srgb>(Srgb::convert::<XyzD50>([0.5, 0.2, 0.4])),
+            Srgb::chromatically_adapt([0.5, 0.2, 0.4], Chromaticity::D65, Chromaticity::D50),
+            1e-4,
+        ));
     }
 }
