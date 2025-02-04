@@ -156,7 +156,7 @@ const fn matmatmul(ma: &[[f32; 3]; 3], mb: &[[f32; 3]; 3]) -> [[f32; 3]; 3] {
 
 /// Multiplication `ma * mb` of a 3x3-matrix `ma` by a 3x3-diagonal matrix `mb`.
 ///
-/// Diagonal matrix `mb` is given by 
+/// Diagonal matrix `mb` is given by
 ///
 /// [ mb[0] 0     0     ]
 /// [ 0     mb[1] 0     ]

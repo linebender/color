@@ -143,7 +143,7 @@ pub trait ColorSpace: Clone + Copy + 'static {
     /// # Note to implementers
     ///
     /// The default implementation undoes the chromatic adaptation performed by
-    /// [`ColorSpace::to_linear_srgb`]. This can be overriden for better performance and greater
+    /// [`ColorSpace::to_linear_srgb`]. This can be overridden for better performance and greater
     /// calculation accuracy.
     fn to_linear_srgb_absolute(src: [f32; 3]) -> [f32; 3] {
         let lin_srgb = Self::to_linear_srgb(src);
@@ -177,7 +177,7 @@ pub trait ColorSpace: Clone + Copy + 'static {
     /// # Note to implementers
     ///
     /// The default implementation undoes the chromatic adaptation performed by
-    /// [`ColorSpace::from_linear_srgb`]. This can be overriden for better performance and greater
+    /// [`ColorSpace::from_linear_srgb`]. This can be overridden for better performance and greater
     /// calculation accuracy.
     fn from_linear_srgb_absolute(src: [f32; 3]) -> [f32; 3] {
         if Self::WHITE_POINT == Chromaticity::D65 {
