@@ -70,7 +70,7 @@ Simplifications include:
   * Only handling 3-component color spaces (plus optional alpha).
   * Choosing a fixed, curated set of color spaces for dynamic color types.
   * Choosing linear sRGB as the central color space.
-  * Keeping white point implicit.
+  * Keeping white point implicit in the general conversion operations.
 
 A number of other tasks are out of scope for this crate:
   * Print color spaces (CMYK).

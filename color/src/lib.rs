@@ -38,7 +38,7 @@
 //!   * Only handling 3-component color spaces (plus optional alpha).
 //!   * Choosing a fixed, curated set of color spaces for dynamic color types.
 //!   * Choosing linear sRGB as the central color space.
-//!   * Keeping white point implicit.
+//!   * Keeping white point implicit in the general conversion operations.
 //!
 //! A number of other tasks are out of scope for this crate:
 //!   * Print color spaces (CMYK).
@@ -85,6 +85,7 @@
 #![cfg_attr(all(not(feature = "std"), not(test)), no_std)]
 
 pub mod cache_key;
+mod chromaticity;
 mod color;
 mod colorspace;
 mod dynamic;
@@ -106,6 +107,7 @@ mod impl_bytemuck;
 #[cfg(all(not(feature = "std"), not(test)))]
 mod floatfuncs;
 
+pub use chromaticity::Chromaticity;
 pub use color::{AlphaColor, HueDirection, OpaqueColor, PremulColor};
 pub use colorspace::{
     A98Rgb, Aces2065_1, AcesCg, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch,
@@ -122,11 +124,50 @@ const fn u8_to_f32(x: u8) -> f32 {
     x as f32 * (1.0 / 255.0)
 }
 
-fn matmul(m: &[[f32; 3]; 3], x: [f32; 3]) -> [f32; 3] {
+/// Multiplication `m * x` of a 3x3-matrix `m` and a 3-vector `x`.
+const fn matvecmul(m: &[[f32; 3]; 3], x: [f32; 3]) -> [f32; 3] {
     [
         m[0][0] * x[0] + m[0][1] * x[1] + m[0][2] * x[2],
         m[1][0] * x[0] + m[1][1] * x[1] + m[1][2] * x[2],
         m[2][0] * x[0] + m[2][1] * x[1] + m[2][2] * x[2],
+    ]
+}
+
+/// Multiplication `ma * mb` of two 3x3-matrices `ma` and `mb`.
+const fn matmatmul(ma: &[[f32; 3]; 3], mb: &[[f32; 3]; 3]) -> [[f32; 3]; 3] {
+    [
+        [
+            ma[0][0] * mb[0][0] + ma[0][1] * mb[1][0] + ma[0][2] * mb[2][0],
+            ma[0][0] * mb[0][1] + ma[0][1] * mb[1][1] + ma[0][2] * mb[2][1],
+            ma[0][0] * mb[0][2] + ma[0][1] * mb[1][2] + ma[0][2] * mb[2][2],
+        ],
+        [
+            ma[1][0] * mb[0][0] + ma[1][1] * mb[1][0] + ma[1][2] * mb[2][0],
+            ma[1][0] * mb[0][1] + ma[1][1] * mb[1][1] + ma[1][2] * mb[2][1],
+            ma[1][0] * mb[0][2] + ma[1][1] * mb[1][2] + ma[1][2] * mb[2][2],
+        ],
+        [
+            ma[2][0] * mb[0][0] + ma[2][1] * mb[1][0] + ma[2][2] * mb[2][0],
+            ma[2][0] * mb[0][1] + ma[2][1] * mb[1][1] + ma[2][2] * mb[2][1],
+            ma[2][0] * mb[0][2] + ma[2][1] * mb[1][2] + ma[2][2] * mb[2][2],
+        ],
+    ]
+}
+
+/// Multiplication `ma * mb` of a 3x3-matrix `ma` by a 3x3-diagonal matrix `mb`.
+///
+/// Diagonal matrix `mb` is given by
+///
+/// ```text
+/// [ mb[0] 0     0     ]
+/// [ 0     mb[1] 0     ]
+/// [ 0     0     mb[2] ]
+/// ```
+const fn matdiagmatmul(ma: &[[f32; 3]; 3], mb: [f32; 3]) -> [[f32; 3]; 3] {
+    [
+        [ma[0][0] * mb[0], ma[0][1] * mb[1], ma[0][2] * mb[2]],
+        [ma[1][0] * mb[0], ma[1][1] * mb[1], ma[1][2] * mb[2]],
+        [ma[2][0] * mb[0], ma[2][1] * mb[1], ma[2][2] * mb[2]],
     ]
 }
 
