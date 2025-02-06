@@ -98,6 +98,7 @@ ecosystem as needed.
   [`HueDirection`], [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
 - `serde`: Implement `serde::Deserialize` and `serde::Serialize` on [`AlphaColor`],
   [`DynamicColor`], [`OpaqueColor`], [`PremulColor`], [`PremulRgba8`], and [`Rgba8`].
+- `temperature`: Implement [`AlphaColor::from_kelvin`] and [`OpaqueColor::from_kelvin`].
 
 At least one of `std` and `libm` is required; `std` overrides `libm`.
 
