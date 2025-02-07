@@ -149,15 +149,10 @@ pub trait ColorSpace: Clone + Copy + 'static {
         let lin_srgb = Self::to_linear_srgb(src);
         if Self::WHITE_POINT == Chromaticity::D65 {
             lin_srgb
-        } else if Self::WHITE_POINT == Chromaticity::D50 {
-            // NOTE: we can't use Self::WHITE_POINT in `const` contexts (yet?). We branch on the
-            // known values instead.
-            const LIN_SRGB_ADAPTATION_MATRIX: [[f32; 3]; 3] =
-                Chromaticity::D65.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D50);
-            matvecmul(&LIN_SRGB_ADAPTATION_MATRIX, lin_srgb)
         } else {
-            let lin_srgb_adaptation_matrix =
-                Chromaticity::D65.linear_srgb_chromatic_adaptation_matrix(Self::WHITE_POINT);
+            let lin_srgb_adaptation_matrix = const {
+                Chromaticity::D65.linear_srgb_chromatic_adaptation_matrix(Self::WHITE_POINT)
+            };
             matvecmul(&lin_srgb_adaptation_matrix, lin_srgb)
         }
     }
@@ -180,19 +175,15 @@ pub trait ColorSpace: Clone + Copy + 'static {
     /// [`ColorSpace::from_linear_srgb`]. This can be overridden for better performance and greater
     /// calculation accuracy.
     fn from_linear_srgb_absolute(src: [f32; 3]) -> [f32; 3] {
-        if Self::WHITE_POINT == Chromaticity::D65 {
-            Self::from_linear_srgb(src)
-        } else if Self::WHITE_POINT == Chromaticity::D50 {
-            // NOTE: we can't use Self::WHITE_POINT in `const` contexts (yet?). We branch on the
-            // known values instead.
-            const LIN_SRGB_ADAPTATION_MATRIX: [[f32; 3]; 3] =
-                Chromaticity::D50.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D65);
-            Self::from_linear_srgb(matvecmul(&LIN_SRGB_ADAPTATION_MATRIX, src))
+        let lin_srgb_adapted = if Self::WHITE_POINT == Chromaticity::D65 {
+            src
         } else {
-            let lin_srgb_adaptation_matrix =
-                Chromaticity::ACES.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D65);
-            Self::from_linear_srgb(matvecmul(&lin_srgb_adaptation_matrix, src))
-        }
+            let lin_srgb_adaptation_matrix = const {
+                Self::WHITE_POINT.linear_srgb_chromatic_adaptation_matrix(Chromaticity::D65)
+            };
+            matvecmul(&lin_srgb_adaptation_matrix, src)
+        };
+        Self::from_linear_srgb(lin_srgb_adapted)
     }
 
     /// Convert to a different color space, without chromatic adaptation.
