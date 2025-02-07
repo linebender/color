@@ -2,9 +2,7 @@
 # https://github.com/crate-ci/typos/blob/master/docs/reference.md
 
 [default]
-extend-ignore-re = [
-    "colour-science"
-]
+extend-ignore-re = ["colour-science"]
 
 # Corrections take the form of a key/value pair. The key is the incorrect word
 # and the value is the correct word. If the key and value are the same, the
