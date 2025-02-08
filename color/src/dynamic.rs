@@ -6,8 +6,8 @@
 use crate::{
     cache_key::{BitEq, BitHash},
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
-    AlphaColor, ColorSpace, ColorSpaceLayout, ColorSpaceTag, Flags, HueDirection, LinearSrgb,
-    Missing,
+    AlphaColor, Chromaticity, ColorSpace, ColorSpaceLayout, ColorSpaceTag, Flags, HueDirection,
+    LinearSrgb, Missing,
 };
 use core::hash::{Hash, Hasher};
 
@@ -149,11 +149,33 @@ impl DynamicColor {
     /// Convert to a different color space, without chromatic adaptation.
     ///
     /// For most use-cases you should consider using the chromatically-adapting
-    /// [`DynamicColor::convert`] instead.
-    ///
-    /// See the documentation on [`ColorSpace::convert_absolute`] for more information.
+    /// [`DynamicColor::convert`] instead. See the documentation on
+    /// [`ColorSpace::convert_absolute`] for more information.
     pub fn convert_absolute(self, cs: ColorSpaceTag) -> Self {
         self.convert_impl::<true>(cs)
+    }
+
+    #[must_use]
+    /// Chromatically adapt the color between the given white point chromaticities.
+    ///
+    /// The color is assumed to be under a reference white point of `from` and is chromatically
+    /// adapted to the given white point `to`. The linear Bradford transform is used to perform the
+    /// chromatic adaptation.
+    pub fn chromatically_adapt(self, from: Chromaticity, to: Chromaticity) -> Self {
+        if from == to {
+            return self;
+        }
+
+        // Treat missing components as zero, as per CSS Color Module Level 4 § 4.4.
+        let (opaque, alpha) = split_alpha(self.zero_missing_components().components);
+        let components = add_alpha(self.cs.chromatically_adapt(opaque, from, to), alpha);
+        Self {
+            cs: self.cs,
+            // After chromatically adapting the color, components may no longer be missing. Don't
+            // forward the flags.
+            flags: Flags::default(),
+            components,
+        }
     }
 
     /// Set any missing components to zero.
