@@ -308,7 +308,12 @@ impl ColorSpaceTag {
     /// The color is assumed to be under a reference white point of `from` and is chromatically
     /// adapted to the given white point `to`. The linear Bradford transform is used to perform the
     /// chromatic adaptation.
-    pub fn chromatically_adapt(self, src: [f32; 3], from: Chromaticity, to: Chromaticity) -> [f32; 3] {
+    pub fn chromatically_adapt(
+        self,
+        src: [f32; 3],
+        from: Chromaticity,
+        to: Chromaticity,
+    ) -> [f32; 3] {
         match self {
             Self::Srgb => Srgb::chromatically_adapt(src, from, to),
             Self::LinearSrgb => LinearSrgb::chromatically_adapt(src, from, to),
