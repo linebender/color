@@ -15,6 +15,14 @@ You can find its changes [documented below](#023-2025-01-20).
 
 This release has an [MSRV][] of 1.82.
 
+### Added
+
+* Support converting between color spaces without chromatic adaptation, thereby representing the same absolute color in the destination color space as in the source color space. ([#139][] by [@tomcur][])
+
+  **Note to `ColorSpace` implementers:** the `WHITE_POINT` associated constant is added to `ColorSpace`, defaulting to D65.
+  Implementations with a non-D65 white point should set this constant to get correct default absolute conversion behavior.
+* Support manual chromatic adaptation of colors between arbitrary white point chromaticities.  ([#139][] by [@tomcur][])
+
 ## [0.2.3][] (2025-01-20)
 
 This release has an [MSRV][] of 1.82.
@@ -127,6 +135,7 @@ This is the initial release.
 [#130]: https://github.com/linebender/color/pull/130
 [#135]: https://github.com/linebender/color/pull/135
 [#136]: https://github.com/linebender/color/pull/136
+[#139]: https://github.com/linebender/color/pull/139
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.3...HEAD
 [0.2.3]: https://github.com/linebender/color/releases/tag/v0.2.3
