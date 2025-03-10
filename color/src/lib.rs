@@ -104,6 +104,9 @@ mod parse;
 #[cfg(feature = "bytemuck")]
 mod impl_bytemuck;
 
+#[cfg(feature = "gamut_map")]
+pub mod gamut_map;
+
 #[cfg(all(not(feature = "std"), not(test)))]
 mod floatfuncs;
 
