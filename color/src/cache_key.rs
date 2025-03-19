@@ -120,7 +120,7 @@ impl<T: BitHash> BitHash for &T {
 /// Useful for creating caches based on exact values.
 /// See the [module level docs](self) for more information.
 pub trait BitEq {
-    /// Returns true if `self` is equal to `other`.
+    /// Returns `true` if `self` is equal to `other`.
     ///
     /// This need not use the semantically natural comparison operation
     /// for the type; indeed floating point types should implement this
