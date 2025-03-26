@@ -70,9 +70,13 @@ impl ColorSpaceTag {
         }
     }
 
-    // Note: if color spaces are the same, then they're also analogous, but
-    // in that case we wouldn't do the conversion, so this function is not
-    // guaranteed to return the correct answer in those cases.
+    /// Whether all components of the two color spaces are analogous. See also
+    /// Section 12.2 of CSS Color 4, defining which components are analogous:
+    /// https://www.w3.org/TR/2024/CRD-css-color-4-20240213/#interpolation-missing.
+    ///
+    /// Note: if color spaces are the same, then they're also analogous, but
+    /// in that case we wouldn't do the conversion, so this function is not
+    /// guaranteed to return the correct answer in those cases.
     pub(crate) fn same_analogous(self, other: Self) -> bool {
         use ColorSpaceTag::*;
         matches!(
