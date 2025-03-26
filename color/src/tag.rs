@@ -83,6 +83,7 @@ impl ColorSpaceTag {
                     | A98Rgb
                     | ProphotoRgb
                     | Rec2020
+                    | Aces2065_1
                     | AcesCg
                     | XyzD50
                     | XyzD65,
@@ -91,6 +92,7 @@ impl ColorSpaceTag {
                     | A98Rgb
                     | ProphotoRgb
                     | Rec2020
+                    | Aces2065_1
                     | AcesCg
                     | XyzD50
                     | XyzD65
