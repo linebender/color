@@ -290,12 +290,22 @@ impl DynamicColor {
         // and there is some controversy in discussion threads. For example,
         // in Lab-like spaces, if L is 0 do the other components become powerless?
         const POWERLESS_EPSILON: f32 = 1e-6;
-        if self.cs.layout() != ColorSpaceLayout::Rectangular
-            && self.components[1] < POWERLESS_EPSILON
-        {
-            let mut missing = self.flags.missing();
-            self.cs.set_h_missing(&mut missing, &mut self.components);
-            self.flags.set_missing(missing);
+        match self.cs {
+            ColorSpaceTag::Lch | ColorSpaceTag::Oklch | ColorSpaceTag::Hsl
+                if self.components[1] < POWERLESS_EPSILON =>
+            {
+                let mut missing = self.flags.missing();
+                self.cs.set_h_missing(&mut missing, &mut self.components);
+                self.flags.set_missing(missing);
+            }
+            ColorSpaceTag::Hwb
+                if self.components[1] + self.components[2] > 100. - 100. * POWERLESS_EPSILON =>
+            {
+                let mut missing = self.flags.missing();
+                self.cs.set_h_missing(&mut missing, &mut self.components);
+                self.flags.set_missing(missing);
+            }
+            _ => {}
         }
     }
 
