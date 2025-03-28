@@ -27,6 +27,7 @@ This release has an [MSRV][] of 1.82.
 ### Fixed
 
 * Correctly determine analogous components between ACES2065-1 and other color spaces when converting, to carry missing components forward. ([#144][] by [@tomcur][])
+* Fixed powerless hue component calculation for the HWB color space. ([#145][] by [@tomcur][])
 
 ## [0.2.3][] (2025-01-20)
 
@@ -142,6 +143,7 @@ This is the initial release.
 [#136]: https://github.com/linebender/color/pull/136
 [#139]: https://github.com/linebender/color/pull/139
 [#144]: https://github.com/linebender/color/pull/144
+[#145]: https://github.com/linebender/color/pull/145
 [#149]: https://github.com/linebender/color/pull/149
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.3...HEAD
