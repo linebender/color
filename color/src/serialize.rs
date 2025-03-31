@@ -150,7 +150,10 @@ impl core::fmt::UpperHex for Rgba8 {
 
 #[cfg(test)]
 mod tests {
+    extern crate alloc;
+
     use crate::{parse_color, AlphaColor, DynamicColor, Hsl, Oklab, Srgb, XyzD65};
+    use alloc::format;
 
     #[test]
     fn rgb8() {

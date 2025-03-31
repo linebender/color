@@ -175,9 +175,9 @@ impl<T: BitEq> BitEq for &T {
 
 #[cfg(test)]
 mod tests {
+    extern crate std;
     use super::CacheKey;
     use crate::{parse_color, DynamicColor};
-
     use std::collections::HashMap;
 
     #[test]

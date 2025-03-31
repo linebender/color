@@ -1,6 +1,9 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
+#[cfg(feature = "std")]
+extern crate std;
+
 use core::{any::TypeId, f32};
 
 use crate::{matvecmul, tag::ColorSpaceTag, Chromaticity};
@@ -1453,10 +1456,13 @@ impl ColorSpace for Hwb {
 
 #[cfg(test)]
 mod tests {
+    extern crate alloc;
+
     use crate::{
         A98Rgb, Aces2065_1, AcesCg, Chromaticity, ColorSpace, DisplayP3, Hsl, Hwb, Lab, Lch,
         LinearSrgb, Oklab, Oklch, OpaqueColor, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
     };
+    use alloc::vec::Vec;
 
     #[must_use]
     fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3], absolute_epsilon: f32) -> bool {
