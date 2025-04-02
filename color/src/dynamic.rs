@@ -611,4 +611,48 @@ mod tests {
             Missing::single(0)
         );
     }
+
+    #[test]
+    fn powerless_components() {
+        static COLORS_AND_POWERLESS: &[(&str, &[usize])] = &[
+            // Grayscale HWB results in powerless hue...
+            ("hwb(240 80 20)", &[0]),
+            ("hwb(240 79.9999999 19.9999999)", &[0]),
+            // ... also if the grayscale is specified out of gamut...
+            ("hwb(240 120 200)", &[0]),
+            // ... but near-grayscale HWB does not result in powerless hue...
+            ("hwb(240 79.99 20)", &[]),
+            // ... and colorful colors don't either.
+            ("hwb(240 20 15)", &[]),
+            // Unsaturated hue-saturation-lightness-like colors result in powerless hue...
+            ("hsl(240 0 50)", &[0]),
+            ("hsl(240 0.0000001 50)", &[0]),
+            // ... also if the saturation is negative...
+            ("hsl(240 -0.2 50)", &[0]),
+            // ... but near-unsaturated hue-saturation-lightness-like colors do not result
+            // in powerless hue...
+            ("hsl(240 0.01 50)", &[]),
+            // ... and colorful colors don't either.
+            ("hsl(240 0.6 50)", &[]),
+            // In lab-like spaces, zero lightness does not (currently) result in powerless
+            // components.
+            ("lab(0 0.4 -0.3)", &[]),
+            ("oklab(0 0.4 -0.3)", &[]),
+            // sRGB (and in other rectangular spaces) never have powerless components.
+            ("color(srgb 0 0 0)", &[]),
+            ("color(srgb 1 1 1)", &[]),
+            ("color(srgb 500 -200 20)", &[]),
+        ];
+
+        for (color, powerless) in COLORS_AND_POWERLESS {
+            let mut c = parse_color(color).unwrap();
+            c.powerless_to_missing();
+            for idx in *powerless {
+                assert!(
+                    c.flags.missing().contains(*idx),
+                    "Expected color `{color}` to have the following powerless components: {powerless:?}"
+                );
+            }
+        }
+    }
 }
