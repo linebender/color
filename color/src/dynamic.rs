@@ -290,15 +290,15 @@ impl DynamicColor {
         // and there is some controversy in discussion threads. For example,
         // in Lab-like spaces, if L is 0 do the other components become powerless?
 
-        /// The approximate equality range for components in (roughly) the range 0.0-1.0.
-        const POWERLESS_EPSILON_1: f32 = 1e-6;
-        /// The approximate equality range for components in (roughly) the range 0.0-100.0.
-        const POWERLESS_EPSILON_100: f32 = 100. * POWERLESS_EPSILON_1;
+        // Note: we use hard-coded epsilons to check for approximate equality here, but these do
+        // not account for the normal value range of components. It might be somewhat more correct
+        // to, e.g., consider `0.000_01` approximately equal to `0` for a component with the
+        // natural range `0-100`, but not for a component with the natural range `0-0.5`.
 
         match self.cs {
             // See CSS Color Module level 4 § 7, § 9.3, and § 9.4 (HSL, LCH, Oklch).
             ColorSpaceTag::Hsl | ColorSpaceTag::Lch | ColorSpaceTag::Oklch
-                if self.components[1] < POWERLESS_EPSILON_1 =>
+                if self.components[1] < 1e-6 =>
             {
                 let mut missing = self.flags.missing();
                 self.cs.set_h_missing(&mut missing, &mut self.components);
@@ -306,9 +306,7 @@ impl DynamicColor {
             }
 
             // See CSS Color Module level 4 § 8 (HWB).
-            ColorSpaceTag::Hwb
-                if self.components[1] + self.components[2] > 100. - POWERLESS_EPSILON_100 =>
-            {
+            ColorSpaceTag::Hwb if self.components[1] + self.components[2] > 100. - 1e-4 => {
                 let mut missing = self.flags.missing();
                 self.cs.set_h_missing(&mut missing, &mut self.components);
                 self.flags.set_missing(missing);
