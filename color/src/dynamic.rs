@@ -289,13 +289,29 @@ impl DynamicColor {
         // Note: the spec seems vague on the details of what this should do,
         // and there is some controversy in discussion threads. For example,
         // in Lab-like spaces, if L is 0 do the other components become powerless?
-        const POWERLESS_EPSILON: f32 = 1e-6;
-        if self.cs.layout() != ColorSpaceLayout::Rectangular
-            && self.components[1] < POWERLESS_EPSILON
-        {
-            let mut missing = self.flags.missing();
-            self.cs.set_h_missing(&mut missing, &mut self.components);
-            self.flags.set_missing(missing);
+
+        // Note: we use hard-coded epsilons to check for approximate equality here, but these do
+        // not account for the normal value range of components. It might be somewhat more correct
+        // to, e.g., consider `0.000_01` approximately equal to `0` for a component with the
+        // natural range `0-100`, but not for a component with the natural range `0-0.5`.
+
+        match self.cs {
+            // See CSS Color Module level 4 § 7, § 9.3, and § 9.4 (HSL, LCH, Oklch).
+            ColorSpaceTag::Hsl | ColorSpaceTag::Lch | ColorSpaceTag::Oklch
+                if self.components[1] < 1e-6 =>
+            {
+                let mut missing = self.flags.missing();
+                self.cs.set_h_missing(&mut missing, &mut self.components);
+                self.flags.set_missing(missing);
+            }
+
+            // See CSS Color Module level 4 § 8 (HWB).
+            ColorSpaceTag::Hwb if self.components[1] + self.components[2] > 100. - 1e-4 => {
+                let mut missing = self.flags.missing();
+                self.cs.set_h_missing(&mut missing, &mut self.components);
+                self.flags.set_missing(missing);
+            }
+            _ => {}
         }
     }
 
@@ -496,5 +512,49 @@ mod tests {
         let c3 = c.multiply_alpha(0.2);
         assert_eq!(0., c3.components[3]);
         assert_eq!(Missing::single(3), c3.flags.missing());
+    }
+
+    #[test]
+    fn powerless_components() {
+        static COLORS_AND_POWERLESS: &[(&str, &[usize])] = &[
+            // Grayscale HWB results in powerless hue...
+            ("hwb(240 80 20)", &[0]),
+            ("hwb(240 79.9999999 19.9999999)", &[0]),
+            // ... also if the grayscale is specified out of gamut...
+            ("hwb(240 120 200)", &[0]),
+            // ... but near-grayscale HWB does not result in powerless hue...
+            ("hwb(240 79.99 20)", &[]),
+            // ... and colorful colors don't either.
+            ("hwb(240 20 15)", &[]),
+            // Unsaturated hue-saturation-lightness-like colors result in powerless hue...
+            ("hsl(240 0 50)", &[0]),
+            ("hsl(240 0.0000001 50)", &[0]),
+            // ... also if the saturation is negative...
+            ("hsl(240 -0.2 50)", &[0]),
+            // ... but near-unsaturated hue-saturation-lightness-like colors do not result
+            // in powerless hue...
+            ("hsl(240 0.01 50)", &[]),
+            // ... and colorful colors don't either.
+            ("hsl(240 0.6 50)", &[]),
+            // In lab-like spaces, zero lightness does not (currently) result in powerless
+            // components.
+            ("lab(0 0.4 -0.3)", &[]),
+            ("oklab(0 0.4 -0.3)", &[]),
+            // sRGB (and in other rectangular spaces) never have powerless components.
+            ("color(srgb 0 0 0)", &[]),
+            ("color(srgb 1 1 1)", &[]),
+            ("color(srgb 500 -200 20)", &[]),
+        ];
+
+        for (color, powerless) in COLORS_AND_POWERLESS {
+            let mut c = parse_color(color).unwrap();
+            c.powerless_to_missing();
+            for idx in *powerless {
+                assert!(
+                    c.flags.missing().contains(*idx),
+                    "Expected color `{color}` to have the following powerless components: {powerless:?}"
+                );
+            }
+        }
     }
 }
