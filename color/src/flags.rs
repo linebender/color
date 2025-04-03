@@ -39,8 +39,10 @@ const _: () = const {
     }
 };
 
-/// Missing color components, extracted from [`Flags`]. Some bitwise operations are implemented on
-/// this type, making certain manipulations more ergonomic.
+/// Missing color components, extracted from [`Flags`].
+///
+/// Some bitwise operations are implemented on this type, making certain manipulations more
+/// ergonomic.
 #[derive(Default, Clone, Copy, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 pub struct Missing(u8);
