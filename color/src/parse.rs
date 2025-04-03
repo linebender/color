@@ -240,6 +240,7 @@ impl<'a> Parser<'a> {
     }
 
     fn raw_ch(&mut self, ch: u8) -> bool {
+        debug_assert!(ch.is_ascii());
         if self.s.as_bytes().get(self.ix) == Some(&ch) {
             self.ix += 1;
             true
