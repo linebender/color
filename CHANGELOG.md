@@ -142,6 +142,7 @@ This is the initial release.
 [#136]: https://github.com/linebender/color/pull/136
 [#139]: https://github.com/linebender/color/pull/139
 [#144]: https://github.com/linebender/color/pull/144
+[#149]: https://github.com/linebender/color/pull/149
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.3...HEAD
 [0.2.3]: https://github.com/linebender/color/releases/tag/v0.2.3
