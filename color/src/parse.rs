@@ -239,8 +239,11 @@ impl<'a> Parser<'a> {
         self.raw_ch(ch)
     }
 
+    /// Attempt to read the exact ASCII character given, returning whether that character was read.
+    ///
+    /// The parser proceeds to the next character if the character was successfully read.
     fn raw_ch(&mut self, ch: u8) -> bool {
-        debug_assert!(ch.is_ascii());
+        debug_assert!(ch.is_ascii(), "`ch` should be an ASCII character");
         if self.s.as_bytes().get(self.ix) == Some(&ch) {
             self.ix += 1;
             true
