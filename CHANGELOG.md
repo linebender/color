@@ -22,6 +22,7 @@ This release has an [MSRV][] of 1.82.
   **Note to `ColorSpace` implementers:** the `WHITE_POINT` associated constant is added to `ColorSpace`, defaulting to D65.
   Implementations with a non-D65 white point should set this constant to get correct default absolute conversion behavior.
 * Support manual chromatic adaptation of colors between arbitrary white point chromaticities.  ([#139][] by [@tomcur][])
+* Add `Missing::EMPTY` to allow getting an empty `Missing` set in `const` contexts. ([#149][] by [@tomcur][])
 
 ### Fixed
 

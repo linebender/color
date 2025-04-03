@@ -139,6 +139,9 @@ impl core::fmt::Debug for Flags {
 }
 
 impl Missing {
+    /// The set containing no missing components.
+    pub const EMPTY: Self = Self(0);
+
     /// The set containing a single component index.
     #[inline]
     pub const fn single(ix: usize) -> Self {
