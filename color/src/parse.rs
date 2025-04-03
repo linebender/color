@@ -240,7 +240,7 @@ impl<'a> Parser<'a> {
     }
 
     fn raw_ch(&mut self, ch: u8) -> bool {
-        if self.s[self.ix..].as_bytes().first() == Some(&ch) {
+        if self.s.as_bytes().get(self.ix) == Some(&ch) {
             self.ix += 1;
             true
         } else {
