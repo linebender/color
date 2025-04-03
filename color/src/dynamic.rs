@@ -475,7 +475,7 @@ impl Interpolator {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_color, DynamicColor, Missing};
+    use crate::{parse_color, ColorSpaceTag, DynamicColor, Missing};
 
     // `DynamicColor` was carefully packed. Ensure its size doesn't accidentally change.
     const _: () = if size_of::<DynamicColor>() != 20 {
@@ -496,5 +496,63 @@ mod tests {
         let c3 = c.multiply_alpha(0.2);
         assert_eq!(0., c3.components[3]);
         assert_eq!(Missing::single(3), c3.flags.missing());
+    }
+
+    #[test]
+    fn preserves_rgb_missingness() {
+        let c = parse_color("color(srgb 0.5 none 0)").unwrap();
+        assert_eq!(
+            c.convert(ColorSpaceTag::XyzD65).flags.missing(),
+            Missing::single(1)
+        );
+    }
+
+    #[test]
+    fn drops_missingness_when_not_analogous() {
+        let c = parse_color("oklab(none 0.2 -0.3)").unwrap();
+        assert!(c.convert(ColorSpaceTag::Srgb).flags.missing().is_empty());
+    }
+
+    #[test]
+    fn preserves_hue_missingness() {
+        let c = parse_color("oklch(0.2 0.3 none)").unwrap();
+        assert_eq!(
+            c.convert(ColorSpaceTag::Hsl).flags.missing(),
+            Missing::single(0)
+        );
+    }
+
+    #[test]
+    fn preserves_lightness_missingness() {
+        let c = parse_color("oklab(none 0.2 -0.3)").unwrap();
+        assert_eq!(
+            c.convert(ColorSpaceTag::Hsl).flags.missing(),
+            Missing::single(2)
+        );
+    }
+
+    #[test]
+    fn preserves_saturation_missingness() {
+        let c = parse_color("oklch(0.2 none 240)").unwrap();
+        assert_eq!(c.flags.missing(), Missing::single(1));
+
+        // As saturation is missing, it is effectively 0, meaning the color is achromatic and hue
+        // is powerless. § 4.4.1 says hue must be set missing after conversion.
+        assert_eq!(
+            c.convert(ColorSpaceTag::Hsl).flags.missing(),
+            Missing::single(0) | Missing::single(1)
+        );
+    }
+
+    #[test]
+    fn achromatic_sets_hue_powerless() {
+        let c = parse_color("oklab(0.2 0 0)").unwrap();
+
+        // As the color is achromatic, the hue is powerless. § 4.4.1 says hue must be set missing
+        // after conversion.
+        assert_eq!(
+            c.convert(ColorSpaceTag::Hsl).flags.missing(),
+            Missing::single(0)
+        );
     }
 }
