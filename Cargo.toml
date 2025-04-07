@@ -7,7 +7,7 @@ members = ["color", "color_operations"]
 # Right now those packages include color_operations.
 #
 # NOTE: When bumping this, remember to also bump the aforementioned other packages'
-#       version in the dependencies section at the bottom of this file.
+#       version in the `workspace.dependencies` section in this file.
 version = "0.2.3"
 
 edition = "2021"
@@ -18,6 +18,10 @@ edition = "2021"
 rust-version = "1.82"
 license = "Apache-2.0 OR MIT"
 repository = "https://github.com/linebender/color"
+
+[workspace.dependencies]
+color = { version = "0.2.3", path = "color", default-features = false }
+color_operations = { version = "0.2.3", path = "color_operations" }
 
 [workspace.lints]
 rust.unsafe_code = "deny"
@@ -80,7 +84,3 @@ clippy.negative_feature_names = "warn"
 clippy.redundant_feature_names = "warn"
 clippy.wildcard_dependencies = "warn"
 # END LINEBENDER LINT SET
-
-[workspace.dependencies]
-color = { version = "0.2.3", path = "color", default-features = false }
-color_operations = { version = "0.2.3", path = "color_operations" }
