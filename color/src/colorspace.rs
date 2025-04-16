@@ -1669,4 +1669,69 @@ mod tests {
             1e-4,
         ));
     }
+
+    /// Test whether `ColorSpace::convert` with implicit chromatic adaptation results in the same
+    /// color as `ColorSpace::convert_absolute` in combination with explicit chromatic adaptation
+    /// through `Colorspace::chromatically_adapt`.
+    #[test]
+    fn implicit_vs_explicit_chromatic_adaptation() {
+        fn test<Source: ColorSpace, Dest: ColorSpace>(src: [f32; 3]) {
+            let convert = Source::convert::<Dest>(src);
+            let convert_absolute_then_adapt = Dest::chromatically_adapt(
+                Source::convert_absolute::<Dest>(src),
+                Source::WHITE_POINT,
+                Dest::WHITE_POINT,
+            );
+            let adapt_then_convert_absolute = Source::convert_absolute::<Dest>(
+                Source::chromatically_adapt(src, Source::WHITE_POINT, Dest::WHITE_POINT),
+            );
+
+            // The error is measured in linear sRGB. This adds more conversions, but makes it
+            // easier to reason about the component ranges.
+            assert!(almost_equal::<LinearSrgb>(
+                Dest::to_linear_srgb(convert),
+                Dest::to_linear_srgb(convert_absolute_then_adapt),
+                1e-4,
+            ));
+            assert!(almost_equal::<LinearSrgb>(
+                Dest::to_linear_srgb(convert),
+                Dest::to_linear_srgb(adapt_then_convert_absolute),
+                1e-4,
+            ));
+        }
+
+        // From a D65 whitepoint to everything
+        test::<Srgb, LinearSrgb>([0.5, 0.2, 0.4]);
+        test::<Srgb, Lab>([0.5, 0.2, 0.4]);
+        test::<Srgb, Lch>([0.5, 0.2, 0.4]);
+        test::<Srgb, Hsl>([0.5, 0.2, 0.4]);
+        test::<Srgb, Hwb>([0.5, 0.2, 0.4]);
+        test::<Srgb, Oklab>([0.5, 0.2, 0.4]);
+        test::<Srgb, Oklch>([0.5, 0.2, 0.4]);
+        test::<Srgb, DisplayP3>([0.5, 0.2, 0.4]);
+        test::<Srgb, A98Rgb>([0.5, 0.2, 0.4]);
+        test::<Srgb, ProphotoRgb>([0.5, 0.2, 0.4]);
+        test::<Srgb, Rec2020>([0.5, 0.2, 0.4]);
+        test::<Srgb, Aces2065_1>([0.5, 0.2, 0.4]);
+        test::<Srgb, AcesCg>([0.5, 0.2, 0.4]);
+        test::<Srgb, XyzD50>([0.5, 0.2, 0.4]);
+        test::<Srgb, XyzD65>([0.5, 0.2, 0.4]);
+
+        // From an ACES whitepoint to everything
+        test::<AcesCg, Srgb>([0.5, 0.2, 0.4]);
+        test::<AcesCg, LinearSrgb>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Lab>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Lch>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Hsl>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Hwb>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Oklab>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Oklch>([0.5, 0.2, 0.4]);
+        test::<AcesCg, DisplayP3>([0.5, 0.2, 0.4]);
+        test::<AcesCg, A98Rgb>([0.5, 0.2, 0.4]);
+        test::<AcesCg, ProphotoRgb>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Rec2020>([0.5, 0.2, 0.4]);
+        test::<AcesCg, Aces2065_1>([0.5, 0.2, 0.4]);
+        test::<AcesCg, XyzD50>([0.5, 0.2, 0.4]);
+        test::<AcesCg, XyzD65>([0.5, 0.2, 0.4]);
+    }
 }
