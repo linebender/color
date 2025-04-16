@@ -552,6 +552,24 @@ impl ColorSpace for A98Rgb {
 #[derive(Clone, Copy, Debug)]
 pub struct ProphotoRgb;
 
+impl ProphotoRgb {
+    fn transfer_to_linear(x: f32) -> f32 {
+        if x.abs() <= 16. / 512. {
+            x / 16.
+        } else {
+            x.abs().powf(1.8).copysign(x)
+        }
+    }
+
+    fn transfer_from_linear(x: f32) -> f32 {
+        if x.abs() <= 1. / 512. {
+            x * 16.
+        } else {
+            x.abs().powf(1. / 1.8).copysign(x)
+        }
+    }
+}
+
 impl ColorSpace for ProphotoRgb {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::ProphotoRgb);
 
@@ -566,15 +584,10 @@ impl ColorSpace for ProphotoRgb {
             [-0.008_558_424, -0.153_268_2, 1.161_826_6],
         ];
 
-        fn transfer(x: f32) -> f32 {
-            if x.abs() <= 16. / 512. {
-                x / 16.
-            } else {
-                x.abs().powf(1.8).copysign(x)
-            }
-        }
-
-        matvecmul(&LINEAR_PROPHOTORGB_TO_SRGB, [r, g, b].map(transfer))
+        matvecmul(
+            &LINEAR_PROPHOTORGB_TO_SRGB,
+            [r, g, b].map(Self::transfer_to_linear),
+        )
     }
 
     fn from_linear_srgb([r, g, b]: [f32; 3]) -> [f32; 3] {
@@ -585,15 +598,56 @@ impl ColorSpace for ProphotoRgb {
             [0.016_875_342, 0.117_659_41, 0.865_465_2],
         ];
 
-        fn transfer(x: f32) -> f32 {
-            if x.abs() <= 1. / 512. {
-                x * 16.
-            } else {
-                x.abs().powf(1. / 1.8).copysign(x)
-            }
-        }
+        matvecmul(&LINEAR_SRGB_TO_PROPHOTORGB, [r, g, b]).map(Self::transfer_from_linear)
+    }
 
-        matvecmul(&LINEAR_SRGB_TO_PROPHOTORGB, [r, g, b]).map(transfer)
+    fn to_linear_srgb_absolute([r, g, b]: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_sRGB * lin_prophoto_to_XYZ
+        const LINEAR_PROPHOTORGB_TO_SRGB: [[f32; 3]; 3] = [
+            [
+                11_822_636_894_621. / 5_517_784_378_314.,
+                -2_646_118_971_832. / 4_032_227_045_691.,
+                -2_824_985_149. / 9_114_754_233.,
+            ],
+            [
+                -270_896_603_412_176. / 1_163_584_209_404_097.,
+                107_798_623_831_136. / 89_506_477_646_469.,
+                822_014_396. / 202_327_283_847.,
+            ],
+            [
+                -2412976100974. / 167_796_255_001_401.,
+                -1_777_081_293_536. / 12_907_404_230_877.,
+                879_168_464. / 1_006_099_419.,
+            ],
+        ];
+
+        matvecmul(
+            &LINEAR_PROPHOTORGB_TO_SRGB,
+            [r, g, b].map(Self::transfer_to_linear),
+        )
+    }
+
+    fn from_linear_srgb_absolute([r, g, b]: [f32; 3]) -> [f32; 3] {
+        // XYZ_to_lin_prophoto * lin_sRGB_to_XYZ
+        const LINEAR_SRGB_TO_PROPHOTORGB: [[f32; 3]; 3] = [
+            [
+                7_356_071_250_722. / 14_722_127_359_275.,
+                25_825_157_007_599. / 88_332_764_155_650.,
+                1_109_596_896_521. / 6_309_483_153_975.,
+            ],
+            [
+                170_513_936_009. / 1_766_822_975_400.,
+                18_792_073_269_331. / 21_201_875_704_800.,
+                91_195_554_323. / 3_028_839_386_400.,
+            ],
+            [
+                946_201. / 40_387_053.,
+                105_017_795. / 726_966_954.,
+                8_250_997. / 7_162_236.,
+            ],
+        ];
+
+        matvecmul(&LINEAR_SRGB_TO_PROPHOTORGB, [r, g, b]).map(Self::transfer_from_linear)
     }
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
