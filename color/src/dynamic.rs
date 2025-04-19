@@ -447,6 +447,12 @@ impl BitHash for DynamicColor {
     }
 }
 
+impl<CS: ColorSpace> From<AlphaColor<CS>> for DynamicColor {
+    fn from(value: AlphaColor<CS>) -> Self {
+        Self::from_alpha_color(value)
+    }
+}
+
 impl Interpolator {
     /// Evaluate the color ramp at the given point.
     ///
