@@ -843,6 +843,6 @@ mod tests {
     #[test]
     fn hsl_negative_l() {
         let mut parser = Parser::new("(800, 150%, -50%)");
-        assert_eq!(parser.hsl().unwrap().components[2], 0.0)
+        assert_eq!(parser.hsl().unwrap().components[2], 0.0);
     }
 }
