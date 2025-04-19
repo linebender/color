@@ -429,7 +429,7 @@ impl<'a> Parser<'a> {
         let mode = if comma { Mode::Legacy } else { Mode::Modern };
         let s = self.scaled_component(1., 1.)?.map(|x| x.max(0.));
         self.optional_comma(comma)?;
-        let l = self.scaled_component(1., 1.)?;
+        let l = self.scaled_component(1., 1.)?.map(|x| x.max(0.));
         let alpha = self.alpha(mode)?;
         self.ws();
         if !self.ch(b')') {
@@ -838,5 +838,11 @@ mod tests {
         ] {
             assert_close_color(parse_color(c1).unwrap(), parse_color(c2).unwrap());
         }
+    }
+
+    #[test]
+    fn hsl_negative_l() {
+        let mut parser = Parser::new("(800, 150%, -50%)");
+        assert_eq!(parser.hsl().unwrap().components[2], 0.0)
     }
 }
