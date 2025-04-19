@@ -353,6 +353,12 @@ impl ColorSpace for LinearSrgb {
     }
 }
 
+impl From<LinearSrgb> for ColorSpaceTag {
+    fn from(_: LinearSrgb) -> Self {
+        ColorSpaceTag::LinearSrgb
+    }
+}
+
 /// 🌌 The standard RGB color space.
 ///
 /// Its components are `[r, g, b]` (red, green, and blue channels respectively), with `[0, 0, 0]`
@@ -412,6 +418,12 @@ impl ColorSpace for Srgb {
     }
 }
 
+impl From<Srgb> for ColorSpaceTag {
+    fn from(_: Srgb) -> Self {
+        ColorSpaceTag::Srgb
+    }
+}
+
 /// 🌌 The Display P3 color space, often used for wide-gamut displays.
 ///
 /// Display P3 is similar to [sRGB](`Srgb`) but has higher red and, especially, green
@@ -455,6 +467,12 @@ impl ColorSpace for DisplayP3 {
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
         [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
+    }
+}
+
+impl From<DisplayP3> for ColorSpaceTag {
+    fn from(_: DisplayP3) -> Self {
+        ColorSpaceTag::DisplayP3
     }
 }
 
@@ -532,6 +550,12 @@ impl ColorSpace for A98Rgb {
     }
 }
 
+impl From<A98Rgb> for ColorSpaceTag {
+    fn from(_: A98Rgb) -> Self {
+        ColorSpaceTag::A98Rgb
+    }
+}
+
 /// 🌌 The ProPhoto RGB color space.
 ///
 /// ProPhoto RGB is similar to [sRGB](`Srgb`) but has higher red, green and blue chromaticities,
@@ -598,6 +622,12 @@ impl ColorSpace for ProphotoRgb {
 
     fn clip([r, g, b]: [f32; 3]) -> [f32; 3] {
         [r.clamp(0., 1.), g.clamp(0., 1.), b.clamp(0., 1.)]
+    }
+}
+
+impl From<ProphotoRgb> for ColorSpaceTag {
+    fn from(_: ProphotoRgb) -> Self {
+        ColorSpaceTag::ProphotoRgb
     }
 }
 
@@ -707,6 +737,12 @@ impl ColorSpace for Rec2020 {
     }
 }
 
+impl From<Rec2020> for ColorSpaceTag {
+    fn from(_: Rec2020) -> Self {
+        ColorSpaceTag::Rec2020
+    }
+}
+
 /// 🌌 The ACES2065-1 color space.
 ///
 /// This is a linear color space with a very wide gamut. It is is often used for archival and
@@ -764,6 +800,12 @@ impl ColorSpace for Aces2065_1 {
             g.clamp(-65504., 65504.),
             b.clamp(-65504., 65504.),
         ]
+    }
+}
+
+impl From<Aces2065_1> for ColorSpaceTag {
+    fn from(_: Aces2065_1) -> Self {
+        ColorSpaceTag::Aces2065_1
     }
 }
 
@@ -825,6 +867,12 @@ impl ColorSpace for AcesCg {
     }
 }
 
+impl From<AcesCg> for ColorSpaceTag {
+    fn from(_: AcesCg) -> Self {
+        ColorSpaceTag::AcesCg
+    }
+}
+
 /// 🌌 The CIE XYZ color space with a 2° observer and a reference white of D50.
 ///
 /// Its components are `[X, Y, Z]`. The components are unbounded, but are usually positive.
@@ -873,6 +921,12 @@ impl ColorSpace for XyzD50 {
 
     fn clip([x, y, z]: [f32; 3]) -> [f32; 3] {
         [x, y, z]
+    }
+}
+
+impl From<XyzD50> for ColorSpaceTag {
+    fn from(_: XyzD50) -> Self {
+        ColorSpaceTag::XyzD50
     }
 }
 
@@ -956,6 +1010,12 @@ impl ColorSpace for XyzD65 {
 
     fn clip([x, y, z]: [f32; 3]) -> [f32; 3] {
         [x, y, z]
+    }
+}
+
+impl From<XyzD65> for ColorSpaceTag {
+    fn from(_: XyzD65) -> Self {
+        ColorSpaceTag::XyzD65
     }
 }
 
@@ -1043,6 +1103,12 @@ impl ColorSpace for Oklab {
     }
 }
 
+impl From<Oklab> for ColorSpaceTag {
+    fn from(_: Oklab) -> Self {
+        ColorSpaceTag::Oklab
+    }
+}
+
 /// Rectangular to cylindrical conversion.
 fn lab_to_lch([l, a, b]: [f32; 3]) -> [f32; 3] {
     let mut h = b.atan2(a) * (180. / f32::consts::PI);
@@ -1103,6 +1169,12 @@ impl ColorSpace for Oklch {
 
     fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
         [l.clamp(0., 1.), c.max(0.), h]
+    }
+}
+
+impl From<Oklch> for ColorSpaceTag {
+    fn from(_: Oklch) -> Self {
+        ColorSpaceTag::Oklch
     }
 }
 
@@ -1214,6 +1286,12 @@ impl ColorSpace for Lab {
     }
 }
 
+impl From<Lab> for ColorSpaceTag {
+    fn from(_: Lab) -> Self {
+        ColorSpaceTag::Lab
+    }
+}
+
 /// 🌌 The cylindrical version of the [Lab] color space.
 ///
 /// Its components are `[L, C, h]` with
@@ -1258,6 +1336,12 @@ impl ColorSpace for Lch {
 
     fn clip([l, c, h]: [f32; 3]) -> [f32; 3] {
         [l.clamp(0., 100.), c.max(0.), h]
+    }
+}
+
+impl From<Lch> for ColorSpaceTag {
+    fn from(_: Lch) -> Self {
+        ColorSpaceTag::Lch
     }
 }
 
@@ -1371,6 +1455,12 @@ impl ColorSpace for Hsl {
     }
 }
 
+impl From<Hsl> for ColorSpaceTag {
+    fn from(_: Hsl) -> Self {
+        ColorSpaceTag::Hsl
+    }
+}
+
 /// 🌌 The HWB color space
 ///
 /// The HWB color space is a convenient way to represent colors. It corresponds
@@ -1451,6 +1541,12 @@ impl ColorSpace for Hwb {
 
     fn clip([h, w, b]: [f32; 3]) -> [f32; 3] {
         [h, w.clamp(0., 100.), b.clamp(0., 100.)]
+    }
+}
+
+impl From<Hwb> for ColorSpaceTag {
+    fn from(_: Hwb) -> Self {
+        ColorSpaceTag::Hwb
     }
 }
 
