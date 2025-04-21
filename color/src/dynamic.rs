@@ -447,9 +447,9 @@ impl BitHash for DynamicColor {
     }
 }
 
-// Note that the conversion is only lossless for color spaces that have a tag,
-// this is why we have this additional trait bound. See also
-// https://github.com/linebender/color/pull/155 for more discussion.
+/// Note that the conversion is only lossless for color spaces that have a tag,
+/// this is why we have this additional trait bound. See also
+/// https://github.com/linebender/color/pull/155 for more discussion.
 impl<CS: ColorSpace> From<AlphaColor<CS>> for DynamicColor
 where
     ColorSpaceTag: From<CS>,
