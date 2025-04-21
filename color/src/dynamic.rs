@@ -48,11 +48,7 @@ pub struct DynamicColor {
 /// An intermediate struct used for interpolating between colors.
 ///
 /// This is the return value of [`DynamicColor::interpolate`].
-#[derive(Clone, Copy)]
-#[expect(
-    missing_debug_implementations,
-    reason = "it's an intermediate struct, only used for eval"
-)]
+#[derive(Clone, Copy, Debug)]
 pub struct Interpolator {
     premul1: [f32; 3],
     alpha1: f32,
