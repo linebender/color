@@ -455,6 +455,8 @@ where
     ColorSpaceTag: From<CS>,
 {
     fn from(value: AlphaColor<CS>) -> Self {
+        const { assert!(CS::TAG.is_some()) }
+        
         Self::from_alpha_color(value)
     }
 }
