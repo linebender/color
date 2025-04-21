@@ -355,7 +355,7 @@ impl ColorSpace for LinearSrgb {
 
 impl From<LinearSrgb> for ColorSpaceTag {
     fn from(_: LinearSrgb) -> Self {
-        ColorSpaceTag::LinearSrgb
+        Self::LinearSrgb
     }
 }
 
@@ -420,7 +420,7 @@ impl ColorSpace for Srgb {
 
 impl From<Srgb> for ColorSpaceTag {
     fn from(_: Srgb) -> Self {
-        ColorSpaceTag::Srgb
+        Self::Srgb
     }
 }
 
@@ -472,7 +472,7 @@ impl ColorSpace for DisplayP3 {
 
 impl From<DisplayP3> for ColorSpaceTag {
     fn from(_: DisplayP3) -> Self {
-        ColorSpaceTag::DisplayP3
+        Self::DisplayP3
     }
 }
 
@@ -552,7 +552,7 @@ impl ColorSpace for A98Rgb {
 
 impl From<A98Rgb> for ColorSpaceTag {
     fn from(_: A98Rgb) -> Self {
-        ColorSpaceTag::A98Rgb
+        Self::A98Rgb
     }
 }
 
@@ -627,7 +627,7 @@ impl ColorSpace for ProphotoRgb {
 
 impl From<ProphotoRgb> for ColorSpaceTag {
     fn from(_: ProphotoRgb) -> Self {
-        ColorSpaceTag::ProphotoRgb
+        Self::ProphotoRgb
     }
 }
 
@@ -739,7 +739,7 @@ impl ColorSpace for Rec2020 {
 
 impl From<Rec2020> for ColorSpaceTag {
     fn from(_: Rec2020) -> Self {
-        ColorSpaceTag::Rec2020
+        Self::Rec2020
     }
 }
 
@@ -805,7 +805,7 @@ impl ColorSpace for Aces2065_1 {
 
 impl From<Aces2065_1> for ColorSpaceTag {
     fn from(_: Aces2065_1) -> Self {
-        ColorSpaceTag::Aces2065_1
+        Self::Aces2065_1
     }
 }
 
@@ -869,7 +869,7 @@ impl ColorSpace for AcesCg {
 
 impl From<AcesCg> for ColorSpaceTag {
     fn from(_: AcesCg) -> Self {
-        ColorSpaceTag::AcesCg
+        Self::AcesCg
     }
 }
 
@@ -926,7 +926,7 @@ impl ColorSpace for XyzD50 {
 
 impl From<XyzD50> for ColorSpaceTag {
     fn from(_: XyzD50) -> Self {
-        ColorSpaceTag::XyzD50
+        Self::XyzD50
     }
 }
 
@@ -1015,7 +1015,7 @@ impl ColorSpace for XyzD65 {
 
 impl From<XyzD65> for ColorSpaceTag {
     fn from(_: XyzD65) -> Self {
-        ColorSpaceTag::XyzD65
+        Self::XyzD65
     }
 }
 
@@ -1105,7 +1105,7 @@ impl ColorSpace for Oklab {
 
 impl From<Oklab> for ColorSpaceTag {
     fn from(_: Oklab) -> Self {
-        ColorSpaceTag::Oklab
+        Self::Oklab
     }
 }
 
@@ -1174,7 +1174,7 @@ impl ColorSpace for Oklch {
 
 impl From<Oklch> for ColorSpaceTag {
     fn from(_: Oklch) -> Self {
-        ColorSpaceTag::Oklch
+        Self::Oklch
     }
 }
 
@@ -1288,7 +1288,7 @@ impl ColorSpace for Lab {
 
 impl From<Lab> for ColorSpaceTag {
     fn from(_: Lab) -> Self {
-        ColorSpaceTag::Lab
+        Self::Lab
     }
 }
 
@@ -1341,7 +1341,7 @@ impl ColorSpace for Lch {
 
 impl From<Lch> for ColorSpaceTag {
     fn from(_: Lch) -> Self {
-        ColorSpaceTag::Lch
+        Self::Lch
     }
 }
 
@@ -1457,7 +1457,7 @@ impl ColorSpace for Hsl {
 
 impl From<Hsl> for ColorSpaceTag {
     fn from(_: Hsl) -> Self {
-        ColorSpaceTag::Hsl
+        Self::Hsl
     }
 }
 
@@ -1546,7 +1546,7 @@ impl ColorSpace for Hwb {
 
 impl From<Hwb> for ColorSpaceTag {
     fn from(_: Hwb) -> Self {
-        ColorSpaceTag::Hwb
+        Self::Hwb
     }
 }
 
