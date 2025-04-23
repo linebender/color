@@ -26,26 +26,85 @@ pub struct GradientIter<CS: ColorSpace> {
 
 /// Generate a piecewise linear approximation to a gradient ramp.
 ///
-/// A major feature of CSS Color 4 is to specify gradients in any
-/// interpolation color space, which may be quite a bit better than
-/// simple linear interpolation in sRGB (for example).
+/// The target gradient ramp is the linear interpolation from `color0` to `color1` in the target
+/// color space specified by `interp_cs`. For efficiency, this returns an
+/// [iterator over color stops](GradientIter) in the `CS` color space, such that the gradient ramp
+/// created by linearly interpolating between those stops in the `CS` color space is equal within
+/// the specified `tolerance` to the target gradient ramp.
 ///
-/// One strategy for implementing these gradients is to interpolate
-/// in the appropriate (premultiplied) space, then map each resulting
-/// color to the space used for compositing. That can be expensive.
-/// An alternative strategy is to precompute a piecewise linear ramp
-/// that closely approximates the desired ramp, then render that
-/// using high performance techniques. This method computes such an
-/// approximation.
+/// When the target interpolation color space is cylindrical, the hue can be interpolated in
+/// multiple ways. The [`direction`](`HueDirection`) parameter controls the way in which the hue is
+/// interpolated.
 ///
-/// The given `tolerance` value specifies the maximum error in the
-/// approximation, in deltaEOK units. A reasonable value is 0.01,
-/// which in testing is nearly indistinguishable from the exact
-/// ramp. The number of stops scales roughly as the inverse square
-/// root of the tolerance.
+/// The given `tolerance` value specifies the maximum error in the approximation, in deltaEOK
+/// units. A reasonable value is 0.01, which in testing is nearly indistinguishable from the exact
+/// ramp. The number of stops scales roughly as the inverse square root of the tolerance.
 ///
-/// The error is measured at the midpoint of each segment, which in
-/// some cases may underestimate the error.
+/// The error is measured at the midpoint of each segment, which in some cases may underestimate
+/// the error.
+///
+/// For regular interpolation between two colors, see [`DynamicColor::interpolate`].
+///
+/// # Motivation
+///
+/// A major feature of CSS Color 4 is the ability to specify color interpolation in any
+/// interpolation color space [CSS Color Module Level 4 § 12.1][css-sec], which may be quite a bit
+/// better than simple linear interpolation in sRGB (for example).
+///
+/// One strategy for implementing these gradients is to interpolate in the appropriate
+/// (premultiplied) space, then map each resulting color to the space used for compositing. That
+/// can be expensive. An alternative strategy is to precompute a piecewise linear ramp that closely
+/// approximates the desired ramp, then render that using high performance techniques. This method
+/// computes such an approximation.
+///
+/// [css-sec]: https://www.w3.org/TR/css-color-4/#interpolation-space
+///
+/// # Example
+///
+/// The following compares interpolating in the target color space Oklab with interpolating
+/// piecewise in the color space sRGB.
+///
+/// ```rust
+/// use color::{AlphaColor, ColorSpaceTag, DynamicColor, HueDirection, Oklab, Srgb};
+///
+/// let start = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([1., 0., 0., 1.]));
+/// let end = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0., 1., 0., 1.]));
+///
+/// // Interpolation in a target interpolation color space.
+/// let interp = start.interpolate(end, ColorSpaceTag::Oklab, HueDirection::default());
+/// // Piecewise-approximated interpolation in a compositing color space.
+/// let mut gradient = color::gradient::<Srgb>(
+///     start,
+///     end,
+///     ColorSpaceTag::Oklab,
+///     HueDirection::default(),
+///     0.01,
+/// );
+///
+/// let (mut t0, mut stop0) = gradient.next().unwrap();
+/// for (t1, stop1) in gradient {
+///     // Compare a few points between the piecewise stops.
+///     for point in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] {
+///         let interpolated_point = interp
+///             .eval(t0 + (t1 - t0) * point)
+///             .to_alpha_color::<Srgb>()
+///             .discard_alpha();
+///         let approximated_point = stop0.lerp_rect(stop1, point).discard_alpha();
+///
+///         // The perceptual deltaEOK between the two is lower than the tolerance.
+///         assert!(
+///             approximated_point
+///                 .convert::<Oklab>()
+///                 .difference(interpolated_point.convert::<Oklab>())
+///                 < 0.01
+///         );
+///     }
+///
+///     t0 = t1;
+///     stop0 = stop1;
+/// }
+/// ```
+
 pub fn gradient<CS: ColorSpace>(
     mut color0: DynamicColor,
     mut color1: DynamicColor,
