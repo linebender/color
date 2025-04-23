@@ -299,12 +299,33 @@ impl DynamicColor {
         }
     }
 
-    /// Interpolate two colors, according to CSS Color 4 spec.
+    /// Interpolate two colors.
     ///
-    /// This method does a bunch of precomputation, resulting in an [`Interpolator`]
-    /// object that can be evaluated at various `t` values.
+    /// The colors are interpolated linearly from `self` to `other` in the color space given by
+    /// `cs`. When interpolating in a cylindrical color space, the hue can be interpolated in
+    /// multiple ways. The [`direction`](`HueDirection`) parameter controls the way in which the
+    /// hue is interpolated.
     ///
-    /// Reference: §12 of Color 4 spec
+    /// The interpolation proceeds according to [CSS Color Module Level 4 § 12][css-sec].
+    ///
+    /// This method does a bunch of precomputation, resulting in an [`Interpolator`] object that
+    /// can be evaluated at various `t` values.
+    ///
+    /// [css-sec]: https://www.w3.org/TR/css-color-4/#interpolation
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// use color::{AlphaColor, ColorSpaceTag, DynamicColor, HueDirection, Srgb};
+    ///
+    /// let start = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([1., 0., 0., 1.]));
+    /// let end = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0., 1., 0., 1.]));
+    ///
+    /// let interp = start.interpolate(end, ColorSpaceTag::Hsl, HueDirection::Increasing);
+    /// let mid = interp.eval(0.5);
+    /// assert_eq!(mid.cs, ColorSpaceTag::Hsl);
+    /// assert!((mid.components[0] - 60.).abs() < 0.01);
+    /// ```
     pub fn interpolate(
         self,
         other: Self,
