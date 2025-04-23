@@ -104,7 +104,6 @@ pub struct GradientIter<CS: ColorSpace> {
 ///     stop0 = stop1;
 /// }
 /// ```
-
 pub fn gradient<CS: ColorSpace>(
     mut color0: DynamicColor,
     mut color1: DynamicColor,
