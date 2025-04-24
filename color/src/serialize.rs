@@ -232,7 +232,7 @@ mod tests {
                 "hsl(120, 50, 25)",
             ),
         ] {
-            let result = format!("{}", color);
+            let result = format!("{color}");
             assert_eq!(
                 result,
                 expected,
