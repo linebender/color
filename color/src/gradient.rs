@@ -27,7 +27,7 @@ pub struct GradientIter<CS: ColorSpace> {
 /// Generate a piecewise linear approximation to a gradient ramp.
 ///
 /// The target gradient ramp is the linear interpolation from `color0` to `color1` in the target
-/// color space specified by `interp_cs`. For efficiency, this returns an
+/// color space specified by `interp_cs`. For efficiency, this function returns an
 /// [iterator over color stops](GradientIter) in the `CS` color space, such that the gradient ramp
 /// created by linearly interpolating between those stops in the `CS` color space is equal within
 /// the specified `tolerance` to the target gradient ramp.
