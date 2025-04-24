@@ -78,7 +78,7 @@ fn write_legacy_function(
 impl core::fmt::Display for DynamicColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if let Some(color_name) = self.flags.color_name() {
-            return write!(f, "{}", color_name);
+            return write!(f, "{color_name}");
         }
 
         match self.cs {
