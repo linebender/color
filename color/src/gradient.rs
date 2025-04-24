@@ -36,14 +36,20 @@ pub struct GradientIter<CS: ColorSpace> {
 /// multiple ways. The [`direction`](`HueDirection`) parameter controls the way in which the hue is
 /// interpolated.
 ///
-/// The given `tolerance` value specifies the maximum error in the approximation, in deltaEOK
-/// units. A reasonable value is 0.01, which in testing is nearly indistinguishable from the exact
-/// ramp. The number of stops scales roughly as the inverse square root of the tolerance.
+/// The given `tolerance` value specifies the maximum perceptual error in the approximation
+/// measured as the [Euclidean distance][euclidean-distance] in the [Oklab] color space (see also
+/// [`OpaqueColor::difference`][crate::OpaqueColor::difference]). This metric is known as
+/// [deltaEOK][delta-eok]. A reasonable value is 0.01, which in testing is nearly indistinguishable
+/// from the exact ramp. The number of stops scales roughly as the inverse square root of the
+/// tolerance.
 ///
 /// The error is measured at the midpoint of each segment, which in some cases may underestimate
 /// the error.
 ///
 /// For regular interpolation between two colors, see [`DynamicColor::interpolate`].
+///
+/// [euclidean-distance]: https://en.wikipedia.org/wiki/Euclidean_distance
+/// [delta-eok]: https://www.w3.org/TR/css-color-4/#color-difference-OK
 ///
 /// # Motivation
 ///
