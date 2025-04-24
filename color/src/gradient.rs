@@ -38,7 +38,7 @@ pub struct GradientIter<CS: ColorSpace> {
 ///
 /// The given `tolerance` value specifies the maximum perceptual error in the approximation
 /// measured as the [Euclidean distance][euclidean-distance] in the [Oklab] color space (see also
-/// [`OpaqueColor::difference`][crate::OpaqueColor::difference]). This metric is known as
+/// [`PremulColor::difference`][crate::PremulColor::difference]). This metric is known as
 /// [deltaEOK][delta-eok]. A reasonable value is 0.01, which in testing is nearly indistinguishable
 /// from the exact ramp. The number of stops scales roughly as the inverse square root of the
 /// tolerance.
