@@ -17,20 +17,24 @@ This release has an [MSRV][] of 1.82.
 
 ### Added
 
-* Support converting between color spaces without chromatic adaptation, thereby representing the same absolute color in the destination color space as in the source color space. ([#139][] by [@tomcur][])
+* Support converting between color spaces without chromatic adaptation, thereby representing the same absolute color in the destination color space as in the source color space. ([#139][], [#153][], [#156][] by [@tomcur][])
 
   **Note to `ColorSpace` implementers:** the `WHITE_POINT` associated constant is added to `ColorSpace`, defaulting to D65.
   Implementations with a non-D65 white point should set this constant to get correct default absolute conversion behavior.
 * Support manual chromatic adaptation of colors between arbitrary white point chromaticities.  ([#139][] by [@tomcur][])
 * Add `Missing::EMPTY` to allow getting an empty `Missing` set in `const` contexts. ([#149][] by [@tomcur][])
+* Add `From<AlphaColor<_>> for DynamicColor` conversions for all color spaces that have a direct runtime representation in `ColorSpaceTag`. ([#155][] by [@LaurenzV][])
+* Add usage examples for `DynamicColor::interpolate` and `gradient`. ([#158][], [#159][] by [@tomcur][])
 
 ### Changed
 
 * Breaking change: the deprecated conversion `From<Rgba8> for PremulColor<Srgb>` has been removed. Use `From<PremulRgba8> for PremulColor<Srgb>` instead. ([#157][] by [@tomcur][])
+* Improve `no_std` support. ([#146][] by [@waywardmonkeys][])
 
 ### Fixed
 
-* Correctly determine analogous components between ACES2065-1 and other color spaces when converting, to carry missing components forward. ([#144][] by [@tomcur][])
+* Correctly determine analogous components between ACES2065-1 and other color spaces when converting,
+  to carry missing components forward when interpolating colors with missing components in the ACES 2065-1 colorspace. ([#144][] by [@tomcur][])
 * Fixed powerless hue component calculation for the HWB color space. ([#145][] by [@tomcur][])
 
 ## [0.2.3][] (2025-01-20)
@@ -109,6 +113,7 @@ This release has an [MSRV][] of 1.82.
 This is the initial release.
 
 [@DJMcNab]: https://github.com/DJMcNab
+[@LaurenzV]: https://github.com/LaurenzV
 [@MightyBurger]: https://github.com/MightyBurger
 [@raphlinus]: https://github.com/raphlinus
 [@tomcur]: https://github.com/tomcur
@@ -148,8 +153,14 @@ This is the initial release.
 [#139]: https://github.com/linebender/color/pull/139
 [#144]: https://github.com/linebender/color/pull/144
 [#145]: https://github.com/linebender/color/pull/145
+[#146]: https://github.com/linebender/color/pull/146
 [#149]: https://github.com/linebender/color/pull/149
+[#153]: https://github.com/linebender/color/pull/153
+[#155]: https://github.com/linebender/color/pull/155
+[#156]: https://github.com/linebender/color/pull/156
 [#157]: https://github.com/linebender/color/pull/157
+[#158]: https://github.com/linebender/color/pull/158
+[#159]: https://github.com/linebender/color/pull/159
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.3...HEAD
 [0.2.3]: https://github.com/linebender/color/releases/tag/v0.2.3
