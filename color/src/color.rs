@@ -311,7 +311,16 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
         }
     }
 
-    /// Pack into 8 bit per component encoding.
+    /// Convert the color to [sRGB][Srgb] if not already in sRGB, and pack into 8 bit per component
+    /// integer encoding.
+    ///
+    /// The RGB components are mapped from the floating point range of `0.0-1.0` to the integer
+    /// range of `0-255`. Component values outside of this range are saturated to 0 or 255. The
+    /// alpha component is set to 255.
+    ///
+    /// # Implementation note
+    ///
+    /// This performs almost-correct rounding, see the note on [`AlphaColor::to_rgba8`].
     #[must_use]
     pub fn to_rgba8(self) -> Rgba8 {
         self.with_alpha(1.0).to_rgba8()
@@ -512,16 +521,24 @@ impl<CS: ColorSpace> AlphaColor<CS> {
         }
     }
 
-    /// Pack into 8 bit per component encoding.
+    /// Convert the color to [sRGB][Srgb] if not already in sRGB, and pack into 8 bit per component
+    /// integer encoding.
+    ///
+    /// The RGBA components are mapped from the floating point range of `0.0-1.0` to the integer
+    /// range of `0-255`. Component values outside of this range are saturated to 0 or 255.
+    ///
+    /// # Implementation note
+    ///
+    /// This performs almost-correct rounding to be fast on both x86 and AArch64 hardware. Within the
+    /// saturated output range of this method, `0-255`, there is a single color component value
+    /// where results differ: `0.0019607842`. This method maps that component to integer value `1`;
+    /// it would more precisely be mapped to `0`.
     #[must_use]
     pub fn to_rgba8(self) -> Rgba8 {
-        // This does not need clamping as the behavior of a `f32` to `u8`
-        // cast in Rust is to saturate.
-        #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
         let [r, g, b, a] = self
             .convert::<Srgb>()
             .components
-            .map(|x| (x * 255.0).round() as u8);
+            .map(|x| fast_round_to_u8(x * 255.));
         Rgba8 { r, g, b, a }
     }
 }
@@ -630,18 +647,38 @@ impl<CS: ColorSpace> PremulColor<CS> {
         (d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + d[3] * d[3]).sqrt()
     }
 
-    /// Pack into 8 bit per component encoding.
+    /// Convert the color to [sRGB][Srgb] if not already in sRGB, and pack into 8 bit per component
+    /// integer encoding.
+    ///
+    /// The RGBA components are mapped from the floating point range of `0.0-1.0` to the integer
+    /// range of `0-255`. Component values outside of this range are saturated to 0 or 255.
+    ///
+    /// # Implementation note
+    ///
+    /// This performs almost-correct rounding, see the note on [`AlphaColor::to_rgba8`].
     #[must_use]
     pub fn to_rgba8(self) -> PremulRgba8 {
-        // This does not need clamping as the behavior of a `f32` to `u8`
-        // cast in Rust is to saturate.
-        #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
         let [r, g, b, a] = self
             .convert::<Srgb>()
             .components
-            .map(|x| (x * 255.0).round() as u8);
+            .map(|x| fast_round_to_u8(x * 255.));
         PremulRgba8 { r, g, b, a }
     }
+}
+
+/// Fast rounding of `f32` to integer `u8`, rounding ties up.
+///
+/// Targetting x86, `f32::round` calls out to libc `roundf`. Even if that call were inlined, it is
+/// branchy, which would make it relatively slow. The following is faster, and on the range `0-255`
+/// almost correct*. AArch64 has dedicated rounding instructions so does not need this
+/// optimization, but the following is still fast.
+///
+/// * The only input where the output differs from `a.round() as u8` is `0.49999997`.
+#[inline(always)]
+#[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
+fn fast_round_to_u8(a: f32) -> u8 {
+    // This does not need clamping as the behavior of a `f32` to `u8` cast in Rust is to saturate.
+    (a + 0.5) as u8
 }
 
 // Lossless conversion traits.
