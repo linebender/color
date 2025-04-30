@@ -668,7 +668,7 @@ impl<CS: ColorSpace> PremulColor<CS> {
 
 /// Fast rounding of `f32` to integer `u8`, rounding ties up.
 ///
-/// Targetting x86, `f32::round` calls out to libc `roundf`. Even if that call were inlined, it is
+/// Targeting x86, `f32::round` calls out to libc `roundf`. Even if that call were inlined, it is
 /// branchy, which would make it relatively slow. The following is faster, and on the range `0-255`
 /// almost correct*. AArch64 has dedicated rounding instructions so does not need this
 /// optimization, but the following is still fast.
