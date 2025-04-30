@@ -1020,7 +1020,7 @@ mod tests {
     }
 
     /// A more thorough test than the one above that tests only the values which are likely to fail.
-    /// This test runs through approximately 200 million floats, so can be somewhat slow (seconds 
+    /// This test runs through approximately 200 million floats, so can be somewhat slow (seconds
     /// rather than milliseconds). To run this test, use the `--ignored` flag.
     #[test]
     #[ignore = "Takes too long to execute."]
