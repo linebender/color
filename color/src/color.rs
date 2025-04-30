@@ -1019,7 +1019,9 @@ mod tests {
         assert_eq!(&failures, &[0.49999997]);
     }
 
-    /// If you don't trust the test above, run this one by removing `#[ignore]`.
+    /// A more thorough test than the one above that tests only the values which are likely to fail.
+    /// This test runs through approximately 200 million floats, so can be somewhat slow (seconds 
+    /// rather than milliseconds). To run this test, use the `--ignored` flag.
     #[test]
     #[ignore = "Takes too long to execute."]
     fn fast_round_full() {
