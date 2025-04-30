@@ -1019,4 +1019,28 @@ mod tests {
 
         assert_eq!(&failures, &[0.49999997]);
     }
+
+    /// If you don't trust the test above, run this one by removing `#[ignore]`.
+    #[test]
+    #[ignore]
+    fn fast_round_full() {
+        #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
+        fn real_round_to_u8(v: f32) -> u8 {
+            v.round() as u8
+        }
+
+        // Check the rounding behavior at integer and half integer values within (and near) the
+        // range 0-255, as well as one ULP up and down from those values.
+        let mut failures = alloc::vec![];
+        let mut v = -1_f32;
+
+        while v <= 256. {
+            if real_round_to_u8(v) != fast_round_to_u8(v) {
+                failures.push(v);
+            }
+            v = v.next_up();
+        }
+
+        assert_eq!(&failures, &[0.49999997]);
+    }
 }
