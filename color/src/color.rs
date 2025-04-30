@@ -1019,9 +1019,10 @@ mod tests {
         assert_eq!(&failures, &[0.49999997]);
     }
 
-    /// A more thorough test than the one above that tests only the values which are likely to fail.
-    /// This test runs through approximately 200 million floats, so can be somewhat slow (seconds
-    /// rather than milliseconds). To run this test, use the `--ignored` flag.
+    /// A more thorough test than the one above: the one above only tests values that are likely to
+    /// fail. This test runs through all floats in and near the range of interest (approximately
+    /// 200 million floats), so can be somewhat slow (seconds rather than milliseconds). To run
+    /// this test, use the `--ignored` flag.
     #[test]
     #[ignore = "Takes too long to execute."]
     fn fast_round_full() {
