@@ -30,6 +30,7 @@ This release has an [MSRV][] of 1.82.
 
 * Breaking change: the deprecated conversion `From<Rgba8> for PremulColor<Srgb>` has been removed. Use `From<PremulRgba8> for PremulColor<Srgb>` instead. ([#157][] by [@tomcur][])
 * Improve `no_std` support. ([#146][] by [@waywardmonkeys][])
+* Make `{AlphaColor, OpaqueColor, PremulColor}::to_rgba8` faster. ([#166][] by [@tomcur][])
 
 ### Fixed
 
@@ -163,6 +164,7 @@ This is the initial release.
 [#159]: https://github.com/linebender/color/pull/159
 [#164]: https://github.com/linebender/color/pull/164
 [#165]: https://github.com/linebender/color/pull/165
+[#166]: https://github.com/linebender/color/pull/166
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.2.3...HEAD
 [0.2.3]: https://github.com/linebender/color/releases/tag/v0.2.3
