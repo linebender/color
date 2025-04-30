@@ -1001,18 +1001,17 @@ mod tests {
             // and half integers are exactly representable in this range.
             assert!(v.abs().fract() == 0. || v.abs().fract() == 0.5, "{v}");
 
-            let down = v.next_down();
-            let up = v.next_up();
+            let mut validate_rounding = |val: f32| {
+                if real_round_to_u8(val) != fast_round_to_u8(val) {
+                    failures.push(val)
+                }
+            };
 
-            if real_round_to_u8(down) != fast_round_to_u8(down) {
-                failures.push(down);
-            }
-            if real_round_to_u8(v) != fast_round_to_u8(v) {
-                failures.push(v);
-            }
-            if real_round_to_u8(up) != fast_round_to_u8(up) {
-                failures.push(up);
-            }
+            validate_rounding(v.next_down().next_down());
+            validate_rounding(v.next_down());
+            validate_rounding(v);
+            validate_rounding(v.next_up());
+            validate_rounding(v.next_up().next_up());
 
             v += 0.5;
         }
@@ -1022,7 +1021,7 @@ mod tests {
 
     /// If you don't trust the test above, run this one by removing `#[ignore]`.
     #[test]
-    #[ignore]
+    #[ignore = "Takes too long to execute."]
     fn fast_round_full() {
         #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
         fn real_round_to_u8(v: f32) -> u8 {
