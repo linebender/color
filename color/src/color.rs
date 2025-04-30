@@ -1029,7 +1029,7 @@ mod tests {
             v.round() as u8
         }
 
-        // Check the rounding behavior of als floating point values within (and near) the range
+        // Check the rounding behavior of all floating point values within (and near) the range
         // 0-255.
         let mut failures = alloc::vec![];
         let mut v = -1_f32;
