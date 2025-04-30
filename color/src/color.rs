@@ -1003,7 +1003,7 @@ mod tests {
 
             let mut validate_rounding = |val: f32| {
                 if real_round_to_u8(val) != fast_round_to_u8(val) {
-                    failures.push(val)
+                    failures.push(val);
                 }
             };
 
