@@ -908,7 +908,12 @@ impl<CS> BitHash for PremulColor<CS> {
 
 #[cfg(test)]
 mod tests {
-    use super::{fixup_hue, AlphaColor, HueDirection, PremulColor, PremulRgba8, Rgba8, Srgb};
+    extern crate alloc;
+
+    use super::{
+        fast_round_to_u8, fixup_hue, AlphaColor, HueDirection, PremulColor, PremulRgba8, Rgba8,
+        Srgb,
+    };
 
     #[test]
     fn to_rgba8_saturation() {
@@ -975,5 +980,43 @@ mod tests {
                 }
             }
         }
+    }
+
+    /// Test the claim in [`super::real_round_to_u8`] that the only rounding failure in the range
+    /// of interest occurs for `0.49999997`.
+    #[test]
+    fn fast_round() {
+        #[expect(clippy::cast_possible_truncation, reason = "deliberate quantization")]
+        fn real_round_to_u8(v: f32) -> u8 {
+            v.round() as u8
+        }
+
+        // Check the rounding behavior at integer and half integer values within (and near) the
+        // range 0-255, as well as one ULP up and down from those values.
+        let mut failures = alloc::vec![];
+        let mut v = -1_f32;
+
+        while v <= 256. {
+            // Note we don't get accumulation of rounding errors by incrementing with 0.5: integers
+            // and half integers are exactly representable in this range.
+            assert!(v.abs().fract() == 0. || v.abs().fract() == 0.5, "{v}");
+
+            let down = v.next_down();
+            let up = v.next_up();
+
+            if real_round_to_u8(down) != fast_round_to_u8(down) {
+                failures.push(down);
+            }
+            if real_round_to_u8(v) != fast_round_to_u8(v) {
+                failures.push(v);
+            }
+            if real_round_to_u8(up) != fast_round_to_u8(up) {
+                failures.push(up);
+            }
+
+            v += 0.5;
+        }
+
+        assert_eq!(&failures, &[0.49999997]);
     }
 }
