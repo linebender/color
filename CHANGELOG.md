@@ -17,7 +17,8 @@ This release has an [MSRV][] of 1.82.
 
 ### Added
 
-* Support converting between color spaces without chromatic adaptation, thereby representing the same absolute color in the destination color space as in the source color space. ([#139][], [#153][], [#156][], [#164][], [#165][] by [@tomcur][])
+* Support converting between color spaces without chromatic adaptation, thereby representing the same absolute color in the destination color space as in the source color space. ([#139][], [#153][] by [@tomcur][])
+  * Add absolute color conversion matrices for ProPhoto RGB, ACES2065-1 and ACEScg for faster conversion without chromatic adaptation to and from these color spaces. ([#156][], [#164][], [#165][] by [@tomcur][])
 
   **Note to `ColorSpace` implementers:** the `WHITE_POINT` associated constant is added to `ColorSpace`, defaulting to D65.
   Implementations with a non-D65 white point should set this constant to get correct default absolute conversion behavior.
