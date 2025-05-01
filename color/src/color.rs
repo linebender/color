@@ -982,7 +982,7 @@ mod tests {
         }
     }
 
-    /// Test the claim in [`super::real_round_to_u8`] that the only rounding failure in the range
+    /// Test the claim in [`super::fast_round_to_u8`] that the only rounding failure in the range
     /// of interest occurs for `0.49999997`.
     #[test]
     fn fast_round() {
