@@ -20,6 +20,9 @@ This release has an [MSRV][] of 1.82.
 * Add `interpolate_unpremultiplied` and `gradient_unpremultiplied` for interpolating in unpremultiplied (straight) alpha space.
   This allows using Color to implement web rendering features which specify such gradient rendering. ([#185][] by [@sagudev][])
 
+### Changed
+* Specify XYZ-D65 color space conversion matrices as exact rationals. ([#171][] by [@tomcur][])
+
 ## [0.3.1][] (2025-05-19)
 
 This release has an [MSRV][] of 1.82.
@@ -193,6 +196,7 @@ This is the initial release.
 [#164]: https://github.com/linebender/color/pull/164
 [#165]: https://github.com/linebender/color/pull/165
 [#166]: https://github.com/linebender/color/pull/166
+[#171]: https://github.com/linebender/color/pull/171
 [#175]: https://github.com/linebender/color/pull/175
 [#185]: https://github.com/linebender/color/pull/185
 
