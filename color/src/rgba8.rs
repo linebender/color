@@ -177,6 +177,44 @@ mod tests {
     }
 
     #[test]
+    fn to_u8_array() {
+        let c = Rgba8 {
+            r: 1,
+            g: 2,
+            b: 3,
+            a: 4,
+        };
+        assert_eq!([1, 2, 3, 4], c.to_u8_array());
+
+        let p = PremulRgba8 {
+            r: 0xaa,
+            g: 0xbb,
+            b: 0xcc,
+            a: 0xff,
+        };
+        assert_eq!([0xaa, 0xbb, 0xcc, 0xff], p.to_u8_array());
+    }
+
+    #[test]
+    fn from_u8_array() {
+        let c = Rgba8 {
+            r: 1,
+            g: 2,
+            b: 3,
+            a: 4,
+        };
+        assert_eq!(Rgba8::from_u8_array([1, 2, 3, 4]), c);
+
+        let p = PremulRgba8 {
+            r: 0xaa,
+            g: 0xbb,
+            b: 0xcc,
+            a: 0xff,
+        };
+        assert_eq!(PremulRgba8::from_u8_array([0xaa, 0xbb, 0xcc, 0xff]), p);
+    }
+
+    #[test]
     #[cfg(feature = "bytemuck")]
     fn bytemuck_to_u32() {
         let c = Rgba8 {
