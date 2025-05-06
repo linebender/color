@@ -232,7 +232,7 @@ mod tests {
         let c = [1, 2, 3, 4];
         assert_eq!(Rgba8::from_u8_array(c), bytemuck::cast(c));
 
-        let p = [0xff, 0xcc, 0xbb, 0xaa];
+        let p = [0xaa, 0xbb, 0xcc, 0xff];
         assert_eq!(PremulRgba8::from_u8_array(p), bytemuck::cast(p));
     }
 }
