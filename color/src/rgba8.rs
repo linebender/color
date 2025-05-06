@@ -254,6 +254,7 @@ mod tests {
             a: 4,
         };
         assert_eq!(c.to_u8_array(), bytemuck::cast::<_, [u8; 4]>(c));
+        assert_eq!(c.to_u8_array(), bytemuck::cast::<_, [u8; 4]>(c.to_u32()));
 
         let p = PremulRgba8 {
             r: 0xaa,
@@ -262,6 +263,7 @@ mod tests {
             a: 0xff,
         };
         assert_eq!(p.to_u8_array(), bytemuck::cast::<_, [u8; 4]>(p));
+        assert_eq!(p.to_u8_array(), bytemuck::cast::<_, [u8; 4]>(p.to_u32()));
     }
 
     #[test]
