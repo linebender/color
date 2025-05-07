@@ -15,6 +15,10 @@ You can find its changes [documented below](#030-2025-04-30).
 
 This release has an [MSRV][] of 1.82.
 
+### Added
+
+* Implement absolute color conversion methods for XYZ-D50 for faster conversion without chromatic adaptation to and from this color space. ([#170][] by [@tomcur][])
+
 ## [0.3.0][] (2025-04-30)
 
 This release has an [MSRV][] of 1.82.
@@ -170,6 +174,7 @@ This is the initial release.
 [#164]: https://github.com/linebender/color/pull/164
 [#165]: https://github.com/linebender/color/pull/165
 [#166]: https://github.com/linebender/color/pull/166
+[#170]: https://github.com/linebender/color/pull/170
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/linebender/color/releases/tag/v0.3.0

@@ -1061,6 +1061,19 @@ impl ColorSpace for XyzD50 {
         matvecmul(&LINEAR_SRGB_TO_XYZ, src)
     }
 
+    fn to_linear_srgb_absolute(src: [f32; 3]) -> [f32; 3] {
+        // Reuse XYZ-D65's conversions. This works because XYZ-D65 and sRGB both use the D65 white
+        // point, so the "relative" conversion specified in XYZ-D65 to/from linear sRGB is an
+        // absolute one. Plus, though XYZ-D50 is relative to D50, XYZ-D50 and XYZ-D65 are otherwise
+        // the same color space.
+        XyzD65::to_linear_srgb(src)
+    }
+
+    fn from_linear_srgb_absolute(src: [f32; 3]) -> [f32; 3] {
+        // See the note in the method above.
+        XyzD65::from_linear_srgb(src)
+    }
+
     fn clip([x, y, z]: [f32; 3]) -> [f32; 3] {
         [x, y, z]
     }
