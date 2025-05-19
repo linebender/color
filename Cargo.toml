@@ -8,7 +8,7 @@ members = ["color", "color_operations"]
 #
 # NOTE: When bumping this, remember to also bump the aforementioned other packages'
 #       version in the `workspace.dependencies` section in this file.
-version = "0.3.0"
+version = "0.3.1"
 
 edition = "2021"
 # Keep in sync with RUST_MIN_VER in .github/workflows/ci.yml, with the relevant README.md files
@@ -20,8 +20,8 @@ license = "Apache-2.0 OR MIT"
 repository = "https://github.com/linebender/color"
 
 [workspace.dependencies]
-color = { version = "0.3.0", path = "color", default-features = false }
-color_operations = { version = "0.3.0", path = "color_operations" }
+color = { version = "0.3.1", path = "color", default-features = false }
+color_operations = { version = "0.3.1", path = "color_operations" }
 
 [workspace.lints]
 rust.unsafe_code = "deny"

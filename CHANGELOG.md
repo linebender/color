@@ -8,10 +8,14 @@ Subheadings to categorize changes are `added, changed, deprecated, removed, fixe
 
 # Changelog
 
-The latest published Color release is [0.3.0](#030-2025-04-30) which was released on 2025-04-30.
-You can find its changes [documented below](#030-2025-04-30).
+The latest published Color release is [0.3.1](#031-2025-05-19) which was released on 2025-05-19.
+You can find its changes [documented below](#031-2025-05-19).
 
 ## [Unreleased]
+
+This release has an [MSRV][] of 1.82.
+
+## [0.3.1][] (2025-05-19)
 
 This release has an [MSRV][] of 1.82.
 
@@ -177,7 +181,8 @@ This is the initial release.
 [#166]: https://github.com/linebender/color/pull/166
 [#175]: https://github.com/linebender/color/pull/175
 
-[Unreleased]: https://github.com/linebender/color/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/linebender/color/compare/v0.3.1...HEAD
+[0.3.1]: https://github.com/linebender/color/releases/tag/v0.3.1
 [0.3.0]: https://github.com/linebender/color/releases/tag/v0.3.0
 [0.2.3]: https://github.com/linebender/color/releases/tag/v0.2.3
 [0.2.2]: https://github.com/linebender/color/releases/tag/v0.2.2
