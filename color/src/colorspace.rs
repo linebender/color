@@ -11,6 +11,14 @@ use crate::{matvecmul, tag::ColorSpaceTag, Chromaticity};
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
 
+/// Type alias to disambiguate between the `f32` primitive type and `core::f32` module.
+///
+/// Use `F32::cbrt` to call a method on the `f32`` type, rather than accessing a function from
+/// `core::f32` with the same name. Currently `core::f32` implements unstable `core_float_math`
+/// features that break CI.
+/// Issue: https://github.com/rust-lang/rust/issues/137578
+type F32 = f32;
+
 /// The main trait for color spaces.
 ///
 /// This can be implemented by clients for conversions in and out of
@@ -337,7 +345,7 @@ impl ColorSpace for LinearSrgb {
     }
 
     fn scale_chroma(src: [f32; 3], scale: f32) -> [f32; 3] {
-        let lms = matvecmul(&OKLAB_SRGB_TO_LMS, src).map(f32::cbrt);
+        let lms = matvecmul(&OKLAB_SRGB_TO_LMS, src).map(F32::cbrt);
         let l = OKLAB_LMS_TO_LAB[0];
         let lightness = l[0] * lms[0] + l[1] * lms[1] + l[2] * lms[2];
         let lms_scaled = [
@@ -1221,7 +1229,7 @@ impl ColorSpace for Oklab {
     }
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
-        let lms = matvecmul(&OKLAB_SRGB_TO_LMS, src).map(f32::cbrt);
+        let lms = matvecmul(&OKLAB_SRGB_TO_LMS, src).map(F32::cbrt);
         matvecmul(&OKLAB_LMS_TO_LAB, lms)
     }
 
