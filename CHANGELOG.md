@@ -51,6 +51,14 @@ This release has an [MSRV][] of 1.82.
   to carry missing components forward when interpolating colors with missing components in the ACES 2065-1 colorspace. ([#144][] by [@tomcur][])
 * Fixed powerless hue component calculation for the HWB color space. ([#145][] by [@tomcur][])
 
+## [0.2.4][] (2025-05-19)
+
+This release has an [MSRV][] of 1.82.
+
+### Fixed
+
+* Compilation failure with nightly Rust due to `core_float_math` changes. ([#175][] by [@ajakubowicz-canva][])
+
 ## [0.2.3][] (2025-01-20)
 
 This release has an [MSRV][] of 1.82.
@@ -184,6 +192,7 @@ This is the initial release.
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.1...HEAD
 [0.3.1]: https://github.com/linebender/color/releases/tag/v0.3.1
 [0.3.0]: https://github.com/linebender/color/releases/tag/v0.3.0
+[0.2.4]: https://github.com/linebender/color/releases/tag/v0.2.4
 [0.2.3]: https://github.com/linebender/color/releases/tag/v0.2.3
 [0.2.2]: https://github.com/linebender/color/releases/tag/v0.2.2
 [0.2.1]: https://github.com/linebender/color/releases/tag/v0.2.1
