@@ -16,7 +16,7 @@ use crate::floatfuncs::FloatFuncs;
 /// Use `F32::cbrt` to call a method on the `f32` type, rather than accessing a function from
 /// `core::f32` with the same name. Currently `core::f32` implements unstable `core_float_math`
 /// features that break CI.
-/// Issue: https://github.com/rust-lang/rust/issues/137578
+/// Issue: <https://github.com/rust-lang/rust/issues/137578>
 type F32 = f32;
 
 /// The main trait for color spaces.
