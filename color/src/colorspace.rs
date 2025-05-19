@@ -13,7 +13,7 @@ use crate::floatfuncs::FloatFuncs;
 
 /// Type alias to disambiguate between the `f32` primitive type and `core::f32` module.
 ///
-/// Use `F32::cbrt` to call a method on the `f32`` type, rather than accessing a function from
+/// Use `F32::cbrt` to call a method on the `f32` type, rather than accessing a function from
 /// `core::f32` with the same name. Currently `core::f32` implements unstable `core_float_math`
 /// features that break CI.
 /// Issue: https://github.com/rust-lang/rust/issues/137578
