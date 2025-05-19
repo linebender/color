@@ -15,6 +15,10 @@ You can find its changes [documented below](#030-2025-04-30).
 
 This release has an [MSRV][] of 1.82.
 
+### Fixed
+
+* Compilation failure with nightly Rust due to `core_float_math` changes. ([#175][] by [@ajakubowicz-canva][])
+
 ## [0.3.0][] (2025-04-30)
 
 This release has an [MSRV][] of 1.82.
@@ -118,6 +122,7 @@ This release has an [MSRV][] of 1.82.
 
 This is the initial release.
 
+[@ajakubowicz-canva]: https://github.com/ajakubowicz-canva
 [@DJMcNab]: https://github.com/DJMcNab
 [@LaurenzV]: https://github.com/LaurenzV
 [@MightyBurger]: https://github.com/MightyBurger
@@ -170,6 +175,7 @@ This is the initial release.
 [#164]: https://github.com/linebender/color/pull/164
 [#165]: https://github.com/linebender/color/pull/165
 [#166]: https://github.com/linebender/color/pull/166
+[#175]: https://github.com/linebender/color/pull/175
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.0...HEAD
 [0.3.0]: https://github.com/linebender/color/releases/tag/v0.3.0
