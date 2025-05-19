@@ -8,7 +8,9 @@ Subheadings to categorize changes are `added, changed, deprecated, removed, fixe
 
 # Changelog
 
-The latest published Color release is [0.2.4](#024-2025-05-19) which was released on 2025-05-19.
+This is a backport branch.
+For the latest releases, check the [changelog on main](https://github.com/linebender/color/blob/main/CHANGELOG.md).
+The latest published Color release in the 0.2.x series is [0.2.4](#024-2025-05-19) which was released on 2025-05-19.
 You can find its changes [documented below](#024-2025-05-19).
 
 ## [Unreleased]
