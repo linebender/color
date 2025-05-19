@@ -1,7 +1,7 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use core::{any::TypeId, f32};
+use core::{any::TypeId, f32::consts::PI};
 
 use crate::{matmul, tag::ColorSpaceTag};
 
@@ -920,7 +920,7 @@ impl ColorSpace for Oklab {
 
 /// Rectangular to cylindrical conversion.
 fn lab_to_lch([l, a, b]: [f32; 3]) -> [f32; 3] {
-    let mut h = b.atan2(a) * (180. / f32::consts::PI);
+    let mut h = b.atan2(a) * (180. / PI);
     if h < 0.0 {
         h += 360.0;
     }
@@ -930,7 +930,7 @@ fn lab_to_lch([l, a, b]: [f32; 3]) -> [f32; 3] {
 
 /// Cylindrical to rectangular conversion.
 fn lch_to_lab([l, c, h]: [f32; 3]) -> [f32; 3] {
-    let (sin, cos) = (h * (f32::consts::PI / 180.)).sin_cos();
+    let (sin, cos) = (h * (PI / 180.)).sin_cos();
     let a = c * cos;
     let b = c * sin;
     [l, a, b]
