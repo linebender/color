@@ -36,7 +36,7 @@ cargo update -p package_name --precise 0.1.1
 
 ## Community
 
-[![Linebender Zulip](https://img.shields.io/badge/Xi%20Zulip-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
+[![Linebender Zulip](https://img.shields.io/badge/Linebender%20Zulip-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
 
 Discussion of Color development happens in the [Linebender Zulip](https://xi.zulipchat.com/), specifically the [#color channel](https://xi.zulipchat.com/#narrow/channel/466849-color).
 All public content can be read without logging in.
