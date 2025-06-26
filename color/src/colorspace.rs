@@ -1716,7 +1716,17 @@ mod tests {
     fn roundtrip() {
         fn test_roundtrips<Source: ColorSpace, Dest: ColorSpace>(colors: &[[f32; 3]]) {
             /// A tight bound on relative numerical precision.
+            #[cfg(not(miri))]
             const RELATIVE_EPSILON: f32 = f32::EPSILON * 16.;
+
+            /// Miri uses precision randomization of floating point operations that do not have a
+            /// guaranteed precision.
+            ///
+            /// Use a lower precision bound on Miri specifically. This is a bit messy, but on our
+            /// target platforms, we'd still like to notice it we don't reach a tight precision
+            /// bound anymore.
+            #[cfg(miri)]
+            const RELATIVE_EPSILON: f32 = f32::EPSILON * 1600.;
 
             for color in colors {
                 let intermediate = Source::convert::<Dest>(*color);
