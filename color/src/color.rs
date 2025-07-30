@@ -107,6 +107,42 @@ pub enum HueDirection {
     // NOTICE: If a new value is added, be sure to modify `MAX_VALUE` in the bytemuck impl.
 }
 
+/// Defines how to handle alpha during interpolation.
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[repr(u8)]
+#[expect(
+    clippy::exhaustive_enums,
+    reason = "There are only two ways to do interpolation."
+)]
+pub enum AlphaInterpolationSpace {
+    /// Interpolation using premultiplied colors
+    ///
+    /// This matches behavior described in [CSS Color Module Level 4 § 12.3].
+    ///
+    /// [CSS Color Module Level 4 § 12.3]: https://drafts.csswg.org/css-color/#interpolation-alpha
+    #[default]
+    Premultiplied = 0,
+    /// Interpolation using unpremultiplied colors
+    ///
+    /// This matches behavior described in [The 2D rendering context § Fill and stroke styles].
+    ///
+    /// [The 2D rendering context § Fill and stroke styles]: https://html.spec.whatwg.org/multipage/#interpolation
+    Unpremultiplied = 1,
+}
+
+impl AlphaInterpolationSpace {
+    /// Return true if [`AlphaInterpolationSpace::Premultiplied`]
+    pub const fn is_premultiplied(&self) -> bool {
+        matches!(self, Self::Premultiplied)
+    }
+
+    /// Return true if [`AlphaInterpolationSpace::Unpremultiplied`]
+    pub const fn is_unpremultiplied(&self) -> bool {
+        matches!(self, Self::Unpremultiplied)
+    }
+}
+
 /// Fixup hue based on specified hue direction.
 ///
 /// Reference: §12.4 of CSS Color 4 spec
