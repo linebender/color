@@ -11,7 +11,10 @@
 //! cargo run --example gradient 'oklab(0.5 0.2 0)' 'rgb(0, 200, 0, 0.8)' oklab
 //! ```
 
-use color::{gradient, ColorSpaceTag, DynamicColor, GradientIter, HueDirection, Srgb};
+use color::{
+    gradient, AlphaInterpolationSpace, ColorSpaceTag, DynamicColor, GradientIter, HueDirection,
+    Srgb,
+};
 
 fn main() {
     let mut args = std::env::args().skip(1);
@@ -22,7 +25,14 @@ fn main() {
     let cs_s_raw = args.next();
     let cs_s = cs_s_raw.as_deref().unwrap_or("srgb");
     let cs: ColorSpaceTag = cs_s.parse().expect("error parsing color space");
-    let gradient: GradientIter<Srgb> = gradient(c1, c2, cs, HueDirection::default(), 0.02);
+    let gradient: GradientIter<Srgb> = gradient(
+        c1,
+        c2,
+        cs,
+        HueDirection::default(),
+        0.02,
+        AlphaInterpolationSpace::Premultiplied,
+    );
     println!("<!DOCTYPE html>");
     println!("<html>");
     println!("<head>");
@@ -31,11 +41,7 @@ fn main() {
     println!("#basic {{ background: linear-gradient(to right in {cs_s}, {c1_s}, {c2_s}) }}");
     print!("#ours {{ background: linear-gradient(to right");
     for (t, stop) in gradient {
-        print!(
-            ", {} {}%",
-            DynamicColor::from_alpha_color(stop.un_premultiply()),
-            t * 100.0
-        );
+        print!(", {} {}%", DynamicColor::from_alpha_color(stop), t * 100.0);
     }
     println!(") }}");
     println!("</style>");
