@@ -11,7 +11,7 @@
 //! cargo run --example interp 'oklab(0.5 0.2 0)' 'rgb(0, 200, 0, 0.8)' oklab
 //! ```
 
-use color::{ColorSpaceTag, HueDirection};
+use color::{AlphaInterpolationSpace, ColorSpaceTag, HueDirection};
 
 fn main() {
     let mut args = std::env::args().skip(1);
@@ -30,7 +30,12 @@ fn main() {
     println!("div.g {{ height: 100px }}");
     let pct = 100.0 / N as f64;
     println!("span {{ width: {pct}%; display: inline-block; height: 100px; margin: 0 }}");
-    let interpolator = c1.interpolate(c2, cs, HueDirection::default());
+    let interpolator = c1.interpolate(
+        c2,
+        cs,
+        HueDirection::default(),
+        AlphaInterpolationSpace::Premultiplied,
+    );
     for i in 0..=N {
         let t = i as f32 / (N as f32);
         let c = interpolator.eval(t);

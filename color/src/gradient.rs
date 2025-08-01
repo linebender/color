@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::{
-    ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator, Oklab, PremulColor,
+    AlphaInterpolationSpace, ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator,
+    Oklab, PremulColor,
 };
 
 /// The iterator for gradient approximation.
@@ -117,7 +118,12 @@ pub fn gradient<CS: ColorSpace>(
     direction: HueDirection,
     tolerance: f32,
 ) -> GradientIter<CS> {
-    let interpolator = color0.interpolate(color1, interp_cs, direction);
+    let interpolator = color0.interpolate(
+        color1,
+        interp_cs,
+        direction,
+        AlphaInterpolationSpace::Premultiplied,
+    );
     if !color0.flags.missing().is_empty() {
         color0 = interpolator.eval(0.0);
     }
