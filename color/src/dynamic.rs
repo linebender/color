@@ -655,4 +655,41 @@ mod tests {
             }
         }
     }
+
+    #[test]
+    fn premultiplied_rectangular_interpolation() {
+        use crate::HueDirection;
+
+        // This interpolates in a rectangular color space from a fully transparent color to a fully
+        // opaque color (with premultiplied color channels). Only the fully opaque color should be
+        // contributing color information.
+        let start = parse_color("oklab(0.5 0.2 -0.1 / 0.0)").unwrap();
+        let end = parse_color("oklab(0.3 0.1 0.1 / 1.0)").unwrap();
+        let interp = start.interpolate(end, ColorSpaceTag::Oklab, HueDirection::Increasing);
+        let mid = interp.eval(0.5);
+
+        assert!((mid.components[0] - 0.3).abs() < 1e-4);
+        assert!((mid.components[1] - 0.1).abs() < 1e-4);
+        assert!((mid.components[2] - 0.1).abs() < 1e-4);
+        assert!((mid.components[3] - 0.5).abs() < 1e-4);
+    }
+
+    #[test]
+    fn premultiplied_cylindrical_interpolation() {
+        use crate::HueDirection;
+
+        // This interpolates in a cylandrical color space from a fully transparent color to a fully
+        // opaque color (with premultiplied color channels). The hue is not premultiplied, see
+        // [`crate::PremulColor`]. For the premultiplied channels, only the fully opaque color
+        // should be contributing color information.
+        let start = parse_color("oklch(0.5 0.2 100 / 0.0)").unwrap();
+        let end = parse_color("oklch(0.3 0.1 200 / 1.0)").unwrap();
+        let interp = start.interpolate(end, ColorSpaceTag::Oklch, HueDirection::Increasing);
+        let mid = interp.eval(0.5);
+
+        assert!((mid.components[0] - 0.3).abs() < 1e-4);
+        assert!((mid.components[1] - 0.1).abs() < 1e-4);
+        assert!((mid.components[2] - 150.).abs() < 1e-4);
+        assert!((mid.components[3] - 0.5).abs() < 1e-4);
+    }
 }
