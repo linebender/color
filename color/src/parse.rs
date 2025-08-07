@@ -317,7 +317,7 @@ impl<'a> Parser<'a> {
                 let dim_lc = make_lowercase(dim, &mut buf);
                 let scale = match dim_lc {
                     "deg" => 1.0,
-                    "rad" => 180.0 / f64::consts::PI,
+                    "rad" => 1_f64.to_degrees(),
                     "grad" => 0.9,
                     "turn" => 360.0,
                     _ => return Err(ParseError::UnknownAngleDimension),
