@@ -15,6 +15,10 @@ You can find its changes [documented below](#031-2025-05-19).
 
 This release has an [MSRV][] of 1.82.
 
+### Added
+
+* Support interpolating in straight alpha space by accepting `AlphaInterpolationSpace` argument. ([#185][] by [@sagudev][])
+
 ## [0.3.1][] (2025-05-19)
 
 This release has an [MSRV][] of 1.82.
@@ -139,6 +143,7 @@ This is the initial release.
 [@LaurenzV]: https://github.com/LaurenzV
 [@MightyBurger]: https://github.com/MightyBurger
 [@raphlinus]: https://github.com/raphlinus
+[@sagudev]: https://github.com/sagudev
 [@tomcur]: https://github.com/tomcur
 [@waywardmonkeys]: https://github.com/waywardmonkeys
 
@@ -188,6 +193,7 @@ This is the initial release.
 [#165]: https://github.com/linebender/color/pull/165
 [#166]: https://github.com/linebender/color/pull/166
 [#175]: https://github.com/linebender/color/pull/175
+[#185]: https://github.com/linebender/color/pull/185
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.1...HEAD
 [0.3.1]: https://github.com/linebender/color/releases/tag/v0.3.1

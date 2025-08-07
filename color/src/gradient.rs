@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::{
-    ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator, Oklab, PremulColor,
+    AlphaColor, AlphaInterpolationSpace, ColorSpace, ColorSpaceTag, DynamicColor, HueDirection,
+    Interpolator, Oklab, PremulColor,
 };
 
 /// The iterator for gradient approximation.
@@ -19,9 +20,10 @@ pub struct GradientIter<CS: ColorSpace> {
     // The adaptive subdivision logic is lifted from the stroke expansion paper.
     t0: u32,
     dt: f32,
-    target0: PremulColor<CS>,
-    target1: PremulColor<CS>,
-    end_color: PremulColor<CS>,
+    target0: AlphaColor<CS>,
+    target1: AlphaColor<CS>,
+    end_color: AlphaColor<CS>,
+    alpha_interpolation_space: AlphaInterpolationSpace,
 }
 
 /// Generate a piecewise linear approximation to a gradient ramp.
@@ -71,13 +73,13 @@ pub struct GradientIter<CS: ColorSpace> {
 /// piecewise in the color space sRGB.
 ///
 /// ```rust
-/// use color::{AlphaColor, ColorSpaceTag, DynamicColor, HueDirection, Oklab, Srgb};
+/// use color::{AlphaColor, AlphaInterpolationSpace, ColorSpaceTag, DynamicColor, HueDirection, Oklab, Srgb};
 ///
 /// let start = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([1., 0., 0., 1.]));
 /// let end = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0., 1., 0., 1.]));
 ///
 /// // Interpolation in a target interpolation color space.
-/// let interp = start.interpolate(end, ColorSpaceTag::Oklab, HueDirection::default());
+/// let interp = start.interpolate(end, ColorSpaceTag::Oklab, HueDirection::default(), AlphaInterpolationSpace::Premultiplied);
 /// // Piecewise-approximated interpolation in a compositing color space.
 /// let mut gradient = color::gradient::<Srgb>(
 ///     start,
@@ -85,6 +87,7 @@ pub struct GradientIter<CS: ColorSpace> {
 ///     ColorSpaceTag::Oklab,
 ///     HueDirection::default(),
 ///     0.01,
+///     AlphaInterpolationSpace::Premultiplied,
 /// );
 ///
 /// let (mut t0, mut stop0) = gradient.next().unwrap();
@@ -116,16 +119,17 @@ pub fn gradient<CS: ColorSpace>(
     interp_cs: ColorSpaceTag,
     direction: HueDirection,
     tolerance: f32,
+    alpha_interpolation_space: AlphaInterpolationSpace,
 ) -> GradientIter<CS> {
-    let interpolator = color0.interpolate(color1, interp_cs, direction);
+    let interpolator = color0.interpolate(color1, interp_cs, direction, alpha_interpolation_space);
     if !color0.flags.missing().is_empty() {
         color0 = interpolator.eval(0.0);
     }
-    let target0 = color0.to_alpha_color().premultiply();
+    let target0 = color0.to_alpha_color();
     if !color1.flags.missing().is_empty() {
         color1 = interpolator.eval(1.0);
     }
-    let target1 = color1.to_alpha_color().premultiply();
+    let target1 = color1.to_alpha_color();
     let end_color = target1;
     GradientIter {
         interpolator,
@@ -135,11 +139,12 @@ pub fn gradient<CS: ColorSpace>(
         target0,
         target1,
         end_color,
+        alpha_interpolation_space,
     }
 }
 
 impl<CS: ColorSpace> Iterator for GradientIter<CS> {
-    type Item = (f32, PremulColor<CS>);
+    type Item = (f32, AlphaColor<CS>);
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.dt == 0.0 {
@@ -153,9 +158,18 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
         loop {
             // compute midpoint color
             let midpoint = self.interpolator.eval(t0 + 0.5 * self.dt);
-            let midpoint_oklab: PremulColor<Oklab> = midpoint.to_alpha_color().premultiply();
-            let approx = self.target0.lerp_rect(self.target1, 0.5);
-            let error = midpoint_oklab.difference(approx.convert());
+            let error = if self.alpha_interpolation_space.is_premultiplied() {
+                let midpoint_oklab: PremulColor<Oklab> = midpoint.to_alpha_color().premultiply();
+                let approx = self
+                    .target0
+                    .premultiply()
+                    .lerp_rect(self.target1.premultiply(), 0.5);
+                midpoint_oklab.difference(approx.convert())
+            } else {
+                let midpoint_oklab: AlphaColor<Oklab> = midpoint.to_alpha_color();
+                let approx = self.target0.lerp_rect(self.target1, 0.5);
+                midpoint_oklab.difference(approx.convert())
+            };
             if error <= self.tolerance {
                 let t1 = t0 + self.dt;
                 self.t0 += 1;
@@ -165,11 +179,7 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
                 self.target0 = self.target1;
                 let new_t1 = t1 + self.dt;
                 if new_t1 < 1.0 {
-                    self.target1 = self
-                        .interpolator
-                        .eval(new_t1)
-                        .to_alpha_color()
-                        .premultiply();
+                    self.target1 = self.interpolator.eval(new_t1).to_alpha_color();
                 } else {
                     self.target1 = self.end_color;
                 }
@@ -177,7 +187,7 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
             }
             self.t0 *= 2;
             self.dt *= 0.5;
-            self.target1 = midpoint.to_alpha_color().premultiply();
+            self.target1 = midpoint.to_alpha_color();
         }
     }
 }

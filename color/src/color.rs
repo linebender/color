@@ -107,6 +107,56 @@ pub enum HueDirection {
     // NOTICE: If a new value is added, be sure to modify `MAX_VALUE` in the bytemuck impl.
 }
 
+/// Defines how color channels should be handled when interpolating
+/// between transparent colors.
+#[derive(Clone, Copy, Default, Debug, PartialEq)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+#[repr(u8)]
+#[expect(
+    clippy::exhaustive_enums,
+    reason = "There are only two ways to do interpolation."
+)]
+pub enum AlphaInterpolationSpace {
+    /// Colors are interpolated with their color channels premultiplied by the alpha
+    /// channel. This is almost always what you want.
+    ///
+    /// Used when interpolating colors in the premultiplied alpha space, which allows
+    /// for correct interpolation when colors are transparent. This matches behavior
+    /// described in [CSS Color Module Level 4 § 12.3].
+    ///
+    /// Following the convention of CSS Color Module Level 4, in cylindrical color
+    /// spaces the hue channel is not premultiplied. If it were, interpolation would
+    /// give undesirable results. See also [`PremulColor`].
+    ///
+    /// [CSS Color Module Level 4 § 12.3]: https://drafts.csswg.org/css-color/#interpolation-alpha
+    #[default]
+    Premultiplied = 0,
+    /// Colors are interpolated without premultiplying their color channels by the alpha channel.
+    ///
+    /// This causes color information to leak out of transparent colors. For example, when
+    /// interpolating from a fully transparent red to a fully opaque blue in sRGB, this
+    /// method will go through an intermediate purple.
+    ///
+    /// Used when interpolating colors in the unpremultiplied (straight) alpha space.
+    /// This matches behavior of gradients in the HTML `canvas` element.
+    /// See [The 2D rendering context § Fill and stroke styles].
+    ///
+    /// [The 2D rendering context § Fill and stroke styles]: https://html.spec.whatwg.org/multipage/#interpolation
+    Unpremultiplied = 1,
+}
+
+impl AlphaInterpolationSpace {
+    /// Returns `true` if the alpha mode is [`AlphaInterpolationSpace::Premultiplied`].
+    pub const fn is_premultiplied(&self) -> bool {
+        matches!(self, Self::Premultiplied)
+    }
+
+    /// Returns `true` if the alpha mode is [`AlphaInterpolationSpace::Unpremultiplied`].
+    pub const fn is_unpremultiplied(&self) -> bool {
+        matches!(self, Self::Unpremultiplied)
+    }
+}
+
 /// Fixup hue based on specified hue direction.
 ///
 /// Reference: §12.4 of CSS Color 4 spec
@@ -410,6 +460,13 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     pub const fn premultiply(self) -> PremulColor<CS> {
         let (opaque, alpha) = split_alpha(self.components);
         PremulColor::new(add_alpha(CS::LAYOUT.scale(opaque, alpha), alpha))
+    }
+
+    /// Difference between two colors by Euclidean metric.
+    #[must_use]
+    pub fn difference(self, other: Self) -> f32 {
+        let d = (self - other).components;
+        (d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + d[3] * d[3]).sqrt()
     }
 
     /// Linearly interpolate colors, without hue fixup.

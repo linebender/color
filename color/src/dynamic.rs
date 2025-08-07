@@ -6,8 +6,8 @@
 use crate::{
     cache_key::{BitEq, BitHash},
     color::{add_alpha, fixup_hues_for_interpolate, split_alpha},
-    AlphaColor, Chromaticity, ColorSpace, ColorSpaceLayout, ColorSpaceTag, Flags, HueDirection,
-    LinearSrgb, Missing,
+    AlphaColor, AlphaInterpolationSpace, Chromaticity, ColorSpace, ColorSpaceLayout, ColorSpaceTag,
+    Flags, HueDirection, LinearSrgb, Missing,
 };
 use core::hash::{Hash, Hasher};
 
@@ -54,12 +54,13 @@ pub struct DynamicColor {
     reason = "it's an intermediate struct, only used for eval"
 )]
 pub struct Interpolator {
-    premul1: [f32; 3],
+    color1: [f32; 3],
     alpha1: f32,
-    delta_premul: [f32; 3],
+    delta_color: [f32; 3],
     delta_alpha: f32,
     cs: ColorSpaceTag,
     missing: Missing,
+    alpha_interpolation_space: AlphaInterpolationSpace,
 }
 
 impl DynamicColor {
@@ -274,15 +275,18 @@ impl DynamicColor {
         }
     }
 
-    fn premultiply_split(self) -> ([f32; 3], f32) {
+    pub(crate) fn split(self, alpha_type: AlphaInterpolationSpace) -> ([f32; 3], f32) {
         // Reference: §12.3 of Color 4 spec
         let (opaque, alpha) = split_alpha(self.components);
-        let premul = if alpha == 1.0 || self.flags.missing().contains(3) {
+        let color = if alpha == 1.0
+            || self.flags.missing().contains(3)
+            || alpha_type.is_unpremultiplied()
+        {
             opaque
         } else {
             self.cs.layout().scale(opaque, alpha)
         };
-        (premul, alpha)
+        (color, alpha)
     }
 
     fn powerless_to_missing(&mut self) {
@@ -332,12 +336,12 @@ impl DynamicColor {
     /// # Example
     ///
     /// ```rust
-    /// use color::{AlphaColor, ColorSpaceTag, DynamicColor, HueDirection, Srgb};
+    /// use color::{AlphaColor, AlphaInterpolationSpace, ColorSpaceTag, DynamicColor, HueDirection, Srgb};
     ///
     /// let start = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([1., 0., 0., 1.]));
     /// let end = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0., 1., 0., 1.]));
     ///
-    /// let interp = start.interpolate(end, ColorSpaceTag::Hsl, HueDirection::Increasing);
+    /// let interp = start.interpolate(end, ColorSpaceTag::Hsl, HueDirection::Increasing, AlphaInterpolationSpace::Premultiplied);
     /// let mid = interp.eval(0.5);
     /// assert_eq!(mid.cs, ColorSpaceTag::Hsl);
     /// assert!((mid.components[0] - 60.).abs() < 0.01);
@@ -347,6 +351,7 @@ impl DynamicColor {
         other: Self,
         cs: ColorSpaceTag,
         direction: HueDirection,
+        alpha_interpolation_space: AlphaInterpolationSpace,
     ) -> Interpolator {
         let mut a = self.convert(cs);
         let mut b = other.convert(cs);
@@ -362,21 +367,22 @@ impl DynamicColor {
                 }
             }
         }
-        let (premul1, alpha1) = a.premultiply_split();
-        let (mut premul2, alpha2) = b.premultiply_split();
-        fixup_hues_for_interpolate(premul1, &mut premul2, cs.layout(), direction);
-        let delta_premul = [
-            premul2[0] - premul1[0],
-            premul2[1] - premul1[1],
-            premul2[2] - premul1[2],
+        let (color1, alpha1) = a.split(alpha_interpolation_space);
+        let (mut color2, alpha2) = b.split(alpha_interpolation_space);
+        fixup_hues_for_interpolate(color1, &mut color2, cs.layout(), direction);
+        let delta_color = [
+            color2[0] - color1[0],
+            color2[1] - color1[1],
+            color2[2] - color1[2],
         ];
         Interpolator {
-            premul1,
+            color1,
             alpha1,
-            delta_premul,
+            delta_color,
             delta_alpha: alpha2 - alpha1,
             cs,
             missing,
+            alpha_interpolation_space,
         }
     }
 
@@ -509,16 +515,19 @@ impl Interpolator {
     /// Typically `t` ranges between 0 and 1, but that is not enforced,
     /// so extrapolation is also possible.
     pub fn eval(&self, t: f32) -> DynamicColor {
-        let premul = [
-            self.premul1[0] + t * self.delta_premul[0],
-            self.premul1[1] + t * self.delta_premul[1],
-            self.premul1[2] + t * self.delta_premul[2],
+        let color = [
+            self.color1[0] + t * self.delta_color[0],
+            self.color1[1] + t * self.delta_color[1],
+            self.color1[2] + t * self.delta_color[2],
         ];
         let alpha = self.alpha1 + t * self.delta_alpha;
-        let opaque = if alpha == 0.0 || alpha == 1.0 {
-            premul
+        let opaque = if self.alpha_interpolation_space.is_unpremultiplied()
+            || alpha == 0.0
+            || alpha == 1.0
+        {
+            color
         } else {
-            self.cs.layout().scale(premul, 1.0 / alpha)
+            self.cs.layout().scale(color, 1.0 / alpha)
         };
         let components = add_alpha(opaque, alpha);
         DynamicColor {
@@ -531,7 +540,7 @@ impl Interpolator {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_color, ColorSpaceTag, DynamicColor, Missing};
+    use crate::{parse_color, AlphaInterpolationSpace, ColorSpaceTag, DynamicColor, Missing};
 
     // `DynamicColor` was carefully packed. Ensure its size doesn't accidentally change.
     const _: () = if size_of::<DynamicColor>() != 20 {
@@ -665,12 +674,40 @@ mod tests {
         // contributing color information.
         let start = parse_color("oklab(0.5 0.2 -0.1 / 0.0)").unwrap();
         let end = parse_color("oklab(0.3 0.1 0.1 / 1.0)").unwrap();
-        let interp = start.interpolate(end, ColorSpaceTag::Oklab, HueDirection::Increasing);
+        let interp = start.interpolate(
+            end,
+            ColorSpaceTag::Oklab,
+            HueDirection::Increasing,
+            AlphaInterpolationSpace::Premultiplied,
+        );
         let mid = interp.eval(0.5);
 
         assert!((mid.components[0] - 0.3).abs() < 1e-4);
         assert!((mid.components[1] - 0.1).abs() < 1e-4);
         assert!((mid.components[2] - 0.1).abs() < 1e-4);
+        assert!((mid.components[3] - 0.5).abs() < 1e-4);
+    }
+
+    #[test]
+    fn unpremultiplied_rectangular_interpolation() {
+        use crate::HueDirection;
+
+        // This interpolates in a rectangular color space from a fully transparent color to a fully
+        // opaque color (with premultiplied color channels). Both color should be contributing
+        // color information.
+        let start = parse_color("oklab(0.5 0.2 -0.1 / 0.0)").unwrap();
+        let end = parse_color("oklab(0.3 0.1 0.1 / 1.0)").unwrap();
+        let interp = start.interpolate(
+            end,
+            ColorSpaceTag::Oklab,
+            HueDirection::Increasing,
+            AlphaInterpolationSpace::Unpremultiplied,
+        );
+        let mid = interp.eval(0.5);
+
+        assert!((mid.components[0] - 0.4).abs() < 1e-4);
+        assert!((mid.components[1] - 0.15).abs() < 1e-4);
+        assert!((mid.components[2] - 0.0).abs() < 1e-4);
         assert!((mid.components[3] - 0.5).abs() < 1e-4);
     }
 
@@ -684,11 +721,39 @@ mod tests {
         // should be contributing color information.
         let start = parse_color("oklch(0.5 0.2 100 / 0.0)").unwrap();
         let end = parse_color("oklch(0.3 0.1 200 / 1.0)").unwrap();
-        let interp = start.interpolate(end, ColorSpaceTag::Oklch, HueDirection::Increasing);
+        let interp = start.interpolate(
+            end,
+            ColorSpaceTag::Oklch,
+            HueDirection::Increasing,
+            AlphaInterpolationSpace::Premultiplied,
+        );
         let mid = interp.eval(0.5);
 
         assert!((mid.components[0] - 0.3).abs() < 1e-4);
         assert!((mid.components[1] - 0.1).abs() < 1e-4);
+        assert!((mid.components[2] - 150.).abs() < 1e-4);
+        assert!((mid.components[3] - 0.5).abs() < 1e-4);
+    }
+
+    #[test]
+    fn unpremultiplied_cylindrical_interpolation() {
+        use crate::HueDirection;
+
+        // This interpolates in a cylandrical color space from a fully transparent color to a fully
+        // opaque color (with premultiplied color channels). The hue is not premultiplied, see
+        // [`crate::PremulColor`]. Both color should be contributing color information.
+        let start = parse_color("oklch(0.5 0.2 100 / 0.0)").unwrap();
+        let end = parse_color("oklch(0.3 0.1 200 / 1.0)").unwrap();
+        let interp = start.interpolate(
+            end,
+            ColorSpaceTag::Oklch,
+            HueDirection::Increasing,
+            AlphaInterpolationSpace::Unpremultiplied,
+        );
+        let mid = interp.eval(0.5);
+
+        assert!((mid.components[0] - 0.4).abs() < 1e-4);
+        assert!((mid.components[1] - 0.15).abs() < 1e-4);
         assert!((mid.components[2] - 150.).abs() < 1e-4);
         assert!((mid.components[3] - 0.5).abs() < 1e-4);
     }
