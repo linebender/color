@@ -4,7 +4,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-use core::{any::TypeId, f32::consts::PI};
+use core::any::TypeId;
 
 use crate::{matvecmul, tag::ColorSpaceTag, Chromaticity};
 
