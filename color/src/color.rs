@@ -40,6 +40,10 @@ pub struct OpaqueColor<CS> {
 ///
 /// A color in a color space known at compile time, with an alpha channel.
 ///
+/// The color channels are "straight," i.e., they are not premultiplied by
+/// the alpha channel. See [`PremulColor`] for a color type with color
+/// channels premultiplied by the alpha channel.
+///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -56,12 +60,14 @@ pub struct AlphaColor<CS> {
 
 /// A color with premultiplied alpha.
 ///
-/// A color in a color space known at compile time, with a premultiplied
-/// alpha channel.
+/// A color in a color space known at compile time, with color channels
+/// premultiplied by the alpha channel.
 ///
 /// Following the convention of CSS Color 4, in cylindrical color spaces
 /// the hue channel is not premultiplied. If it were, interpolation would
 /// give undesirable results.
+///
+/// See [`AlphaColor`] for a color type without alpha premultiplication.
 ///
 /// See [`OpaqueColor`] for a discussion of arithmetic traits and interpolation.
 #[derive(Clone, Copy, Debug)]
