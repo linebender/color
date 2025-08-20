@@ -108,14 +108,14 @@ mod impl_bytemuck;
 mod floatfuncs;
 
 pub use chromaticity::Chromaticity;
-pub use color::{AlphaColor, HueDirection, OpaqueColor, PremulColor};
+pub use color::{AlphaColor, HueDirection, InterpolationAlphaSpace, OpaqueColor, PremulColor};
 pub use colorspace::{
     A98Rgb, Aces2065_1, AcesCg, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch,
     LinearSrgb, Oklab, Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
 pub use dynamic::{DynamicColor, Interpolator};
 pub use flags::{Flags, Missing};
-pub use gradient::{gradient, GradientIter};
+pub use gradient::{gradient, unpremultiplied_gradient, GradientIter, UnpremultipliedGradientIter};
 pub use parse::{parse_color, parse_color_prefix, ParseError};
 pub use rgba8::{PremulRgba8, Rgba8};
 pub use tag::ColorSpaceTag;

@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::{
-    ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator, Oklab, PremulColor,
+    AlphaColor, ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, InterpolationAlphaSpace,
+    Interpolator, Oklab, PremulColor,
 };
 
 /// The iterator for gradient approximation.
@@ -178,6 +179,157 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
             self.t0 *= 2;
             self.dt *= 0.5;
             self.target1 = midpoint.to_alpha_color().premultiply();
+        }
+    }
+}
+
+/// The iterator for gradient approximation.
+///
+/// This will yield a value for each gradient stop, including `t` values
+/// of 0 and 1 at the endpoints.
+///
+/// Use the [`unpremultiplied_gradient`] function to generate this iterator.
+///
+/// Similar to [`GradientIter`], but does interpolation in unpremultiplied (straight) alpha space
+/// as specified in [HTML 2D Canvas]
+///
+/// [HTML 2D Canvas]: https://html.spec.whatwg.org/multipage/#interpolation
+#[expect(missing_debug_implementations, reason = "it's an iterator")]
+pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
+    interpolator: Interpolator,
+    // This is in deltaEOK units
+    tolerance: f32,
+    // The adaptive subdivision logic is lifted from the stroke expansion paper.
+    t0: u32,
+    dt: f32,
+    target0: AlphaColor<CS>,
+    target1: AlphaColor<CS>,
+    end_color: AlphaColor<CS>,
+}
+
+/// Generate a piecewise linear approximation to a gradient ramp.
+///
+/// Similar to [`gradient`], but does interpolation in unpremultiplied (straight) alpha space
+/// as specified in [HTML 2D Canvas]
+///
+/// [HTML 2D Canvas]: https://html.spec.whatwg.org/multipage/#interpolation
+///
+/// # Example
+///
+/// The following compares interpolating in the target color space Oklab with interpolating
+/// piecewise in the color space sRGB.
+///
+/// ```rust
+/// use color::{AlphaColor, InterpolationAlphaSpace, ColorSpaceTag, DynamicColor, HueDirection, Oklab, Srgb};
+///
+/// let start = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([1., 0., 0., 1.]));
+/// let end = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0., 1., 0., 1.]));
+///
+/// // Interpolation in a target interpolation color space.
+/// let interp = start.interpolate_with_alpha(end, ColorSpaceTag::Oklab, HueDirection::default(), InterpolationAlphaSpace::Unpremultiplied);
+/// // Piecewise-approximated interpolation in a compositing color space.
+/// let mut gradient = color::unpremultiplied_gradient::<Srgb>(
+///     start,
+///     end,
+///     ColorSpaceTag::Oklab,
+///     HueDirection::default(),
+///     0.01,
+/// );
+///
+/// let (mut t0, mut stop0) = gradient.next().unwrap();
+/// for (t1, stop1) in gradient {
+///     // Compare a few points between the piecewise stops.
+///     for point in [0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] {
+///         let interpolated_point = interp
+///             .eval(t0 + (t1 - t0) * point)
+///             .to_alpha_color::<Srgb>()
+///             .discard_alpha();
+///         let approximated_point = stop0.lerp_rect(stop1, point).discard_alpha();
+///
+///         // The perceptual deltaEOK between the two is lower than the tolerance.
+///         assert!(
+///             approximated_point
+///                 .convert::<Oklab>()
+///                 .difference(interpolated_point.convert::<Oklab>())
+///                 < 0.01
+///         );
+///     }
+///
+///     t0 = t1;
+///     stop0 = stop1;
+/// }
+/// ```
+pub fn unpremultiplied_gradient<CS: ColorSpace>(
+    mut color0: DynamicColor,
+    mut color1: DynamicColor,
+    interp_cs: ColorSpaceTag,
+    direction: HueDirection,
+    tolerance: f32,
+) -> UnpremultipliedGradientIter<CS> {
+    let interpolator = color0.interpolate_with_alpha(
+        color1,
+        interp_cs,
+        direction,
+        InterpolationAlphaSpace::Unpremultiplied,
+    );
+    if !color0.flags.missing().is_empty() {
+        color0 = interpolator.eval(0.0);
+    }
+    let target0 = color0.to_alpha_color();
+    if !color1.flags.missing().is_empty() {
+        color1 = interpolator.eval(1.0);
+    }
+    let target1 = color1.to_alpha_color();
+    let end_color = target1;
+    UnpremultipliedGradientIter {
+        interpolator,
+        tolerance,
+        t0: 0,
+        dt: 0.0,
+        target0,
+        target1,
+        end_color,
+    }
+}
+
+impl<CS: ColorSpace> Iterator for UnpremultipliedGradientIter<CS> {
+    type Item = (f32, AlphaColor<CS>);
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.dt == 0.0 {
+            self.dt = 1.0;
+            return Some((0.0, self.target0));
+        }
+        let t0 = self.t0 as f32 * self.dt;
+        if t0 == 1.0 {
+            return None;
+        }
+        loop {
+            // compute midpoint color
+            let midpoint = self.interpolator.eval(t0 + 0.5 * self.dt);
+            let error = {
+                let midpoint_oklab: AlphaColor<Oklab> = midpoint.to_alpha_color();
+                let approx = self.target0.lerp_rect(self.target1, 0.5);
+                midpoint_oklab.difference(approx.convert())
+            };
+            if error <= self.tolerance {
+                let t1 = t0 + self.dt;
+                self.t0 += 1;
+                let shift = self.t0.trailing_zeros();
+                self.t0 >>= shift;
+                self.dt *= (1 << shift) as f32;
+                self.target0 = self.target1;
+                let new_t1 = t1 + self.dt;
+                if new_t1 < 1.0 {
+                    self.target1 = self.interpolator.eval(new_t1).to_alpha_color();
+                } else {
+                    self.target1 = self.end_color;
+                }
+                return Some((t1, self.target0));
+            }
+            self.t0 *= 2;
+            self.dt *= 0.5;
+            self.target1 = midpoint.to_alpha_color();
         }
     }
 }
