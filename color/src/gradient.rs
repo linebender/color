@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::{
-    AlphaColor, ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, InterpolationAlphaSpace,
-    Interpolator, Oklab, PremulColor,
+    AlphaColor, ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator, Oklab,
+    PremulColor,
 };
 
 /// The iterator for gradient approximation.
@@ -188,7 +188,7 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
 /// This will yield a value for each gradient stop, including `t` values
 /// of 0 and 1 at the endpoints.
 ///
-/// Use the [`unpremultiplied_gradient`] function to generate this iterator.
+/// Use the [`gradient_unpremultiplied`] function to generate this iterator.
 ///
 /// Similar to [`GradientIter`], but does interpolation in unpremultiplied (straight) alpha space
 /// as specified in [HTML 2D Canvas]
@@ -220,15 +220,15 @@ pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
 /// piecewise in the color space sRGB.
 ///
 /// ```rust
-/// use color::{AlphaColor, InterpolationAlphaSpace, ColorSpaceTag, DynamicColor, HueDirection, Oklab, Srgb};
+/// use color::{AlphaColor, ColorSpaceTag, DynamicColor, HueDirection, Oklab, Srgb};
 ///
 /// let start = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([1., 0., 0., 1.]));
 /// let end = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0., 1., 0., 1.]));
 ///
 /// // Interpolation in a target interpolation color space.
-/// let interp = start.interpolate_with_alpha(end, ColorSpaceTag::Oklab, HueDirection::default(), InterpolationAlphaSpace::Unpremultiplied);
+/// let interp = start.interpolate_unpremultiplied(end, ColorSpaceTag::Oklab, HueDirection::default());
 /// // Piecewise-approximated interpolation in a compositing color space.
-/// let mut gradient = color::unpremultiplied_gradient::<Srgb>(
+/// let mut gradient = color::gradient_unpremultiplied::<Srgb>(
 ///     start,
 ///     end,
 ///     ColorSpaceTag::Oklab,
@@ -259,19 +259,14 @@ pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
 ///     stop0 = stop1;
 /// }
 /// ```
-pub fn unpremultiplied_gradient<CS: ColorSpace>(
+pub fn gradient_unpremultiplied<CS: ColorSpace>(
     mut color0: DynamicColor,
     mut color1: DynamicColor,
     interp_cs: ColorSpaceTag,
     direction: HueDirection,
     tolerance: f32,
 ) -> UnpremultipliedGradientIter<CS> {
-    let interpolator = color0.interpolate_with_alpha(
-        color1,
-        interp_cs,
-        direction,
-        InterpolationAlphaSpace::Unpremultiplied,
-    );
+    let interpolator = color0.interpolate_unpremultiplied(color1, interp_cs, direction);
     if !color0.flags.missing().is_empty() {
         color0 = interpolator.eval(0.0);
     }

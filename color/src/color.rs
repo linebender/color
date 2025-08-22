@@ -112,11 +112,7 @@ pub enum HueDirection {
 #[derive(Clone, Copy, Default, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[repr(u8)]
-#[expect(
-    clippy::exhaustive_enums,
-    reason = "There are only two ways to do interpolation."
-)]
-pub enum InterpolationAlphaSpace {
+pub(crate) enum InterpolationAlphaSpace {
     /// Colors are interpolated with their color channels premultiplied by the alpha
     /// channel. This is almost always what you want.
     ///
@@ -146,13 +142,8 @@ pub enum InterpolationAlphaSpace {
 }
 
 impl InterpolationAlphaSpace {
-    /// Returns `true` if the alpha mode is [`InterpolationAlphaSpace::Premultiplied`].
-    pub const fn is_premultiplied(&self) -> bool {
-        matches!(self, Self::Premultiplied)
-    }
-
     /// Returns `true` if the alpha mode is [`InterpolationAlphaSpace::Unpremultiplied`].
-    pub const fn is_unpremultiplied(&self) -> bool {
+    pub(crate) const fn is_unpremultiplied(self) -> bool {
         matches!(self, Self::Unpremultiplied)
     }
 }

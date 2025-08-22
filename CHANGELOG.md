@@ -17,7 +17,7 @@ This release has an [MSRV][] of 1.82.
 
 ### Added
 
-* Support interpolating in unpremultiplied (straight) alpha space.
+* Add `interpolate_unpremultiplied` and `gradient_unpremultiplied` for interpolating in unpremultiplied (straight) alpha space.
   This allows using Color to implement web rendering features which specify such gradient rendering. ([#185][] by [@sagudev][])
 
 ## [0.3.1][] (2025-05-19)
