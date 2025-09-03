@@ -358,8 +358,8 @@ impl DynamicColor {
     /// Interpolate two colors.
     /// Interpolate two colors without alpha premultiplication.
     ///
-    /// Similar to [`interpolate`], but colors are interpolated without premultiplying their color
-    /// channels by the alpha channel. This is almost never what you want.
+    /// Similar to [`DynamicColor::interpolate`], but colors are interpolated without premultiplying
+    /// their color channels by the alpha channel. This is almost never what you want.
     ///
     /// This causes color information to leak out of transparent colors. For example, when
     /// interpolating from a fully transparent red to a fully opaque blue in sRGB, this
