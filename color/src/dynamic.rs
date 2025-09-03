@@ -60,7 +60,23 @@ pub struct Interpolator {
     delta_alpha: f32,
     cs: ColorSpaceTag,
     missing: Missing,
-    interpolation_alpha_space: InterpolationAlphaSpace,
+}
+
+/// An intermediate struct used for interpolating between colors.
+///
+/// This is the return value of [`DynamicColor::interpolate_unpremultiplied`].
+#[derive(Clone, Copy)]
+#[expect(
+    missing_debug_implementations,
+    reason = "it's an intermediate struct, only used for eval"
+)]
+pub struct UnpremultipliedInterpolator {
+    color1: [f32; 3],
+    alpha1: f32,
+    delta_color: [f32; 3],
+    delta_alpha: f32,
+    cs: ColorSpaceTag,
+    missing: Missing,
 }
 
 impl DynamicColor {
@@ -352,7 +368,36 @@ impl DynamicColor {
         cs: ColorSpaceTag,
         direction: HueDirection,
     ) -> Interpolator {
-        self.interpolate_inner(other, cs, direction, InterpolationAlphaSpace::Premultiplied)
+        let mut a = self.convert(cs);
+        let mut b = other.convert(cs);
+        let a_missing = a.flags.missing();
+        let b_missing = b.flags.missing();
+        let missing = a_missing & b_missing;
+        if a_missing != b_missing {
+            for i in 0..4 {
+                if (a_missing & !b_missing).contains(i) {
+                    a.components[i] = b.components[i];
+                } else if (!a_missing & b_missing).contains(i) {
+                    b.components[i] = a.components[i];
+                }
+            }
+        }
+        let (color1, alpha1) = a.split(InterpolationAlphaSpace::Premultiplied);
+        let (mut color2, alpha2) = b.split(InterpolationAlphaSpace::Premultiplied);
+        fixup_hues_for_interpolate(color1, &mut color2, cs.layout(), direction);
+        let delta_color = [
+            color2[0] - color1[0],
+            color2[1] - color1[1],
+            color2[2] - color1[2],
+        ];
+        Interpolator {
+            color1,
+            alpha1,
+            delta_color,
+            delta_alpha: alpha2 - alpha1,
+            cs,
+            missing,
+        }
     }
 
     /// Interpolate two colors.
@@ -377,7 +422,7 @@ impl DynamicColor {
     ///
     /// The interpolation proceeds according to [CSS Color Module Level 4 § 12][css-sec].
     ///
-    /// This method does a bunch of precomputation, resulting in an [`Interpolator`] object that
+    /// This method does a bunch of precomputation, resulting in an [`UnpremultipliedInterpolator`] object that
     /// can be evaluated at various `t` values.
     ///
     /// [css-sec]: https://www.w3.org/TR/css-color-4/#interpolation
@@ -400,22 +445,8 @@ impl DynamicColor {
         other: Self,
         cs: ColorSpaceTag,
         direction: HueDirection,
-    ) -> Interpolator {
-        self.interpolate_inner(
-            other,
-            cs,
-            direction,
-            InterpolationAlphaSpace::Unpremultiplied,
-        )
-    }
-
-    fn interpolate_inner(
-        self,
-        other: Self,
-        cs: ColorSpaceTag,
-        direction: HueDirection,
-        interpolation_alpha_space: InterpolationAlphaSpace,
-    ) -> Interpolator {
+    ) -> UnpremultipliedInterpolator {
+        let interpolation_alpha_space = InterpolationAlphaSpace::Unpremultiplied;
         let mut a = self.convert(cs);
         let mut b = other.convert(cs);
         let a_missing = a.flags.missing();
@@ -438,14 +469,13 @@ impl DynamicColor {
             color2[1] - color1[1],
             color2[2] - color1[2],
         ];
-        Interpolator {
+        UnpremultipliedInterpolator {
             color1,
             alpha1,
             delta_color,
             delta_alpha: alpha2 - alpha1,
             cs,
             missing,
-            interpolation_alpha_space,
         }
     }
 
@@ -584,15 +614,33 @@ impl Interpolator {
             self.color1[2] + t * self.delta_color[2],
         ];
         let alpha = self.alpha1 + t * self.delta_alpha;
-        let opaque = if self.interpolation_alpha_space.is_unpremultiplied()
-            || alpha == 0.0
-            || alpha == 1.0
-        {
+        let opaque = if alpha == 0.0 || alpha == 1.0 {
             color
         } else {
             self.cs.layout().scale(color, 1.0 / alpha)
         };
         let components = add_alpha(opaque, alpha);
+        DynamicColor {
+            cs: self.cs,
+            flags: Flags::from_missing(self.missing),
+            components,
+        }
+    }
+}
+
+impl UnpremultipliedInterpolator {
+    /// Evaluate the color ramp at the given point.
+    ///
+    /// Typically `t` ranges between 0 and 1, but that is not enforced,
+    /// so extrapolation is also possible.
+    pub fn eval(&self, t: f32) -> DynamicColor {
+        let color = [
+            self.color1[0] + t * self.delta_color[0],
+            self.color1[1] + t * self.delta_color[1],
+            self.color1[2] + t * self.delta_color[2],
+        ];
+        let alpha = self.alpha1 + t * self.delta_alpha;
+        let components = add_alpha(color, alpha);
         DynamicColor {
             cs: self.cs,
             flags: Flags::from_missing(self.missing),

@@ -3,7 +3,7 @@
 
 use crate::{
     AlphaColor, ColorSpace, ColorSpaceTag, DynamicColor, HueDirection, Interpolator, Oklab,
-    PremulColor,
+    PremulColor, UnpremultipliedInterpolator,
 };
 
 /// The iterator for gradient approximation.
@@ -198,7 +198,7 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
 /// [HTML 2D Canvas]: https://html.spec.whatwg.org/multipage/#interpolation
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
 pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
-    interpolator: Interpolator,
+    interpolator: UnpremultipliedInterpolator,
     // This is in deltaEOK units
     tolerance: f32,
     // The adaptive subdivision logic is lifted from the stroke expansion paper.

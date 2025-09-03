@@ -113,7 +113,7 @@ pub use colorspace::{
     A98Rgb, Aces2065_1, AcesCg, ColorSpace, ColorSpaceLayout, DisplayP3, Hsl, Hwb, Lab, Lch,
     LinearSrgb, Oklab, Oklch, ProphotoRgb, Rec2020, Srgb, XyzD50, XyzD65,
 };
-pub use dynamic::{DynamicColor, Interpolator};
+pub use dynamic::{DynamicColor, Interpolator, UnpremultipliedInterpolator};
 pub use flags::{Flags, Missing};
 pub use gradient::{gradient, gradient_unpremultiplied, GradientIter, UnpremultipliedGradientIter};
 pub use parse::{parse_color, parse_color_prefix, ParseError};
