@@ -191,7 +191,7 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
 /// Use the [`gradient_unpremultiplied`] function to generate this iterator.
 ///
 /// Similar to [`GradientIter`], but does interpolation in unpremultiplied (straight) alpha space
-/// as specified in [HTML 2D Canvas]
+/// as specified in [HTML 2D Canvas].
 ///
 /// [HTML 2D Canvas]: https://html.spec.whatwg.org/multipage/#interpolation
 #[expect(missing_debug_implementations, reason = "it's an iterator")]
@@ -207,11 +207,20 @@ pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
     end_color: AlphaColor<CS>,
 }
 
-/// Generate a piecewise linear approximation to a gradient ramp.
+/// Generate a piecewise linear approximation to a gradient ramp without alpha premultiplication.
 ///
 /// Similar to [`gradient`], but does interpolation in unpremultiplied (straight) alpha space
 /// as specified in [HTML 2D Canvas]
+/// Similar to [`gradient`], but colors are interpolated without premultiplying their color
+/// channels by the alpha channel. This is almost never what you want.
 ///
+/// This causes color information to leak out of transparent colors. For example, when
+/// interpolating from a fully transparent red to a fully opaque blue in sRGB, this
+/// method will go through an intermediate purple.
+///
+/// This matches behavior of gradients in the HTML `canvas` element.
+/// See [The 2D rendering context § Fill and stroke styles][HTML 2D Canvas] of the
+/// HTML 2D Canvas specification.
 /// [HTML 2D Canvas]: https://html.spec.whatwg.org/multipage/#interpolation
 ///
 /// # Example

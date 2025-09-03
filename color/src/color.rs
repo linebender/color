@@ -455,7 +455,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 
     /// Difference between two colors by Euclidean metric.
     #[must_use]
-    pub fn difference(self, other: Self) -> f32 {
+    pub(crate) fn difference(self, other: Self) -> f32 {
         let d = (self - other).components;
         (d[0] * d[0] + d[1] * d[1] + d[2] * d[2] + d[3] * d[3]).sqrt()
     }

@@ -356,7 +356,20 @@ impl DynamicColor {
     }
 
     /// Interpolate two colors.
-    ///
+/// Interpolate two colors without alpha premultiplication.
+///
+/// Similar to [`interpolate`], but colors are interpolated without premultiplying their color
+/// channels by the alpha channel. This is almost never what you want.
+///
+/// This causes color information to leak out of transparent colors. For example, when
+/// interpolating from a fully transparent red to a fully opaque blue in sRGB, this
+/// method will go through an intermediate purple.
+///
+/// This matches behavior of gradients in the HTML `canvas` element.
+/// See [The 2D rendering context § Fill and stroke styles][HTML 2D Canvas] of the
+/// HTML 2D Canvas specification.
+///
+/// [HTML 2D Canvas]: https://html.spec.whatwg.org/multipage/#interpolation
     /// The colors are interpolated linearly from `self` to `other` in the color space given by
     /// `cs`. When interpolating in a cylindrical color space, the hue can be interpolated in
     /// multiple ways. The [`direction`](`HueDirection`) parameter controls the way in which the
@@ -738,7 +751,7 @@ mod tests {
         use crate::HueDirection;
 
         // This interpolates in a rectangular color space from a fully transparent color to a fully
-        // opaque color (with premultiplied color channels). Both color should be contributing
+        // opaque color (with unpremultiplied color channels). Both colors should be contributing
         // color information.
         let start = parse_color("oklab(0.5 0.2 -0.1 / 0.0)").unwrap();
         let end = parse_color("oklab(0.3 0.1 0.1 / 1.0)").unwrap();
@@ -777,7 +790,9 @@ mod tests {
 
         // This interpolates in a cylandrical color space from a fully transparent color to a fully
         // opaque color (with premultiplied color channels). The hue is not premultiplied, see
-        // [`crate::PremulColor`]. Both color should be contributing color information.
+        // This interpolates in a cylindrical color space from a fully transparent color to a fully
+        // opaque color (with unpremultiplied color channels). Both color should be contributing
+        // color information.
         let start = parse_color("oklch(0.5 0.2 100 / 0.0)").unwrap();
         let end = parse_color("oklch(0.3 0.1 200 / 1.0)").unwrap();
         let interp =
