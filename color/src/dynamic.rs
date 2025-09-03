@@ -275,7 +275,7 @@ impl DynamicColor {
         }
     }
 
-    pub(crate) fn split(self, alpha_type: InterpolationAlphaSpace) -> ([f32; 3], f32) {
+    fn split(self, alpha_type: InterpolationAlphaSpace) -> ([f32; 3], f32) {
         // Reference: §12.3 of Color 4 spec
         let (opaque, alpha) = split_alpha(self.components);
         let color = if alpha == 1.0

@@ -154,9 +154,11 @@ impl<CS: ColorSpace> Iterator for GradientIter<CS> {
         loop {
             // compute midpoint color
             let midpoint = self.interpolator.eval(t0 + 0.5 * self.dt);
-            let midpoint_oklab: PremulColor<Oklab> = midpoint.to_alpha_color().premultiply();
-            let approx = self.target0.lerp_rect(self.target1, 0.5);
-            let error = midpoint_oklab.difference(approx.convert());
+            let error = {
+                let midpoint_oklab: PremulColor<Oklab> = midpoint.to_alpha_color().premultiply();
+                let approx = self.target0.lerp_rect(self.target1, 0.5);
+                midpoint_oklab.difference(approx.convert())
+            };
             if error <= self.tolerance {
                 let t1 = t0 + self.dt;
                 self.t0 += 1;
@@ -221,7 +223,7 @@ pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
 /// This matches behavior of gradients in the HTML `canvas` element.
 /// See [The 2D rendering context § Fill and stroke styles][HTML 2D Canvas] of the
 /// HTML 2D Canvas specification.
-/// [HTML 2D Canvas]: https://html.spec.whatwg.org/multipage/#interpolation
+/// [HTML 2D Canvas]: <https://html.spec.whatwg.org/multipage/#interpolation>
 ///
 /// # Example
 ///
