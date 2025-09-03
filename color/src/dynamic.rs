@@ -400,7 +400,6 @@ impl DynamicColor {
         }
     }
 
-    /// Interpolate two colors.
     /// Interpolate two colors without alpha premultiplication.
     ///
     /// Similar to [`DynamicColor::interpolate`], but colors are interpolated without premultiplying
@@ -836,8 +835,6 @@ mod tests {
     fn unpremultiplied_cylindrical_interpolation() {
         use crate::HueDirection;
 
-        // This interpolates in a cylandrical color space from a fully transparent color to a fully
-        // opaque color (with premultiplied color channels). The hue is not premultiplied, see
         // This interpolates in a cylindrical color space from a fully transparent color to a fully
         // opaque color (with unpremultiplied color channels). Both color should be contributing
         // color information.

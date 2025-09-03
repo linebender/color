@@ -211,8 +211,6 @@ pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
 
 /// Generate a piecewise linear approximation to a gradient ramp without alpha premultiplication.
 ///
-/// Similar to [`gradient`], but does interpolation in unpremultiplied (straight) alpha space
-/// as specified in [HTML 2D Canvas]
 /// Similar to [`gradient`], but colors are interpolated without premultiplying their color
 /// channels by the alpha channel. This is almost never what you want.
 ///
@@ -223,6 +221,7 @@ pub struct UnpremultipliedGradientIter<CS: ColorSpace> {
 /// This matches behavior of gradients in the HTML `canvas` element.
 /// See [The 2D rendering context § Fill and stroke styles][HTML 2D Canvas] of the
 /// HTML 2D Canvas specification.
+///
 /// [HTML 2D Canvas]: <https://html.spec.whatwg.org/multipage/#interpolation>
 ///
 /// # Example
