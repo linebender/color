@@ -25,7 +25,7 @@ serde = ["dep:serde"]
 [dependencies]
 
 [dependencies.bytemuck]
-version = "1.23.0"
+version = "1.23.2"
 optional = true
 default-features = false
 
