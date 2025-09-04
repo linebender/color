@@ -21,7 +21,9 @@ This release has an [MSRV][] of 1.82.
   This allows using Color to implement web rendering features which specify such gradient rendering. ([#185][] by [@sagudev][])
 
 ### Changed
+
 * Specify XYZ-D65 color space conversion matrices as exact rationals. ([#171][] by [@tomcur][])
+* Improve documentation of `AlphaColor` vs `PremulColor` to clarify alpha premultiplication, and make both types more discoverable from each other. ([#190][] by [@tomcur][])
 
 ## [0.3.1][] (2025-05-19)
 
@@ -199,6 +201,7 @@ This is the initial release.
 [#171]: https://github.com/linebender/color/pull/171
 [#175]: https://github.com/linebender/color/pull/175
 [#185]: https://github.com/linebender/color/pull/185
+[#190]: https://github.com/linebender/color/pull/190
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.1...HEAD
 [0.3.1]: https://github.com/linebender/color/releases/tag/v0.3.1
