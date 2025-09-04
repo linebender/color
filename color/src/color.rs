@@ -40,7 +40,7 @@ pub struct OpaqueColor<CS> {
 ///
 /// A color in a color space known at compile time, with an alpha channel.
 ///
-/// The color channels are "straight," i.e., they are not premultiplied by
+/// The color channels are straight, i.e., they are not premultiplied by
 /// the alpha channel. See [`PremulColor`] for a color type with color
 /// channels premultiplied by the alpha channel.
 ///
