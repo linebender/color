@@ -19,7 +19,7 @@ This release has an [MSRV][] of 1.82.
 
 * Add `interpolate_unpremultiplied` and `gradient_unpremultiplied` for interpolating in unpremultiplied (straight) alpha space.
 
-  While such interpolation will often give perceptually undesired results, this allows using Color to implement rendering features where such interpolation is specified or desired, like in the [HTML Canvas element][]. ([#185][] by [@sagudev][])
+  While such interpolation will often give perceptually undesired results, this allows using Color to implement rendering features where such interpolation is specified, like in the [HTML Canvas element][]. ([#185][] by [@sagudev][])
 
 [HTML Canvas element]: https://html.spec.whatwg.org/commit-snapshots/a93c6fa9fa95e31f1caa05f2f8abc650669df7c3/#interpolation
 
