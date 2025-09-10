@@ -307,11 +307,10 @@ jobs:
           # where we use floating point operations with unspecified precision.
           # These sometimes cause tests to fail under Miri. While these
           # failures might not be false positives technically, it seems Miri's
-          # approach to float error randomization has not fully stabilized yet
-          # (see, e.g., https://github.com/rust-lang/miri/pull/4558, which as
-          # of writing is a week-old change). We pass a flag to Miri to disable
-          # randomization for now in CI. The plan is to remove this flag once
-          # Miri's approach has become more stable.
+          # approach to float error randomization has not fully stabilized yet.
+          # We pass a flag to Miri to disable randomization for now in CI. We
+          # would like to remove this flag once Miri's approach becomes more
+          # stable.
           MIRIFLAGS: "-Zmiri-deterministic-floats"
 
   doc:
