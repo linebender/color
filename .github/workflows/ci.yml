@@ -311,6 +311,10 @@ jobs:
           # We pass a flag to Miri to disable randomization for now in CI. We
           # would like to remove this flag once Miri's approach becomes more
           # stable.
+          #
+          # This is tracked in https://github.com/linebender/color/issues/197,
+          # i.e., this flag is to be removed if that issue is closed as
+          # completed.
           MIRIFLAGS: "-Zmiri-deterministic-floats"
 
   doc:
