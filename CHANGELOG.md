@@ -21,12 +21,12 @@ This release has an [MSRV][] of 1.82.
 
   While such interpolation will often give perceptually undesired results, this allows using Color to implement rendering features where such interpolation is specified, like in the [HTML Canvas element][]. ([#185][] by [@sagudev][])
 
-[HTML Canvas element]: https://html.spec.whatwg.org/commit-snapshots/a93c6fa9fa95e31f1caa05f2f8abc650669df7c3/#interpolation
-
 ### Changed
 
 * Specify XYZ-D65 color space conversion matrices as exact rationals. ([#171][] by [@tomcur][])
 * Improve documentation of `AlphaColor` vs `PremulColor` to clarify alpha premultiplication, and make both types more discoverable from each other. ([#190][] by [@tomcur][])
+
+[HTML Canvas element]: https://html.spec.whatwg.org/commit-snapshots/a93c6fa9fa95e31f1caa05f2f8abc650669df7c3/#interpolation
 
 ## [0.3.1][] (2025-05-19)
 
