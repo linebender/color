@@ -81,7 +81,7 @@
 #![warn(unused_crate_dependencies)]
 #![warn(clippy::print_stdout, clippy::print_stderr)]
 // END LINEBENDER LINT SET
-#![cfg_attr(docsrs, feature(doc_auto_cfg))]
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![no_std]
 
 pub mod cache_key;
