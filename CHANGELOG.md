@@ -15,6 +15,10 @@ You can find its changes [documented below](#032-2025-09-10).
 
 This release has an [MSRV][] of 1.82.
 
+### Added
+
+* Add `lerp_rect_unpremultiplied` to interpolate `AlphaColor` without premultiplying alpha (in unpremultiplied "straight" alpha space). ([#199][] by [@tomcur][])
+
 ## [0.3.2][] (2025-09-10)
 
 This release has an [MSRV][] of 1.82.
@@ -209,6 +213,7 @@ This is the initial release.
 [#175]: https://github.com/linebender/color/pull/175
 [#185]: https://github.com/linebender/color/pull/185
 [#190]: https://github.com/linebender/color/pull/190
+[#199]: https://github.com/linebender/color/pull/199
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.2...HEAD
 [0.3.2]: https://github.com/linebender/color/releases/tag/v0.3.2

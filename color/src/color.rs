@@ -475,6 +475,16 @@ impl<CS: ColorSpace> AlphaColor<CS> {
             .un_premultiply()
     }
 
+    /// Interpolate colors without premultiplying alpha (in unpremultiplied "straight" alpha space).
+    ///
+    /// Note: this function doesn't fix up hue in cylindrical spaces. It is
+    /// still useful if the hue angles are compatible, particularly if the
+    /// fixup has been applied.
+    #[must_use]
+    pub fn lerp_rect_unpremultiplied(self, other: Self, t: f32) -> Self {
+        self + t * (other - self)
+    }
+
     /// Linearly interpolate colors, with hue fixup if needed.
     #[must_use]
     pub fn lerp(self, other: Self, t: f32, direction: HueDirection) -> Self {
