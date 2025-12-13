@@ -33,6 +33,7 @@ pub struct OpaqueColor<CS> {
     /// The interpretation of the components depends on the color space.
     pub components: [f32; 3],
     /// The color space.
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub cs: PhantomData<CS>,
 }
 
@@ -55,6 +56,7 @@ pub struct AlphaColor<CS> {
     /// space. The fourth component is separate alpha.
     pub components: [f32; 4],
     /// The color space.
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub cs: PhantomData<CS>,
 }
 
@@ -86,6 +88,7 @@ pub struct PremulColor<CS> {
     /// components yourself, be aware.
     pub components: [f32; 4],
     /// The color space.
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub cs: PhantomData<CS>,
 }
 

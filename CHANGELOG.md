@@ -15,6 +15,10 @@ You can find its changes [documented below](#032-2025-09-10).
 
 This release has an [MSRV][] of 1.82.
 
+### Changed
+
+* Skip serializing/deserializing `PhantomData` marker fields of `OpaqueColor`, `AlphaColor`, and `PremulColor` when the `serde` feature is enabled. ([#202][] by [@alvinisspicy][])
+
 ## [0.3.2][] (2025-09-10)
 
 This release has an [MSRV][] of 1.82.
@@ -152,6 +156,7 @@ This release has an [MSRV][] of 1.82.
 This is the initial release.
 
 [@ajakubowicz-canva]: https://github.com/ajakubowicz-canva
+[@alvinisspicy]: https://github.com/alvinisspicy
 [@DJMcNab]: https://github.com/DJMcNab
 [@LaurenzV]: https://github.com/LaurenzV
 [@MightyBurger]: https://github.com/MightyBurger
@@ -209,6 +214,7 @@ This is the initial release.
 [#175]: https://github.com/linebender/color/pull/175
 [#185]: https://github.com/linebender/color/pull/185
 [#190]: https://github.com/linebender/color/pull/190
+[#202]: https://github.com/linebender/color/pull/202
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.2...HEAD
 [0.3.2]: https://github.com/linebender/color/releases/tag/v0.3.2
