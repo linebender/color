@@ -6,7 +6,7 @@
 // libm.
 #![cfg_attr(
     not(feature = "std"),
-    allow(dead_code, reason = "abs and copysign were added to core in 1.84")
+    expect(dead_code, reason = "abs and copysign were added to core in 1.84")
 )]
 
 //! Shims for math functions that ordinarily come from std.
