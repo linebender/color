@@ -1,7 +1,7 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-#![allow(unsafe_code, reason = "unsafe is required for bytemuck unsafe impls")]
+#![expect(unsafe_code, reason = "unsafe is required for bytemuck unsafe impls")]
 
 use crate::{
     cache_key::CacheKey, AlphaColor, ColorSpace, ColorSpaceTag, HueDirection, OpaqueColor,
