@@ -302,20 +302,6 @@ jobs:
 
       - name: cargo miri
         run: cargo miri test --workspace --locked --all-features --target s390x-unknown-linux-gnu --no-fail-fast
-        env:
-          # We test color operations to somewhat tight bounds, including those
-          # where we use floating point operations with unspecified precision.
-          # These sometimes cause tests to fail under Miri. While these
-          # failures might not be false positives technically, it seems Miri's
-          # approach to float error randomization has not fully stabilized yet.
-          # We pass a flag to Miri to disable randomization for now in CI. We
-          # would like to remove this flag once Miri's approach becomes more
-          # stable.
-          #
-          # This is tracked in https://github.com/linebender/color/issues/197,
-          # i.e., this flag is to be removed if that issue is closed as
-          # completed.
-          MIRIFLAGS: "-Zmiri-deterministic-floats"
 
   doc:
     name: cargo doc
