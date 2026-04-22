@@ -17,8 +17,8 @@ This release has an [MSRV][] of 1.82.
 
 ### Changed
 
-* Skip serializing/deserializing `PhantomData` marker fields of `OpaqueColor`, `AlphaColor`, and `PremulColor` when the `serde` feature is enabled. ([#202][] by [@alvinisspicy][])
-* `Oklch::WHITE_COMPONENTS`'s hue is now 0° instead of 90°. ([#210][] by [@tomcur][])
+* Breaking change: Skip serializing/deserializing `PhantomData` marker fields of `OpaqueColor`, `AlphaColor`, and `PremulColor` when the `serde` feature is enabled. ([#202][] by [@alvinisspicy][])
+* Breaking change: `Oklch::WHITE_COMPONENTS`'s hue is now 0° instead of 90°. ([#210][] by [@tomcur][])
 * Mapping functions like `OpaqueColor::map` to take `FnOnce` instead of `Fn`. ([#211][] by [@tomcur][])
 
 ## [0.3.2][] (2025-09-10)
