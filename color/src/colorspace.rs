@@ -1292,7 +1292,7 @@ impl ColorSpace for Oklch {
 
     const LAYOUT: ColorSpaceLayout = ColorSpaceLayout::HueThird;
 
-    const WHITE_COMPONENTS: [f32; 3] = [1., 0., 90.];
+    const WHITE_COMPONENTS: [f32; 3] = [1., 0., 0.];
 
     fn from_linear_srgb(src: [f32; 3]) -> [f32; 3] {
         lab_to_lch(Oklab::from_linear_srgb(src))
