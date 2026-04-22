@@ -1791,16 +1791,29 @@ mod tests {
     #[test]
     fn white_components() {
         fn check_white<CS: ColorSpace>() {
-            assert!(almost_equal::<Srgb>(
-                Srgb::WHITE_COMPONENTS,
-                CS::convert::<Srgb>(CS::WHITE_COMPONENTS),
-                1e-4,
-            ));
-            assert!(almost_equal::<CS>(
-                CS::WHITE_COMPONENTS,
-                Srgb::convert::<CS>(Srgb::WHITE_COMPONENTS),
-                1e-4,
-            ));
+            assert!(
+                almost_equal::<Srgb>(
+                    Srgb::WHITE_COMPONENTS,
+                    CS::convert::<Srgb>(CS::WHITE_COMPONENTS),
+                    1e-5 * magnitude(Srgb::WHITE_COMPONENTS),
+                ),
+                "Failed for {:?}",
+                CS::TAG
+            );
+            // For cylindrical color spaces, hue is usually unstable when the color is gray in
+            // general, or white specifically as here, so zero out hue for the purposes of this
+            // test. Also see `DynamicColor::powerless_to_missing`.
+            let mut expected = CS::WHITE_COMPONENTS;
+            let mut actual = Srgb::convert::<CS>(Srgb::WHITE_COMPONENTS);
+            if let Some(hue) = CS::LAYOUT.hue_channel() {
+                expected[hue] = 0.0;
+                actual[hue] = 0.0;
+            }
+            assert!(
+                almost_equal::<CS>(expected, actual, 1e-5 * magnitude(CS::WHITE_COMPONENTS)),
+                "Failed for {:?}",
+                CS::TAG
+            );
         }
 
         check_white::<A98Rgb>();
