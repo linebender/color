@@ -194,7 +194,7 @@ impl AlphaColor<Srgb> {
     pub fn from_hex(hex: &str) -> Self {
         let components = match parse_color(hex) {
             Ok(c) => c,
-            Err(_) => return AlphaColor::WHITE,
+            Err(_) => return Self::WHITE,
         };
         Self::new(components.components)
     }
@@ -211,7 +211,7 @@ impl OpaqueColor<Srgb> {
     pub fn from_hex(hex: &str) -> Self {
         let components = match parse_color(hex) {
             Ok(c) => c,
-            Err(_) => return OpaqueColor::WHITE,
+            Err(_) => return Self::WHITE,
         };
         Self::new([
             components.components[0],
