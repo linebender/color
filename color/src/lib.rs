@@ -189,6 +189,15 @@ impl AlphaColor<Srgb> {
         let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b), 1.];
         Self::new(components)
     }
+
+    /// Create a color from a hexadecimal value.
+    pub fn from_hex(hex: &str) -> Self {
+        let components = match parse_color(hex) {
+            Ok(c) => c,
+            Err(_) => return AlphaColor::WHITE,
+        };
+        Self::new(components.components)
+    }
 }
 
 impl OpaqueColor<Srgb> {
@@ -196,6 +205,15 @@ impl OpaqueColor<Srgb> {
     pub const fn from_rgb8(r: u8, g: u8, b: u8) -> Self {
         let components = [u8_to_f32(r), u8_to_f32(g), u8_to_f32(b)];
         Self::new(components)
+    }
+
+    /// Create a color from a hexadecimal value.
+    pub fn from_hex(hex: &str) -> Self {
+        let components = match parse_color(hex) {
+            Ok(c) => c,
+            Err(_) => return OpaqueColor::WHITE,
+        };
+        Self::new([components.components[0], components.components[1], components.components[2]])
     }
 }
 
