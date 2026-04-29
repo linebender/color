@@ -213,7 +213,11 @@ impl OpaqueColor<Srgb> {
             Ok(c) => c,
             Err(_) => return OpaqueColor::WHITE,
         };
-        Self::new([components.components[0], components.components[1], components.components[2]])
+        Self::new([
+            components.components[0],
+            components.components[1],
+            components.components[2],
+        ])
     }
 }
 
