@@ -196,7 +196,7 @@ impl AlphaColor<Srgb> {
         let bit_hex = get_4bit_hex_channels(hex);
         match bit_hex {
             Ok((_, channels)) => Ok(color_from_4bit_hex(channels)),
-            Err(e) => Err(ParseError::UnknownColorComponent),
+            Err(e) => Err(e),
         }
     }
 }
@@ -213,7 +213,7 @@ impl OpaqueColor<Srgb> {
         let bit_hex = get_4bit_hex_channels(hex);
         match bit_hex {
             Ok((_, channels)) => Ok(color_from_4bit_hex(channels).discard_alpha()),
-            Err(e) => Err(ParseError::UnknownColorComponent),
+            Err(e) => Err(e),
         }
     }
 }
