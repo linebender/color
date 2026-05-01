@@ -10,7 +10,7 @@ checksum = "c8efb64bd706a16a1bdde310ae86b351e4d21550d98d056f22f8a7f7a2183fec"
 
 [[package]]
 name = "color"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "bytemuck",
  "libm",
@@ -19,7 +19,7 @@ dependencies = [
 
 [[package]]
 name = "color_operations"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "color",
 ]
