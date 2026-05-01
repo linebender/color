@@ -287,14 +287,14 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
 
     /// Map components.
     #[must_use]
-    pub fn map(self, f: impl Fn(f32, f32, f32) -> [f32; 3]) -> Self {
+    pub fn map(self, f: impl FnOnce(f32, f32, f32) -> [f32; 3]) -> Self {
         let [x, y, z] = self.components;
         Self::new(f(x, y, z))
     }
 
     /// Map components in a given color space.
     #[must_use]
-    pub fn map_in<TargetCS: ColorSpace>(self, f: impl Fn(f32, f32, f32) -> [f32; 3]) -> Self {
+    pub fn map_in<TargetCS: ColorSpace>(self, f: impl FnOnce(f32, f32, f32) -> [f32; 3]) -> Self {
         self.convert::<TargetCS>().map(f).convert()
     }
 
@@ -321,7 +321,7 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     /// [Lch]: crate::Lch
     /// [Hsl]: crate::Hsl
     #[must_use]
-    pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
+    pub fn map_lightness(self, f: impl FnOnce(f32) -> f32) -> Self {
         match CS::TAG {
             Some(ColorSpaceTag::Lab) | Some(ColorSpaceTag::Lch) => {
                 self.map(|l, c1, c2| [100.0 * f(l * 0.01), c1, c2])
@@ -351,7 +351,7 @@ impl<CS: ColorSpace> OpaqueColor<CS> {
     /// assert!(complementary.difference(expected) < 1e-4);
     /// ```
     #[must_use]
-    pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
+    pub fn map_hue(self, f: impl FnOnce(f32) -> f32) -> Self {
         match CS::LAYOUT {
             ColorSpaceLayout::HueFirst => self.map(|h, c1, c2| [f(h), c1, c2]),
             ColorSpaceLayout::HueThird => self.map(|c0, c1, h| [c0, c1, f(h)]),
@@ -504,14 +504,17 @@ impl<CS: ColorSpace> AlphaColor<CS> {
 
     /// Map components.
     #[must_use]
-    pub fn map(self, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+    pub fn map(self, f: impl FnOnce(f32, f32, f32, f32) -> [f32; 4]) -> Self {
         let [x, y, z, a] = self.components;
         Self::new(f(x, y, z, a))
     }
 
     /// Map components in a given color space.
     #[must_use]
-    pub fn map_in<TargetCS: ColorSpace>(self, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+    pub fn map_in<TargetCS: ColorSpace>(
+        self,
+        f: impl FnOnce(f32, f32, f32, f32) -> [f32; 4],
+    ) -> Self {
         self.convert::<TargetCS>().map(f).convert()
     }
 
@@ -538,7 +541,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     /// [Lch]: crate::Lch
     /// [Hsl]: crate::Hsl
     #[must_use]
-    pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
+    pub fn map_lightness(self, f: impl FnOnce(f32) -> f32) -> Self {
         match CS::TAG {
             Some(ColorSpaceTag::Lab) | Some(ColorSpaceTag::Lch) => {
                 self.map(|l, c1, c2, a| [100.0 * f(l * 0.01), c1, c2, a])
@@ -568,7 +571,7 @@ impl<CS: ColorSpace> AlphaColor<CS> {
     /// assert!(complementary.premultiply().difference(expected.premultiply()) < 1e-4);
     /// ```
     #[must_use]
-    pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
+    pub fn map_hue(self, f: impl FnOnce(f32) -> f32) -> Self {
         match CS::LAYOUT {
             ColorSpaceLayout::HueFirst => self.map(|h, c1, c2, a| [f(h), c1, c2, a]),
             ColorSpaceLayout::HueThird => self.map(|c0, c1, h, a| [c0, c1, f(h), a]),

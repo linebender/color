@@ -18,6 +18,7 @@ This release has an [MSRV][] of 1.82.
 ### Changed
 
 * Skip serializing/deserializing `PhantomData` marker fields of `OpaqueColor`, `AlphaColor`, and `PremulColor` when the `serde` feature is enabled. ([#202][] by [@alvinisspicy][])
+* Mapping functions like `OpaqueColor::map` to take `FnOnce` instead of `Fn`. ([#211][] by [@tomcur][])
 
 ## [0.3.2][] (2025-09-10)
 
@@ -215,6 +216,7 @@ This is the initial release.
 [#185]: https://github.com/linebender/color/pull/185
 [#190]: https://github.com/linebender/color/pull/190
 [#202]: https://github.com/linebender/color/pull/202
+[#211]: https://github.com/linebender/color/pull/211
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.2...HEAD
 [0.3.2]: https://github.com/linebender/color/releases/tag/v0.3.2

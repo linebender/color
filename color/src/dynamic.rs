@@ -496,7 +496,7 @@ impl DynamicColor {
 
     /// Map components.
     #[must_use]
-    pub fn map(self, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+    pub fn map(self, f: impl FnOnce(f32, f32, f32, f32) -> [f32; 4]) -> Self {
         let [x, y, z, a] = self.components;
 
         let mut flags = self.flags;
@@ -511,7 +511,7 @@ impl DynamicColor {
 
     /// Map components in a given color space.
     #[must_use]
-    pub fn map_in(self, cs: ColorSpaceTag, f: impl Fn(f32, f32, f32, f32) -> [f32; 4]) -> Self {
+    pub fn map_in(self, cs: ColorSpaceTag, f: impl FnOnce(f32, f32, f32, f32) -> [f32; 4]) -> Self {
         self.convert(cs).map(f).convert(self.cs)
     }
 
@@ -527,7 +527,7 @@ impl DynamicColor {
     /// [Lch]: crate::Lch
     /// [Hsl]: crate::Hsl
     #[must_use]
-    pub fn map_lightness(self, f: impl Fn(f32) -> f32) -> Self {
+    pub fn map_lightness(self, f: impl FnOnce(f32) -> f32) -> Self {
         match self.cs {
             ColorSpaceTag::Lab | ColorSpaceTag::Lch => {
                 self.map(|l, c1, c2, a| [100.0 * f(l * 0.01), c1, c2, a])
@@ -547,7 +547,7 @@ impl DynamicColor {
     ///
     /// [Oklch]: crate::Oklch
     #[must_use]
-    pub fn map_hue(self, f: impl Fn(f32) -> f32) -> Self {
+    pub fn map_hue(self, f: impl FnOnce(f32) -> f32) -> Self {
         match self.cs.layout() {
             ColorSpaceLayout::HueFirst => self.map(|h, c1, c2, a| [f(h), c1, c2, a]),
             ColorSpaceLayout::HueThird => self.map(|c0, c1, h, a| [c0, c1, f(h), a]),
