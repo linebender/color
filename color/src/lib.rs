@@ -109,6 +109,7 @@ mod impl_bytemuck;
 #[cfg(all(not(feature = "std"), not(test)))]
 mod floatfuncs;
 
+use crate::parse::{color_from_4bit_hex, get_4bit_hex_channels};
 pub use chromaticity::Chromaticity;
 pub use color::{AlphaColor, HueDirection, OpaqueColor, PremulColor};
 pub use colorspace::{
@@ -191,12 +192,12 @@ impl AlphaColor<Srgb> {
     }
 
     /// Create a color from a hexadecimal value.
-    pub fn from_hex(hex: &str) -> Self {
-        let components = match parse_color(hex) {
-            Ok(c) => c,
-            Err(_) => return Self::WHITE,
-        };
-        Self::new(components.components)
+    pub const fn from_hex(hex: &str) -> Result<Self, ParseError> {
+        let bit_hex = get_4bit_hex_channels(hex);
+        match bit_hex {
+            Ok((_, channels)) => Ok(color_from_4bit_hex(channels)),
+            Err(e) => Err(ParseError::UnknownColorComponent),
+        }
     }
 }
 
@@ -208,16 +209,12 @@ impl OpaqueColor<Srgb> {
     }
 
     /// Create a color from a hexadecimal value.
-    pub fn from_hex(hex: &str) -> Self {
-        let components = match parse_color(hex) {
-            Ok(c) => c,
-            Err(_) => return Self::WHITE,
-        };
-        Self::new([
-            components.components[0],
-            components.components[1],
-            components.components[2],
-        ])
+    pub const fn from_hex(hex: &str) -> Result<Self, ParseError> {
+        let bit_hex = get_4bit_hex_channels(hex);
+        match bit_hex {
+            Ok((_, channels)) => Ok(color_from_4bit_hex(channels).discard_alpha()),
+            Err(e) => Err(ParseError::UnknownColorComponent),
+        }
     }
 }
 
