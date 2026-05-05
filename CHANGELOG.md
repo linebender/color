@@ -8,14 +8,14 @@ Subheadings to categorize changes are `added, changed, deprecated, removed, fixe
 
 # Changelog
 
-The latest published Color release is [0.3.3](#033-2026-05-01) which was released on 2026-05-01.
-You can find its changes [documented below](#033-2026-05-01).
+The latest published Color release is [0.3.3](#033-2026-05-05) which was released on 2026-05-05.
+You can find its changes [documented below](#033-2026-05-05).
 
 ## [Unreleased][]
 
 This release has an [MSRV][] of 1.82.
 
-## [0.3.3][] (2026-05-01)
+## [0.3.3][] (2026-05-05)
 
 This release has an [MSRV][] of 1.82.
 
