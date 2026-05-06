@@ -17,7 +17,7 @@ The Color Operations library provides functionality for ...
 
 ## Minimum supported Rust Version (MSRV)
 
-This version of Color Operations has been verified to compile with **Rust 1.82** and later.
+This version of Color Operations has been verified to compile with **Rust 1.86** and later.
 
 Future versions of Color Operations might increase the Rust version requirement.
 It will not be treated as a breaking change and as such can even happen with small patch releases.

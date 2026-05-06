@@ -13,7 +13,11 @@ You can find its changes [documented below](#033-2026-05-05).
 
 ## [Unreleased][]
 
-This release has an [MSRV][] of 1.82.
+This release has an [MSRV][] of 1.86.
+
+### Changed
+
+- `Flags::set_missing`, `Flags::discard_name`, `Flags::set_named_color_space`, and `Missing::insert` are now `const` thanks to the MSRV update. ([#218][] by [@DJMcNab][])
 
 ## [0.3.3][] (2026-05-05)
 
@@ -226,6 +230,7 @@ This is the initial release.
 [#202]: https://github.com/linebender/color/pull/202
 [#210]: https://github.com/linebender/color/pull/210
 [#211]: https://github.com/linebender/color/pull/211
+[#218]: https://github.com/linebender/color/pull/218
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.3...HEAD
 [0.3.3]: https://github.com/linebender/color/releases/tag/v0.3.3
