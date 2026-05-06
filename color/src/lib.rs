@@ -191,11 +191,61 @@ impl AlphaColor<Srgb> {
         Self::new(components)
     }
 
-    /// Create a color from a hexadecimal value.
-    pub const fn from_hex(hex: &str) -> Result<Self, ParseError> {
+    /// Create an sRGB color from a hexadecimal string, such as `"#8a2be2"` (<span style="background-color:#8a2be2;padding:0 0.7em;border:1px solid"></span>).
+    ///
+    /// Certain code editors may provide a color picker for input strings of this format, making this method
+    /// preferable to [`from_rgb8`](`Self::from_rgb8`) or [`from_rgba8`](`Self::from_rgba8`) for colors which may need to be experimented with.
+    ///
+    /// The leading `#` in the input is optional, but it is recommended to include it.
+    /// The input is provided in RGBA order, and valid inputs are of the form `#RGB`, `#RGBA`, `#RRGGBB` or `#RRGGBBAA`.
+    /// `A-F` in the input string may be upper or lowercase.
+    ///
+    /// This function is designed for use in const contexts; for user-provided values, you can use
+    /// [`parse_color`], which covers a wider variety of input forms in CSS syntax, or
+    /// [`try_from_hex`](Self::try_from_hex) which returns an error instead of panicking.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use color::{AlphaColor, Srgb};
+    /// const BUTTON_COLOR: AlphaColor<Srgb> = AlphaColor::from_hex("#8a2be2");
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// If the input string contains anything other than an optional `#` and 3, 4, 6, or 8 hexadecimal digits.
+    pub const fn from_hex(hex: &str) -> Self {
+        match Self::try_from_hex(hex) {
+            Ok(color) => color,
+            Err(ParseError::WrongNumberOfHexDigits) => {
+                panic!("An invalid number of hexadecimal digits was provided.");
+            }
+            Err(ParseError::ExpectedEndOfString) => {
+                panic!("Input to from_hex contains characters after hexadecimal digits.");
+            }
+            Err(_) => {
+                unreachable!()
+            }
+        }
+    }
+
+    /// Create a color from a hexadecimal string, such as `"#8a2be2"` (<span style="background-color:#8a2be2;padding:0 0.7em;border:1px solid"></span>).
+    ///
+    /// Same as [`from_hex`](Self::from_hex), but returns an error in cases where that method panics.
+    pub const fn try_from_hex(mut hex: &str) -> Result<Self, ParseError> {
+        // Strip an optional '#' from the start. We can't use `strip_prefix` as it isn't const.
+        if !hex.is_empty() && hex.as_bytes()[0] == b'#' {
+            hex = hex.split_at(1).1;
+        }
+
         let bit_hex = get_4bit_hex_channels(hex);
         match bit_hex {
-            Ok((_, channels)) => Ok(color_from_4bit_hex(channels)),
+            Ok((count, channels)) => {
+                if count != hex.len() {
+                    return Err(ParseError::ExpectedEndOfString);
+                }
+                Ok(color_from_4bit_hex(channels))
+            }
             Err(e) => Err(e),
         }
     }
@@ -208,11 +258,64 @@ impl OpaqueColor<Srgb> {
         Self::new(components)
     }
 
-    /// Create a color from a hexadecimal value.
-    pub const fn from_hex(hex: &str) -> Result<Self, ParseError> {
+    /// Create an sRGB color from a hexadecimal string, such as `"#8a2be2"` (<span style="background-color:#8a2be2;padding:0 0.7em;border:1px solid"></span>).
+    ///
+    /// Certain code editors may provide a color picker for input strings of this format, making this method
+    /// preferable to [`from_rgb8`](`Self::from_rgb8`) for colors which may need to be experimented with.
+    ///
+    /// The leading `#` in the input is optional, but it is recommended to include it.
+    /// The input is provided in RGBA order, and valid inputs are of the form `#RGB`, `#RRGGBB` or `#RRGGBB`.
+    /// `A-F` in the input string may be upper or lowercase.
+    ///
+    /// This function is designed for use in const contexts; for user-provided values, you can use
+    /// [`parse_color`], which covers a wider variety of input forms in CSS syntax, or
+    /// [`try_from_hex`](Self::try_from_hex) which returns an error instead of panicking.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use color::{OpaqueColor, Srgb};
+    /// const BUTTON_COLOR: OpaqueColor<Srgb> = OpaqueColor::from_hex("#8a2be2");
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// If the input string contains anything other than an optional `#` and 3, or 6 hexadecimal digits.
+    pub const fn from_hex(hex: &str) -> Self {
+        match Self::try_from_hex(hex) {
+            Ok(color) => color,
+            Err(ParseError::WrongNumberOfHexDigits) => {
+                panic!("An invalid number of hexadecimal digits was provided.");
+            }
+            Err(ParseError::ExpectedEndOfString) => {
+                panic!("Input to from_hex contains characters after hexadecimal digits.");
+            }
+            Err(_) => {
+                unreachable!()
+            }
+        }
+    }
+
+    /// Create a color from a hexadecimal string, such as `"#8a2be2"` (<span style="background-color:#8a2be2;padding:0 0.7em;border:1px solid"></span>).
+    ///
+    /// Same as [`from_hex`](Self::from_hex), but returns an error in cases where that method panics.
+    pub const fn try_from_hex(mut hex: &str) -> Result<Self, ParseError> {
+        // Strip an optional '#' from the start. We can't use `strip_prefix` as it isn't const.
+        if !hex.is_empty() && hex.as_bytes()[0] == b'#' {
+            hex = hex.split_at(1).1;
+        }
+
         let bit_hex = get_4bit_hex_channels(hex);
         match bit_hex {
-            Ok((_, channels)) => Ok(color_from_4bit_hex(channels).discard_alpha()),
+            Ok((count, channels)) => {
+                if count != hex.len() {
+                    return Err(ParseError::ExpectedEndOfString);
+                }
+                if count != 3 && count != 6 {
+                    return Err(ParseError::WrongNumberOfHexDigits);
+                }
+                Ok(color_from_4bit_hex(channels).discard_alpha())
+            }
             Err(e) => Err(e),
         }
     }
@@ -241,4 +344,84 @@ impl PremulColor<Srgb> {
 #[expect(unused, reason = "keep clippy happy")]
 fn ensure_libm_dependency_used() -> f32 {
     libm::sqrtf(4_f32)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const ALPHA_FROM_HEX_IS_CONST: AlphaColor<Srgb> = AlphaColor::from_hex("#8a2be2");
+    #[test]
+    fn alpha_from_hex() {
+        let color = AlphaColor::from_hex("#8a2be2");
+        assert_eq!(
+            color.to_rgba8(),
+            Rgba8::from_u8_array([0x8a, 0x2b, 0xe2, 0xff])
+        );
+        assert_eq!(color, ALPHA_FROM_HEX_IS_CONST);
+
+        let with = AlphaColor::from_hex("#aabbcc");
+        let without = AlphaColor::from_hex("aabbcc");
+        assert_eq!(with, without);
+
+        let short = AlphaColor::from_hex("#abc");
+        let long = AlphaColor::from_hex("#aabbcc");
+        assert_eq!(short, long);
+
+        let short_alpha = AlphaColor::from_hex("#abcd");
+        let long_alpha = AlphaColor::from_hex("#aabbccdd");
+        assert_eq!(short_alpha, long_alpha);
+
+        let lower = AlphaColor::from_hex("#8a2be28f");
+        let upper = AlphaColor::from_hex("#8A2BE28F");
+        assert_eq!(lower, upper);
+    }
+
+    #[test]
+    fn alpha_try_from_hex_errors() {
+        // 'g' is not a valid hex digit
+        assert!(AlphaColor::<Srgb>::try_from_hex("#gg0000").is_err());
+        // 5 digit color isn't defined.
+        assert!(AlphaColor::<Srgb>::try_from_hex("#12345").is_err());
+        assert!(AlphaColor::<Srgb>::try_from_hex("").is_err());
+    }
+
+    const OPAQUE_FROM_HEX_IS_CONST: OpaqueColor<Srgb> = OpaqueColor::from_hex("#8a2be2");
+    #[test]
+    fn opaque_from_hex() {
+        let color = OpaqueColor::from_hex("#8a2be2");
+        assert_eq!(
+            color.to_rgba8(),
+            Rgba8::from_u8_array([0x8a, 0x2b, 0xe2, 0xff])
+        );
+        assert_eq!(color, OPAQUE_FROM_HEX_IS_CONST);
+
+        let with = OpaqueColor::from_hex("#aabbcc");
+        let without = OpaqueColor::from_hex("aabbcc");
+        assert_eq!(with, without);
+
+        let short = OpaqueColor::from_hex("#abc");
+        let long = OpaqueColor::from_hex("#aabbcc");
+        assert_eq!(short, long);
+
+        let short_alpha = OpaqueColor::from_hex("#abcd");
+        let long_alpha = OpaqueColor::from_hex("#aabbccdd");
+        assert_eq!(short_alpha, long_alpha);
+
+        let lower = OpaqueColor::from_hex("#8a2be28f");
+        let upper = OpaqueColor::from_hex("#8A2BE28F");
+        assert_eq!(lower, upper);
+    }
+    #[test]
+    fn opaque_try_from_hex_errors() {
+        // 'g' is not a valid hex digit
+        assert!(OpaqueColor::try_from_hex("#gg0000").is_err());
+        // 5 digit color isn't defined.
+        assert!(OpaqueColor::try_from_hex("#12345").is_err());
+        // 4 digit color isn't allowed for an opaque color.
+        assert!(OpaqueColor::try_from_hex("#123f").is_err());
+        // 8 digit color isn't allowed for an opaque color.
+        assert!(OpaqueColor::try_from_hex("#12233480").is_err());
+        assert!(OpaqueColor::try_from_hex("").is_err());
+    }
 }
