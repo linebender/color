@@ -4,8 +4,8 @@
 #![expect(unsafe_code, reason = "unsafe is required for bytemuck unsafe impls")]
 
 use crate::{
-    cache_key::CacheKey, AlphaColor, ColorSpace, ColorSpaceTag, HueDirection, OpaqueColor,
-    PremulColor, PremulRgba8, Rgba8,
+    AlphaColor, ColorSpace, ColorSpaceTag, HueDirection, OpaqueColor, PremulColor, PremulRgba8,
+    Rgba8, cache_key::CacheKey,
 };
 
 // Safety: The struct is `repr(transparent)` and the data member is bytemuck::Pod.
@@ -103,10 +103,10 @@ unsafe impl<T> bytemuck::TransparentWrapper<T> for CacheKey<T> {}
 #[cfg(test)]
 mod tests {
     use crate::{
-        cache_key::CacheKey, AlphaColor, ColorSpaceTag, HueDirection, OpaqueColor, PremulColor,
-        PremulRgba8, Rgba8, Srgb,
+        AlphaColor, ColorSpaceTag, HueDirection, OpaqueColor, PremulColor, PremulRgba8, Rgba8,
+        Srgb, cache_key::CacheKey,
     };
-    use bytemuck::{checked::try_from_bytes, Contiguous, TransparentWrapper, Zeroable};
+    use bytemuck::{Contiguous, TransparentWrapper, Zeroable, checked::try_from_bytes};
     use core::{marker::PhantomData, ptr};
 
     fn assert_is_pod(_pod: impl bytemuck::Pod) {}

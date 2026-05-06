@@ -7,8 +7,8 @@ use core::any::TypeId;
 use core::marker::PhantomData;
 
 use crate::{
-    cache_key::{BitEq, BitHash},
     ColorSpace, ColorSpaceLayout, ColorSpaceTag, Oklab, Oklch, PremulRgba8, Rgba8, Srgb,
+    cache_key::{BitEq, BitHash},
 };
 
 #[cfg(all(not(feature = "std"), not(test)))]
@@ -969,8 +969,8 @@ mod tests {
     extern crate alloc;
 
     use super::{
-        fast_round_to_u8, fixup_hue, AlphaColor, HueDirection, PremulColor, PremulRgba8, Rgba8,
-        Srgb,
+        AlphaColor, HueDirection, PremulColor, PremulRgba8, Rgba8, Srgb, fast_round_to_u8,
+        fixup_hue,
     };
 
     #[test]

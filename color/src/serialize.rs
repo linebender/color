@@ -152,7 +152,7 @@ impl core::fmt::UpperHex for Rgba8 {
 mod tests {
     extern crate alloc;
 
-    use crate::{parse_color, AlphaColor, DynamicColor, Hsl, Oklab, Srgb, XyzD65};
+    use crate::{AlphaColor, DynamicColor, Hsl, Oklab, Srgb, XyzD65, parse_color};
     use alloc::format;
 
     #[test]
@@ -187,8 +187,7 @@ mod tests {
         ] {
             let result = format!("{}", parse_color(specified).unwrap());
             assert_eq!(
-                result,
-                expected,
+                result, expected,
                 "Failed serializing specified color `{specified}`. Expected: `{expected}`. Got: `{result}`."
             );
         }
@@ -234,8 +233,7 @@ mod tests {
         ] {
             let result = format!("{color}");
             assert_eq!(
-                result,
-                expected,
+                result, expected,
                 "Failed serializing specified color `{color}`. Expected: `{expected}`. Got: `{result}`."
             );
         }
@@ -246,8 +244,7 @@ mod tests {
         for name in crate::x11_colors::NAMES {
             let result = format!("{}", parse_color(name).unwrap());
             assert_eq!(
-                result,
-                name,
+                result, name,
                 "Failed serializing specified named color `{name}`. Expected it to roundtrip. Got: `{result}`."
             );
         }

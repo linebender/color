@@ -6,7 +6,7 @@ extern crate std;
 
 use core::any::TypeId;
 
-use crate::{matvecmul, tag::ColorSpaceTag, Chromaticity};
+use crate::{Chromaticity, matvecmul, tag::ColorSpaceTag};
 
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;

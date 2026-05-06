@@ -325,9 +325,5 @@ pub(crate) fn lookup_palette_index(s: &str) -> Option<usize> {
     }
     let salt = SALTS[weak_hash(key, 0, SALTS.len())] as u32;
     let ix = weak_hash(key, salt, SALTS.len());
-    if s == NAMES[ix] {
-        Some(ix)
-    } else {
-        None
-    }
+    if s == NAMES[ix] { Some(ix) } else { None }
 }

@@ -709,7 +709,7 @@ fn make_lowercase<'a>(s: &'a str, buf: &'a mut [u8; LOWERCASE_BUF_SIZE]) -> &'a 
 mod tests {
     use crate::DynamicColor;
 
-    use super::{parse_color, parse_color_prefix, Mode, ParseError, Parser};
+    use super::{Mode, ParseError, Parser, parse_color, parse_color_prefix};
 
     fn assert_close_color(c1: DynamicColor, c2: DynamicColor) {
         const EPSILON: f32 = 1e-4;
@@ -797,8 +797,10 @@ mod tests {
         ] {
             let mut parser = Parser::new(alpha);
             let result = parser.alpha(mode);
-            assert_eq!(result, expected,
-                "Failed parsing specified alpha `{alpha}`. Expected: `{expected:?}`. Got: `{result:?}`.");
+            assert_eq!(
+                result, expected,
+                "Failed parsing specified alpha `{alpha}`. Expected: `{expected:?}`. Got: `{result:?}`."
+            );
         }
     }
 
@@ -812,8 +814,10 @@ mod tests {
         ] {
             let mut parser = Parser::new(angle);
             let result = parser.angle().unwrap().unwrap();
-            assert!((result - expected).abs() < 1e-4,
-                    "Failed parsing specified angle `{angle}`. Expected: `{expected:?}`. Got: `{result:?}`.");
+            assert!(
+                (result - expected).abs() < 1e-4,
+                "Failed parsing specified angle `{angle}`. Expected: `{expected:?}`. Got: `{result:?}`."
+            );
         }
 
         {
