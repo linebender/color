@@ -80,6 +80,20 @@ pub struct UnpremultipliedInterpolator {
 }
 
 impl DynamicColor {
+    /// Construct a `DynamicColor` from a color space tag and its components.
+    ///
+    /// The the first three components are interpreted according to the color space tag. The
+    /// fourth component is separate alpha.
+    #[inline]
+    #[must_use]
+    pub const fn new(cs: ColorSpaceTag, components: [f32; 4]) -> Self {
+        Self {
+            cs,
+            flags: Flags::from_missing(Missing::EMPTY),
+            components,
+        }
+    }
+
     /// Convert to `AlphaColor` with a static color space.
     ///
     /// Missing components are interpreted as 0.
