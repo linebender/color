@@ -110,11 +110,7 @@ impl DynamicColor {
     #[must_use]
     pub fn from_alpha_color<CS: ColorSpace>(color: AlphaColor<CS>) -> Self {
         if let Some(cs) = CS::TAG {
-            Self {
-                cs,
-                flags: Flags::default(),
-                components: color.components,
-            }
+            Self::new(cs, color.components)
         } else {
             Self::from_alpha_color(color.convert::<LinearSrgb>())
         }
