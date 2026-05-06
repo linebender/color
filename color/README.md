@@ -109,7 +109,7 @@ At least one of `std` and `libm` is required; `std` overrides `libm`.
 
 ## Minimum supported Rust Version (MSRV)
 
-This version of Color has been verified to compile with **Rust 1.82** and later.
+This version of Color has been verified to compile with **Rust 1.86** and later.
 
 Future versions of Color might increase the Rust version requirement.
 It will not be treated as a breaking change and as such can even happen with small patch releases.
