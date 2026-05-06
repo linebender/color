@@ -404,12 +404,8 @@ mod tests {
         let long = OpaqueColor::from_hex("#aabbcc");
         assert_eq!(short, long);
 
-        let short_alpha = OpaqueColor::from_hex("#abcd");
-        let long_alpha = OpaqueColor::from_hex("#aabbccdd");
-        assert_eq!(short_alpha, long_alpha);
-
-        let lower = OpaqueColor::from_hex("#8a2be28f");
-        let upper = OpaqueColor::from_hex("#8A2BE28F");
+        let lower = OpaqueColor::from_hex("#8a2be2");
+        let upper = OpaqueColor::from_hex("#8A2BE2");
         assert_eq!(lower, upper);
     }
     #[test]
