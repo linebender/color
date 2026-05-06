@@ -117,8 +117,8 @@ pub use colorspace::{
 };
 pub use dynamic::{DynamicColor, Interpolator, UnpremultipliedInterpolator};
 pub use flags::{Flags, Missing};
-pub use gradient::{gradient, gradient_unpremultiplied, GradientIter, UnpremultipliedGradientIter};
-pub use parse::{parse_color, parse_color_prefix, ParseError};
+pub use gradient::{GradientIter, UnpremultipliedGradientIter, gradient, gradient_unpremultiplied};
+pub use parse::{ParseError, parse_color, parse_color_prefix};
 pub use rgba8::{PremulRgba8, Rgba8};
 pub use tag::ColorSpaceTag;
 

@@ -4,10 +4,10 @@
 //! CSS colors and syntax.
 
 use crate::{
-    cache_key::{BitEq, BitHash},
-    color::{add_alpha, fixup_hues_for_interpolate, split_alpha, InterpolationAlphaSpace},
     AlphaColor, Chromaticity, ColorSpace, ColorSpaceLayout, ColorSpaceTag, Flags, HueDirection,
     LinearSrgb, Missing,
+    cache_key::{BitEq, BitHash},
+    color::{InterpolationAlphaSpace, add_alpha, fixup_hues_for_interpolate, split_alpha},
 };
 use core::hash::{Hash, Hasher};
 
@@ -650,7 +650,7 @@ impl UnpremultipliedInterpolator {
 
 #[cfg(test)]
 mod tests {
-    use crate::{parse_color, ColorSpaceTag, DynamicColor, Missing};
+    use crate::{ColorSpaceTag, DynamicColor, Missing, parse_color};
 
     // `DynamicColor` was carefully packed. Ensure its size doesn't accidentally change.
     const _: () = if size_of::<DynamicColor>() != 20 {
