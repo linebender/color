@@ -616,7 +616,7 @@ impl<CS: ColorSpace> FromStr for PremulColor<CS> {
 ///
 /// Returns the parsed channels and the byte offset to the remainder of the string (i.e., the
 /// number of hex characters parsed).
-const fn get_4bit_hex_channels(hex_str: &str) -> Result<(usize, [u8; 8]), ParseError> {
+pub(crate) const fn get_4bit_hex_channels(hex_str: &str) -> Result<(usize, [u8; 8]), ParseError> {
     let mut hex = [0; 8];
 
     let mut i = 0;
@@ -651,7 +651,7 @@ const fn hex_from_ascii_byte(b: u8) -> Result<u8, ()> {
     }
 }
 
-const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb> {
+pub(crate) const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb> {
     let [r0, r1, g0, g1, b0, b1, a0, a1] = components;
     AlphaColor::from_rgba8(
         (r0 << 4) | r1,
