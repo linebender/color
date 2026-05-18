@@ -22,6 +22,10 @@ libm = ["dep:libm"]
 bytemuck = ["dep:bytemuck"]
 serde = ["dep:serde"]
 
+# Makes mapping functions available for fitting colors into the natural gamuts
+# of color spaces.
+gamut_map = []
+
 [dependencies]
 
 [dependencies.bytemuck]
