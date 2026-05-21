@@ -69,21 +69,22 @@ impl Rgba8 {
     /// Create an sRGB color from a hexadecimal string, such as `"#8a2be2"` (<span style="background-color:#8a2be2;padding:0 0.7em;border:1px solid"></span>).
     ///
     /// Certain code editors may provide a color picker for input strings of this format, making this method
-    /// preferable to [`from_rgb8`](`Self::from_rgb8`) or [`from_rgba8`](`Self::from_rgba8`) for colors which may need to be experimented with.
+    /// preferable to [`from_u8_array`](`Self::from_u8_array`) or [`from_u8_array`](`Self::from_u8_array`) for colors
+    /// which may need to be experimented with.
     ///
     /// The leading `#` in the input is optional, but it is recommended to include it.
     /// The input is provided in RGBA order, and valid inputs are of the form `#RGB`, `#RGBA`, `#RRGGBB` or `#RRGGBBAA`.
     /// `A-F` in the input string may be upper or lowercase.
     ///
     /// This function is designed for use in const contexts; for user-provided values, you can use
-    /// [`parse_color`], which covers a wider variety of input forms in CSS syntax, or
+    /// [`parse_color`](crate::parse_color), which covers a wider variety of input forms in CSS syntax, or
     /// [`try_from_hex`](Self::try_from_hex) which returns an error instead of panicking.
     ///
     /// # Example
     ///
     /// ```
-    /// # use color::{AlphaColor, Srgb};
-    /// const BUTTON_COLOR: AlphaColor<Srgb> = AlphaColor::from_hex("#8a2be2");
+    /// # use color::Rgba8;
+    /// const BUTTON_COLOR: Rgba8 = Rgba8::from_hex("#8a2be2");
     /// ```
     ///
     /// # Panics
