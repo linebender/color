@@ -9,6 +9,7 @@ use core::fmt;
 use core::str;
 use core::str::FromStr;
 
+use crate::Rgba8;
 use crate::{
     AlphaColor, ColorSpace, ColorSpaceTag, DynamicColor, Flags, Missing, OpaqueColor, PremulColor,
     Srgb,
@@ -659,6 +660,16 @@ pub(crate) const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb>
         (b0 << 4) | b1,
         (a0 << 4) | a1,
     )
+}
+
+pub(crate) const fn rgba_from_4bit_hex(components: [u8; 8]) -> Rgba8 {
+    let [r0, r1, g0, g1, b0, b1, a0, a1] = components;
+    Rgba8 {
+        r: (r0 << 4) | r1,
+        g: (g0 << 4) | g1,
+        b: (b0 << 4) | b1,
+        a: (a0 << 4) | a1,
+    }
 }
 
 impl FromStr for ColorSpaceTag {

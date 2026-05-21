@@ -1,7 +1,10 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{AlphaColor, PremulColor, Srgb};
+use crate::{
+    AlphaColor, ParseError, PremulColor, Srgb,
+    parse::{get_4bit_hex_channels, rgba_from_4bit_hex},
+};
 
 /// A packed representation of sRGB colors.
 ///
@@ -61,6 +64,65 @@ impl Rgba8 {
     #[must_use]
     pub const fn from_u32(packed_bytes: u32) -> Self {
         Self::from_u8_array(u32::to_ne_bytes(packed_bytes))
+    }
+
+    /// Create an sRGB color from a hexadecimal string, such as `"#8a2be2"` (<span style="background-color:#8a2be2;padding:0 0.7em;border:1px solid"></span>).
+    ///
+    /// Certain code editors may provide a color picker for input strings of this format, making this method
+    /// preferable to [`from_rgb8`](`Self::from_rgb8`) or [`from_rgba8`](`Self::from_rgba8`) for colors which may need to be experimented with.
+    ///
+    /// The leading `#` in the input is optional, but it is recommended to include it.
+    /// The input is provided in RGBA order, and valid inputs are of the form `#RGB`, `#RGBA`, `#RRGGBB` or `#RRGGBBAA`.
+    /// `A-F` in the input string may be upper or lowercase.
+    ///
+    /// This function is designed for use in const contexts; for user-provided values, you can use
+    /// [`parse_color`], which covers a wider variety of input forms in CSS syntax, or
+    /// [`try_from_hex`](Self::try_from_hex) which returns an error instead of panicking.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// # use color::{AlphaColor, Srgb};
+    /// const BUTTON_COLOR: AlphaColor<Srgb> = AlphaColor::from_hex("#8a2be2");
+    /// ```
+    ///
+    /// # Panics
+    ///
+    /// If the input string contains anything other than an optional `#` and 3, 4, 6, or 8 hexadecimal digits.
+    pub const fn from_hex(hex: &str) -> Self {
+        match Self::try_from_hex(hex) {
+            Ok(color) => color,
+            Err(ParseError::WrongNumberOfHexDigits) => {
+                panic!("An invalid number of hexadecimal digits was provided.");
+            }
+            Err(ParseError::ExpectedEndOfString) => {
+                panic!("Input to from_hex contains characters after hexadecimal digits.");
+            }
+            Err(_) => {
+                unreachable!()
+            }
+        }
+    }
+
+    /// Create a color from a hexadecimal string, such as `"#8a2be2"` (<span style="background-color:#8a2be2;padding:0 0.7em;border:1px solid"></span>).
+    ///
+    /// Same as [`from_hex`](Self::from_hex), but returns an error in cases where that method panics.
+    pub const fn try_from_hex(mut hex: &str) -> Result<Self, ParseError> {
+        // Strip an optional '#' from the start. We can't use `strip_prefix` as it isn't const.
+        if !hex.is_empty() && hex.as_bytes()[0] == b'#' {
+            hex = hex.split_at(1).1;
+        }
+
+        let bit_hex = get_4bit_hex_channels(hex);
+        match bit_hex {
+            Ok((count, channels)) => {
+                if count != hex.len() {
+                    return Err(ParseError::ExpectedEndOfString);
+                }
+                Ok(rgba_from_4bit_hex(channels))
+            }
+            Err(e) => Err(e),
+        }
     }
 }
 
@@ -274,5 +336,39 @@ mod tests {
 
         let p = [0xaa, 0xbb, 0xcc, 0xff];
         assert_eq!(PremulRgba8::from_u8_array(p), bytemuck::cast(p));
+    }
+
+    const RGBA8_FROM_HEX_IS_CONST: Rgba8 = Rgba8::from_hex("#8a2be2");
+
+    #[test]
+    fn rgba8_from_hex() {
+        let color = Rgba8::from_hex("#8a2be2");
+        assert_eq!(color, Rgba8::from_u8_array([0x8a, 0x2b, 0xe2, 0xff]));
+        assert_eq!(color, RGBA8_FROM_HEX_IS_CONST);
+
+        let with = Rgba8::from_hex("#aabbcc");
+        let without = Rgba8::from_hex("aabbcc");
+        assert_eq!(with, without);
+
+        let short = Rgba8::from_hex("#abc");
+        let long = Rgba8::from_hex("#aabbcc");
+        assert_eq!(short, long);
+
+        let short_alpha = Rgba8::from_hex("#abcd");
+        let long_alpha = Rgba8::from_hex("#aabbccdd");
+        assert_eq!(short_alpha, long_alpha);
+
+        let lower = Rgba8::from_hex("#8a2be28f");
+        let upper = Rgba8::from_hex("#8A2BE28F");
+        assert_eq!(lower, upper);
+    }
+
+    #[test]
+    fn rgba8_try_from_hex_errors() {
+        // 'g' is not a valid hex digit
+        assert!(Rgba8::try_from_hex("#gg0000").is_err());
+        // 5 digit color isn't defined.
+        assert!(Rgba8::try_from_hex("#12345").is_err());
+        assert!(Rgba8::try_from_hex("").is_err());
     }
 }
