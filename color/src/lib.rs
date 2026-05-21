@@ -109,7 +109,7 @@ mod impl_bytemuck;
 #[cfg(all(not(feature = "std"), not(test)))]
 mod floatfuncs;
 
-use crate::parse::{color_from_4bit_hex, get_4bit_hex_channels};
+use crate::parse::{get_4bit_hex_channels, rgba_from_4bit_hex};
 pub use chromaticity::Chromaticity;
 pub use color::{AlphaColor, HueDirection, OpaqueColor, PremulColor};
 pub use colorspace::{
@@ -293,7 +293,8 @@ impl OpaqueColor<Srgb> {
                 if count != 3 && count != 6 {
                     return Err(ParseError::WrongNumberOfHexDigits);
                 }
-                Ok(color_from_4bit_hex(channels).discard_alpha())
+                let this = rgba_from_4bit_hex(channels);
+                Ok(Self::from_rgb8(this.r, this.g, this.b))
             }
             Err(e) => Err(e),
         }

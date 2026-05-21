@@ -12,7 +12,6 @@ use core::str::FromStr;
 use crate::Rgba8;
 use crate::{
     AlphaColor, ColorSpace, ColorSpaceTag, DynamicColor, Flags, Missing, OpaqueColor, PremulColor,
-    Srgb,
 };
 
 // TODO: maybe include string offset
@@ -509,7 +508,7 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
 
     if let Some(stripped) = s.strip_prefix('#') {
         let (ix, channels) = get_4bit_hex_channels(stripped)?;
-        let color = color_from_4bit_hex(channels);
+        let color = rgba_from_4bit_hex(channels).into();
         // Hex colors are seen as if they are generated from the named `rgb()` color space
         // function.
         let mut color = DynamicColor::from_alpha_color(color);
@@ -650,16 +649,6 @@ const fn hex_from_ascii_byte(b: u8) -> Result<u8, ()> {
         b'a'..=b'f' => Ok(b - b'a' + 10),
         _ => Err(()),
     }
-}
-
-pub(crate) const fn color_from_4bit_hex(components: [u8; 8]) -> AlphaColor<Srgb> {
-    let [r0, r1, g0, g1, b0, b1, a0, a1] = components;
-    AlphaColor::from_rgba8(
-        (r0 << 4) | r1,
-        (g0 << 4) | g1,
-        (b0 << 4) | b1,
-        (a0 << 4) | a1,
-    )
 }
 
 pub(crate) const fn rgba_from_4bit_hex(components: [u8; 8]) -> Rgba8 {
