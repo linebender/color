@@ -99,7 +99,7 @@ jobs:
       - name: install cargo-rdme
         uses: taiki-e/install-action@v2
         with:
-          tool: cargo-rdme
+          tool: cargo-rdme@1.4.8
 
       - name: cargo rdme
         # Ideally, we'd set heading-base-level=0 in the config file for cargo rdme, but that only
