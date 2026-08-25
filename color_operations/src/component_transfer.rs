@@ -19,7 +19,7 @@ pub struct ComponentTransfer<'a> {
 
 impl<'a> ComponentTransfer<'a> {
     /// The identity component transfer.
-    pub const IDENTITY: Self = Self::new([TransferFunction::IDENTITY; 4]);
+    pub const IDENTITY: Self = Self::new([TransferFunction::Identity; 4]);
 
     /// Create a component transfer from per-component transfer functions.
     #[inline]
@@ -163,10 +163,10 @@ mod tests {
     #[test]
     fn table_interpolates_between_values() {
         let transfer = ComponentTransfer::new([
-            TransferFunction::table(&[0., 1.]),
-            TransferFunction::table(&[0., 0.5, 1.]),
-            TransferFunction::table(&[1.]),
-            TransferFunction::table(&[]),
+            TransferFunction::Table(&[0., 1.]),
+            TransferFunction::Table(&[0., 0.5, 1.]),
+            TransferFunction::Table(&[1.]),
+            TransferFunction::Table(&[]),
         ]);
 
         assert_eq!(
@@ -177,7 +177,7 @@ mod tests {
 
     #[test]
     fn table_uses_nearest_endpoint_outside_unit_interval() {
-        let table = TransferFunction::table(&[0.25, 0.75]);
+        let table = TransferFunction::Table(&[0.25, 0.75]);
 
         assert_eq!(table.apply(-0.5), 0.25);
         assert_eq!(table.apply(1.5), 0.75);
@@ -186,10 +186,10 @@ mod tests {
     #[test]
     fn discrete_selects_steps() {
         let transfer = ComponentTransfer::new([
-            TransferFunction::discrete(&[0., 0.5, 1.]),
-            TransferFunction::discrete(&[1.]),
-            TransferFunction::discrete(&[]),
-            TransferFunction::IDENTITY,
+            TransferFunction::Discrete(&[0., 0.5, 1.]),
+            TransferFunction::Discrete(&[1.]),
+            TransferFunction::Discrete(&[]),
+            TransferFunction::Identity,
         ]);
 
         assert_eq!(
@@ -223,9 +223,9 @@ mod tests {
     #[test]
     fn premul_components_use_straight_transfer_then_premultiply() {
         let transfer = ComponentTransfer::new([
-            TransferFunction::table(&[0., 1.]),
-            TransferFunction::table(&[0., 1.]),
-            TransferFunction::table(&[0., 1.]),
+            TransferFunction::Table(&[0., 1.]),
+            TransferFunction::Table(&[0., 1.]),
+            TransferFunction::Table(&[0., 1.]),
             TransferFunction::linear(0.5, 0.),
         ]);
 

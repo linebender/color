@@ -17,20 +17,6 @@ pub enum ColorOperation<'a> {
 }
 
 impl<'a> ColorOperation<'a> {
-    /// Create a color operation from a matrix.
-    #[inline]
-    #[must_use]
-    pub const fn matrix(matrix: ColorMatrix) -> Self {
-        Self::Matrix(matrix)
-    }
-
-    /// Create a color operation from a component transfer.
-    #[inline]
-    #[must_use]
-    pub const fn component_transfer(transfer: ComponentTransfer<'a>) -> Self {
-        Self::ComponentTransfer(transfer)
-    }
-
     /// Apply this operation to straight color components.
     #[inline]
     #[must_use]

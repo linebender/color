@@ -45,9 +45,6 @@ pub enum TransferFunction<'a> {
 }
 
 impl<'a> TransferFunction<'a> {
-    /// The identity transfer function.
-    pub const IDENTITY: Self = Self::Identity;
-
     /// Create a linear transfer function.
     #[inline]
     #[must_use]
@@ -64,20 +61,6 @@ impl<'a> TransferFunction<'a> {
             exponent,
             offset,
         }
-    }
-
-    /// Create a table transfer function.
-    #[inline]
-    #[must_use]
-    pub const fn table(values: &'a [f32]) -> Self {
-        Self::Table(values)
-    }
-
-    /// Create a discrete transfer function.
-    #[inline]
-    #[must_use]
-    pub const fn discrete(values: &'a [f32]) -> Self {
-        Self::Discrete(values)
     }
 
     /// Apply this transfer function to a straight component.
