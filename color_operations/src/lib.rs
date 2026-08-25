@@ -10,7 +10,7 @@
 //! those operations as [`ColorOperation`] values. All operations apply to the components of the
 //! color space the caller chooses; they do not convert, clip, or gamut-map colors.
 //! Common operations are defined in [`transforms`], for example
-//! [`transforms::linear_srgb::matrix::grayscale`].
+//! [`transforms::linear_srgb::matrix_grayscale`].
 //! Operations can be applied directly to [`color::AlphaColor`], [`color::PremulColor`], and
 //! [`color::DynamicColor`].
 //! Matrices can be exchanged as row-major 4x5 rows or flattened row-major `[f32; 20]` values.

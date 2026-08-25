@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
 use crate::ColorOperationTarget;
-#[cfg(all(not(feature = "std"), not(test)))]
-use crate::floatfuncs::FloatFuncs;
 
 /// An affine matrix over straight color components.
 ///
