@@ -8,9 +8,9 @@
 //! Per-component operations build [`ComponentTransfer`] and [`TransferFunction`] values.
 //! Operations that mix color channels build [`ColorMatrix`] values. Mixed pipelines can store
 //! those operations as [`ColorOperation`] values. All operations apply to the components of the
-//! color space the caller chooses; they do not convert, clip, or gamut-map colors. Common
-//! operations are associated constructors, for example [`ComponentTransfer::opacity`] and
-//! [`ColorMatrix::grayscale`].
+//! color space the caller chooses; they do not convert, clip, or gamut-map colors.
+//! Common operations are defined in [`transforms`], for example
+//! [`transforms::linear_srgb::matrix::grayscale`].
 //! Operations can be applied directly to [`color::AlphaColor`], [`color::PremulColor`], and
 //! [`color::DynamicColor`].
 //! Matrices can be exchanged as row-major 4x5 rows or flattened row-major `[f32; 20]` values.

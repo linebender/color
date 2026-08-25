@@ -13,6 +13,9 @@
 
 use crate::{ColorMatrix, ComponentTransfer};
 
+#[cfg(all(not(feature = "std"), not(test)))]
+use crate::floatfuncs::FloatFuncs;
+
 // Relative luminance coefficients from WCAG 2.2, using the sRGB / Rec. 709 primaries.
 // https://www.w3.org/TR/WCAG22/#dfn-relative-luminance
 const LUMA_R: f32 = 0.2126;

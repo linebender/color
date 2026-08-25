@@ -16,11 +16,6 @@ use crate::floatfuncs::FloatFuncs;
 ///
 /// Constructors use arguments as provided. This crate does not apply CSS or SVG shorthand
 /// clamping; callers implementing those specifications should clamp at the API boundary.
-///
-/// The named constructors that use RGB-specific formulas, such as [`ColorMatrix::grayscale`],
-/// [`ColorMatrix::saturate`], [`ColorMatrix::hue_rotate`], [`ColorMatrix::sepia`], and
-/// [`ColorMatrix::luminance_to_alpha`], assume the first three components are RGB-like red, green,
-/// and blue channels.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct ColorMatrix {
     rows: [[f32; 5]; 4],
