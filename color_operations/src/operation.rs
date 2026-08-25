@@ -70,11 +70,11 @@ mod tests {
     use color::{AlphaColor, Srgb};
 
     use super::ColorOperation;
-    use crate::{ColorMatrix, ComponentTransfer};
+    use crate::transforms::linear_srgb;
 
     #[test]
     fn applies_matrix_operation() {
-        let operation = ColorOperation::from(ColorMatrix::brightness(2.));
+        let operation = ColorOperation::from(linear_srgb::matrix_brightness(2.));
 
         assert_eq!(
             operation.apply_components([0.2, 0.3, 0.4, 0.5]),
@@ -84,7 +84,7 @@ mod tests {
 
     #[test]
     fn applies_component_transfer_operation() {
-        let operation = ColorOperation::from(ComponentTransfer::contrast(2.));
+        let operation = ColorOperation::from(linear_srgb::transfer_contrast(2.));
         let color = AlphaColor::<Srgb>::new([0.25, 0.5, 0.75, 0.8]);
 
         assert_eq!(operation.apply(color).components, [0., 0.5, 1., 0.8]);

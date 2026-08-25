@@ -41,6 +41,8 @@ mod operation;
 mod target;
 mod transfer_function;
 
+pub mod transforms;
+
 pub use component_transfer::ComponentTransfer;
 pub use matrix::ColorMatrix;
 pub use operation::ColorOperation;

@@ -5,19 +5,6 @@ use crate::ColorOperationTarget;
 #[cfg(all(not(feature = "std"), not(test)))]
 use crate::floatfuncs::FloatFuncs;
 
-// Relative luminance coefficients from WCAG 2.2, using the sRGB / Rec. 709 primaries.
-// https://www.w3.org/TR/WCAG22/#dfn-relative-luminance
-const LUMA_R: f32 = 0.2126;
-const LUMA_G: f32 = 0.7152;
-const LUMA_B: f32 = 0.0722;
-
-// The Filter Effects hueRotate matrix is specified with older rounded luminance coefficients.
-// Keep these literal values rather than substituting the higher-precision LUMA_* constants.
-// https://www.w3.org/TR/filter-effects-1/#feColorMatrixElement
-const HUE_ROTATE_LUMA_R: f32 = 0.213;
-const HUE_ROTATE_LUMA_G: f32 = 0.715;
-const HUE_ROTATE_LUMA_B: f32 = 0.072;
-
 /// An affine matrix over straight color components.
 ///
 /// A `ColorMatrix` stores a row-major 4x5 matrix. It transforms a component vector
@@ -98,7 +85,7 @@ impl ColorMatrix {
     /// use color_operations::ColorMatrix;
     ///
     /// let amount: f32 = 0.75;
-    /// let flat = ColorMatrix::sepia(amount.clamp(0.0, 1.0)).to_flattened();
+    /// let flat = ColorMatrix::opacity(amount).to_flattened();
     ///
     /// assert_eq!(flat.len(), 20);
     /// ```
@@ -163,188 +150,6 @@ impl ColorMatrix {
         ])
     }
 
-    /// Create a matrix that multiplies the color components by `amount`.
-    ///
-    /// The alpha component is left unchanged.
-    #[inline]
-    #[must_use]
-    pub const fn brightness(amount: f32) -> Self {
-        Self::new([
-            [amount, 0., 0., 0., 0.],
-            [0., amount, 0., 0., 0.],
-            [0., 0., amount, 0., 0.],
-            [0., 0., 0., 1., 0.],
-        ])
-    }
-
-    /// Create a matrix that adjusts contrast around component value `0.5`.
-    ///
-    /// An `amount` of `1.0` is the identity transform. The alpha component is left unchanged.
-    #[inline]
-    #[must_use]
-    pub const fn contrast(amount: f32) -> Self {
-        let offset = 0.5 * (1. - amount);
-        Self::new([
-            [amount, 0., 0., 0., offset],
-            [0., amount, 0., 0., offset],
-            [0., 0., amount, 0., offset],
-            [0., 0., 0., 1., 0.],
-        ])
-    }
-
-    /// Create a matrix that linearly interpolates between the original and inverted color.
-    ///
-    /// An `amount` of `0.0` is the identity transform, and `1.0` maps each color component `c` to
-    /// `1.0 - c`. The alpha component is left unchanged.
-    #[inline]
-    #[must_use]
-    pub const fn invert(amount: f32) -> Self {
-        let scale = 1. - 2. * amount;
-        Self::new([
-            [scale, 0., 0., 0., amount],
-            [0., scale, 0., 0., amount],
-            [0., 0., scale, 0., amount],
-            [0., 0., 0., 1., 0.],
-        ])
-    }
-
-    /// Create a matrix that adjusts saturation using relative luminance coefficients.
-    ///
-    /// An `amount` of `1.0` is the identity transform, and `0.0` maps the color components to
-    /// grayscale. The alpha component is left unchanged.
-    ///
-    /// This assumes the first three components are RGB-like red, green, and blue channels.
-    #[inline]
-    #[must_use]
-    pub const fn saturate(amount: f32) -> Self {
-        Self::new([
-            [
-                LUMA_R + amount * (1. - LUMA_R),
-                LUMA_G - amount * LUMA_G,
-                LUMA_B - amount * LUMA_B,
-                0.,
-                0.,
-            ],
-            [
-                LUMA_R - amount * LUMA_R,
-                LUMA_G + amount * (1. - LUMA_G),
-                LUMA_B - amount * LUMA_B,
-                0.,
-                0.,
-            ],
-            [
-                LUMA_R - amount * LUMA_R,
-                LUMA_G - amount * LUMA_G,
-                LUMA_B + amount * (1. - LUMA_B),
-                0.,
-                0.,
-            ],
-            [0., 0., 0., 1., 0.],
-        ])
-    }
-
-    /// Create a matrix that linearly interpolates between the original and grayscale color.
-    ///
-    /// An `amount` of `0.0` is the identity transform, and `1.0` maps the color components to
-    /// grayscale. The alpha component is left unchanged.
-    ///
-    /// This assumes the first three components are RGB-like red, green, and blue channels.
-    #[inline]
-    #[must_use]
-    pub const fn grayscale(amount: f32) -> Self {
-        Self::saturate(1. - amount)
-    }
-
-    /// Create a matrix that rotates hue by `angle_degrees`.
-    ///
-    /// This uses the SVG and Filter Effects `feColorMatrix` `hueRotate` matrix. The alpha
-    /// component is left unchanged. This assumes the first three components are RGB-like red,
-    /// green, and blue channels.
-    #[inline]
-    #[must_use]
-    pub fn hue_rotate(angle_degrees: f32) -> Self {
-        let (sin, cos) = (angle_degrees * (core::f32::consts::PI / 180.)).sin_cos();
-
-        Self::new([
-            [
-                HUE_ROTATE_LUMA_R + cos * (1. - HUE_ROTATE_LUMA_R) - sin * HUE_ROTATE_LUMA_R,
-                HUE_ROTATE_LUMA_G - cos * HUE_ROTATE_LUMA_G - sin * HUE_ROTATE_LUMA_G,
-                HUE_ROTATE_LUMA_B - cos * HUE_ROTATE_LUMA_B + sin * (1. - HUE_ROTATE_LUMA_B),
-                0.,
-                0.,
-            ],
-            [
-                HUE_ROTATE_LUMA_R - cos * HUE_ROTATE_LUMA_R + sin * 0.143,
-                HUE_ROTATE_LUMA_G + cos * (1. - HUE_ROTATE_LUMA_G) + sin * 0.140,
-                HUE_ROTATE_LUMA_B - cos * HUE_ROTATE_LUMA_B - sin * 0.283,
-                0.,
-                0.,
-            ],
-            [
-                HUE_ROTATE_LUMA_R - cos * HUE_ROTATE_LUMA_R - sin * (1. - HUE_ROTATE_LUMA_R),
-                HUE_ROTATE_LUMA_G - cos * HUE_ROTATE_LUMA_G + sin * HUE_ROTATE_LUMA_G,
-                HUE_ROTATE_LUMA_B + cos * (1. - HUE_ROTATE_LUMA_B) + sin * HUE_ROTATE_LUMA_B,
-                0.,
-                0.,
-            ],
-            [0., 0., 0., 1., 0.],
-        ])
-    }
-
-    /// Create a matrix that linearly interpolates between the original and sepia color.
-    ///
-    /// An `amount` of `0.0` is the identity transform, and `1.0` uses the full Filter Effects
-    /// `sepia(1)` matrix. The alpha component is left unchanged.
-    /// This assumes the first three components are RGB-like red, green, and blue channels.
-    ///
-    /// See [Filter Effects Module Level 1 § 15][sepia].
-    ///
-    /// [sepia]: https://www.w3.org/TR/filter-effects-1/#sepiaEquivalent
-    #[inline]
-    #[must_use]
-    pub const fn sepia(amount: f32) -> Self {
-        let inverse = 1. - amount;
-        Self::new([
-            [
-                inverse + 0.393 * amount,
-                0.769 * amount,
-                0.189 * amount,
-                0.,
-                0.,
-            ],
-            [
-                0.349 * amount,
-                inverse + 0.686 * amount,
-                0.168 * amount,
-                0.,
-                0.,
-            ],
-            [
-                0.272 * amount,
-                0.534 * amount,
-                inverse + 0.131 * amount,
-                0.,
-                0.,
-            ],
-            [0., 0., 0., 1., 0.],
-        ])
-    }
-
-    /// Create a matrix that moves relative luminance into alpha and clears color components.
-    ///
-    /// This corresponds to the SVG and Filter Effects `feColorMatrix` `luminanceToAlpha` mode.
-    /// It assumes the first three components are RGB-like red, green, and blue channels.
-    #[inline]
-    #[must_use]
-    pub const fn luminance_to_alpha() -> Self {
-        Self::new([
-            [0., 0., 0., 0., 0.],
-            [0., 0., 0., 0., 0.],
-            [0., 0., 0., 0., 0.],
-            [LUMA_R, LUMA_G, LUMA_B, 0., 0.],
-        ])
-    }
-
     /// Apply this matrix to straight color components.
     #[inline]
     #[must_use]
@@ -405,8 +210,9 @@ impl ColorMatrix {
     ///
     /// ```
     /// use color_operations::ColorMatrix;
+    /// use color_operations::transforms::linear_srgb::matrix_grayscale;
     ///
-    /// let matrix = ColorMatrix::grayscale(1.0);
+    /// let matrix = matrix_grayscale(1.0);
     /// let premul = [0.2, 0.1, 0.0, 0.5];
     /// let out = if matrix.is_premul_compatible() {
     ///     matrix.apply_premul_compatible_components(premul)
@@ -619,7 +425,7 @@ mod tests {
     #[test]
     fn detects_premul_compatible_matrices() {
         assert!(ColorMatrix::IDENTITY.is_premul_compatible());
-        assert!(ColorMatrix::grayscale(1.).is_premul_compatible());
+        assert!(crate::transforms::linear_srgb::matrix_grayscale(1.).is_premul_compatible());
 
         let alpha_offset = ColorMatrix::new([
             [1., 0., 0., 0., 0.],
@@ -678,80 +484,5 @@ mod tests {
             matrix.apply_premul_components([0., 0., 0., 0.]),
             [0.25, 0.125, 0., 0.5]
         );
-    }
-
-    #[test]
-    fn saturation_identity_is_identity() {
-        let color = AlphaColor::<Srgb>::new([0.2, 0.4, 0.6, 0.8]);
-
-        assert_eq!(
-            ColorMatrix::saturate(1.).apply(color).components,
-            color.components
-        );
-    }
-
-    #[test]
-    fn grayscale_maps_to_luminance() {
-        let color = AlphaColor::<Srgb>::new([0.2, 0.4, 0.6, 0.8]);
-        let luma = 0.2 * 0.2126 + 0.4 * 0.7152 + 0.6 * 0.0722;
-
-        assert_eq!(
-            ColorMatrix::grayscale(1.).apply(color).components,
-            [luma, luma, luma, 0.8]
-        );
-    }
-
-    #[test]
-    fn hue_rotate_zero_is_identity() {
-        let color = AlphaColor::<Srgb>::new([0.2, 0.4, 0.6, 0.8]);
-
-        assert_approx_eq(
-            ColorMatrix::hue_rotate(0.).apply(color).components,
-            color.components,
-        );
-    }
-
-    #[test]
-    fn hue_rotate_uses_filter_effects_matrix() {
-        let color = AlphaColor::<Srgb>::new([1., 0., 0., 1.]);
-
-        assert_approx_eq(
-            ColorMatrix::hue_rotate(90.).apply(color).components,
-            [0., 0.356, -0.574, 1.],
-        );
-    }
-
-    #[test]
-    fn sepia_interpolates_to_full_sepia() {
-        let color = AlphaColor::<Srgb>::new([1., 0., 0., 0.5]);
-
-        assert_eq!(
-            ColorMatrix::sepia(1.).apply(color).components,
-            [0.393, 0.349, 0.272, 0.5]
-        );
-        assert_eq!(
-            ColorMatrix::sepia(0.).apply(color).components,
-            color.components
-        );
-    }
-
-    #[test]
-    fn luminance_to_alpha_clears_color_and_sets_alpha() {
-        let color = AlphaColor::<Srgb>::new([0.2, 0.4, 0.6, 0.8]);
-        let luma = 0.2 * 0.2126 + 0.4 * 0.7152 + 0.6 * 0.0722;
-
-        assert_eq!(
-            ColorMatrix::luminance_to_alpha().apply(color).components,
-            [0., 0., 0., luma]
-        );
-    }
-
-    fn assert_approx_eq(actual: [f32; 4], expected: [f32; 4]) {
-        for (actual, expected) in actual.into_iter().zip(expected) {
-            assert!(
-                (actual - expected).abs() < 1e-6,
-                "{actual:?} != {expected:?}"
-            );
-        }
     }
 }

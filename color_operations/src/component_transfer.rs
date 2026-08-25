@@ -49,37 +49,6 @@ impl<'a> ComponentTransfer<'a> {
         Self::linear([1., 1., 1., amount], [0.; 4])
     }
 
-    /// Create a component transfer that multiplies the color components by `amount`.
-    ///
-    /// The alpha component is left unchanged.
-    #[inline]
-    #[must_use]
-    pub const fn brightness(amount: f32) -> Self {
-        Self::linear([amount, amount, amount, 1.], [0.; 4])
-    }
-
-    /// Create a component transfer that adjusts contrast around component value `0.5`.
-    ///
-    /// An `amount` of `1.0` is the identity transform. The alpha component is left unchanged.
-    #[inline]
-    #[must_use]
-    pub const fn contrast(amount: f32) -> Self {
-        let offset = 0.5 * (1. - amount);
-        Self::linear([amount, amount, amount, 1.], [offset, offset, offset, 0.])
-    }
-
-    /// Create a component transfer that linearly interpolates between the original and inverted
-    /// color.
-    ///
-    /// An `amount` of `0.0` is the identity transform, and `1.0` maps each color component `c` to
-    /// `1.0 - c`. The alpha component is left unchanged.
-    #[inline]
-    #[must_use]
-    pub const fn invert(amount: f32) -> Self {
-        let scale = 1. - 2. * amount;
-        Self::linear([scale, scale, scale, 1.], [amount, amount, amount, 0.])
-    }
-
     /// Apply this transfer to straight color components.
     #[inline]
     #[must_use]
@@ -232,36 +201,6 @@ mod tests {
         assert_eq!(
             transfer.apply_premul_components([0.25, 0.125, 0.0625, 0.5]),
             [0.125, 0.0625, 0.03125, 0.25]
-        );
-    }
-
-    #[test]
-    fn brightness_scales_color_components() {
-        let color = AlphaColor::<Srgb>::new([0.2, 0.4, 0.6, 0.8]);
-
-        assert_eq!(
-            ComponentTransfer::brightness(2.).apply(color).components,
-            [0.4, 0.8, 1.2, 0.8]
-        );
-    }
-
-    #[test]
-    fn contrast_adjusts_around_midpoint() {
-        let color = AlphaColor::<Srgb>::new([0.25, 0.5, 0.75, 0.8]);
-
-        assert_eq!(
-            ComponentTransfer::contrast(2.).apply(color).components,
-            [0., 0.5, 1., 0.8]
-        );
-    }
-
-    #[test]
-    fn invert_interpolates_to_inverted_color() {
-        let color = AlphaColor::<Srgb>::new([0.2, 0.4, 0.6, 0.8]);
-
-        assert_eq!(
-            ComponentTransfer::invert(1.).apply(color).components,
-            [0.8, 0.6, 0.39999998, 0.8]
         );
     }
 }

@@ -108,13 +108,13 @@ mod private {
 mod tests {
     use color::{AlphaColor, ColorSpaceTag, DynamicColor, Flags, Missing, Srgb};
 
-    use crate::{ColorMatrix, ComponentTransfer};
+    use crate::transforms::linear_srgb;
 
     #[test]
     fn applies_matrix_to_dynamic_color() {
         let color = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0.2, 0.3, 0.4, 0.5]));
 
-        let result = ColorMatrix::brightness(2.).apply(color);
+        let result = linear_srgb::matrix_brightness(2.).apply(color);
 
         assert_eq!(result.cs, ColorSpaceTag::Srgb);
         assert_eq!(result.flags, Flags::default());
@@ -125,7 +125,7 @@ mod tests {
     fn applies_component_transfer_to_dynamic_color() {
         let color = DynamicColor::from_alpha_color(AlphaColor::<Srgb>::new([0.25, 0.5, 0.75, 1.]));
 
-        let result = ComponentTransfer::contrast(2.).apply(color);
+        let result = linear_srgb::transfer_contrast(2.).apply(color);
 
         assert_eq!(result.cs, ColorSpaceTag::Srgb);
         assert_eq!(result.flags, Flags::default());
@@ -140,7 +140,7 @@ mod tests {
             components: [0.2, 10., 0.4, 0.5],
         };
 
-        let result = ColorMatrix::brightness(2.).apply(color);
+        let result = linear_srgb::matrix_brightness(2.).apply(color);
 
         assert_eq!(result.cs, ColorSpaceTag::Srgb);
         assert_eq!(result.flags.missing(), Missing::single(1));
