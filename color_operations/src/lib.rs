@@ -39,12 +39,13 @@ mod floatfuncs;
 mod matrix;
 mod operation;
 mod target;
+mod transfer_function;
 
 pub use component_transfer::ComponentTransfer;
-pub use component_transfer::TransferFunction;
 pub use matrix::ColorMatrix;
 pub use operation::ColorOperation;
 pub use target::ColorOperationTarget;
+pub use transfer_function::TransferFunction;
 
 // Keep clippy from complaining about unused libm when `std` and `libm` are both enabled.
 #[cfg(feature = "libm")]
