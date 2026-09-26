@@ -3,9 +3,9 @@ name = "color_operations"
 version.workspace = true
 license.workspace = true
 edition.workspace = true
-description = ""
-keywords = []
-categories = []
+description = "Color operation helpers built on the color crate"
+keywords = ["color", "matrix", "filter"]
+categories = ["graphics"]
 repository.workspace = true
 rust-version.workspace = true
 
@@ -21,10 +21,14 @@ targets = []
 [features]
 default = ["std"]
 std = ["color/std"]
-libm = ["color/libm"]
+libm = ["color/libm", "dep:libm"]
 
 [dependencies]
 color = { workspace = true, default-features = false }
+
+[dependencies.libm]
+version = "0.2.16"
+optional = true
 
 [lints]
 workspace = true
