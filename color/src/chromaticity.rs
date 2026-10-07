@@ -1,11 +1,11 @@
 // Copyright 2024 the Color Authors
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 
-use crate::{matdiagmatmul, matmatmul, matvecmul};
+use crate::{OpaqueColor, XyzD65, matdiagmatmul, matmatmul, matvecmul};
 
-/// CIE `xy` chromaticity, specifying a color in the XYZ color space, but not its luminosity.
+/// CIE `xy` chromaticity, specifying a color in the XYZ color space, but not its luminance.
 ///
-/// An absolute color can be specified by adding a luminosity coordinate `Y` as in `xyY`. An `XYZ`
+/// An absolute color can be specified by adding a luminance coordinate `Y` as in `xyY`. An `XYZ`
 /// color can be calculated from `xyY` as follows.
 ///
 /// ```text
@@ -54,10 +54,38 @@ impl Chromaticity {
         y: 0.33767,
     };
 
-    /// Convert the `xy` chromaticities to XYZ, assuming `xyY` with `Y=1`.
-    pub(crate) const fn to_xyz(self) -> [f32; 3] {
-        let y_recip = 1. / self.y;
-        [self.x * y_recip, 1., (1. - self.x - self.y) * y_recip]
+    /// Get the color at this chromaticity with the given `luminance`.
+    ///
+    /// If you convert the color returned by this method to another color space, think carefully
+    /// about whether you want to chromatically adapt the color or not. This method returns the
+    /// absolute color in [XYZ-D65][`XyzD65`], i.e., encoded with a reference white of [`Chromaticity::D65`].
+    /// To get the same absolute color in another color space, use
+    /// [`ColorSpace::convert_absolute`][crate::ColorSpace::convert_absolute].
+    ///
+    /// See the [XYZ-D65](`XyzD65`) color space documentation for some background information on the
+    /// meaning of "reference white."
+    ///
+    /// Note, if [`Self::y`] is zero, the resulting components are non-finite.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// # use color::{Chromaticity, ColorSpace, OpaqueColor, ProphotoRgb, XyzD65};
+    /// // This will be within conversion error of `ProphotoRgb::WHITE_COMPONENTS`,
+    /// // i.e., `[1., 1., 1.]`.
+    /// let color = XyzD65::convert_absolute::<ProphotoRgb>(
+    ///     Chromaticity::D50.with_luminance(1.).components
+    /// );
+    /// assert!(color.iter().all(|component| (component - 1.).abs() < 1e-4));
+    /// ```
+    #[inline]
+    pub const fn with_luminance(self, luminance: f32) -> OpaqueColor<XyzD65> {
+        let y_recip = luminance / self.y;
+        OpaqueColor::new([
+            self.x * y_recip,
+            luminance,
+            (1. - self.x - self.y) * y_recip,
+        ])
     }
 
     /// Calculate the 3x3 linear Bradford chromatic adaptation matrix from linear sRGB space.
@@ -65,8 +93,8 @@ impl Chromaticity {
     /// This calculates the matrix going from a reference white of `self` to a reference white of
     /// `to`.
     pub(crate) const fn linear_srgb_chromatic_adaptation_matrix(self, to: Self) -> [[f32; 3]; 3] {
-        let bradford_source = matvecmul(&Self::XYZ_TO_BRADFORD, self.to_xyz());
-        let bradford_dest = matvecmul(&Self::XYZ_TO_BRADFORD, to.to_xyz());
+        let bradford_source = matvecmul(&Self::XYZ_TO_BRADFORD, self.with_luminance(1.).components);
+        let bradford_dest = matvecmul(&Self::XYZ_TO_BRADFORD, to.with_luminance(1.).components);
 
         matmatmul(
             &matdiagmatmul(
@@ -124,4 +152,48 @@ impl Chromaticity {
         [-0.7502, 1.7135, 0.0367],
         [0.0389, -0.0685, 1.0296],
     ];
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{ColorSpace, OpaqueColor, ProphotoRgb, XyzD50, XyzD65};
+
+    use super::Chromaticity;
+
+    #[must_use]
+    fn almost_equal<CS: ColorSpace>(col1: [f32; 3], col2: [f32; 3], absolute_epsilon: f32) -> bool {
+        OpaqueColor::<CS>::new(col1).difference(OpaqueColor::new(col2)) <= absolute_epsilon
+    }
+
+    #[test]
+    fn reference_white() {
+        assert!(
+            almost_equal::<XyzD65>(
+                Chromaticity::D65.with_luminance(1.).components,
+                XyzD65::WHITE_COMPONENTS,
+                1e-4,
+            ),
+            "`Chromaticity::D65.with_luminance(1)` should match `XyzD65::WHITE_COMPONENTS`"
+        );
+
+        assert!(
+            almost_equal::<XyzD65>(
+                Chromaticity::D50.with_luminance(1.).components,
+                XyzD50::WHITE_COMPONENTS,
+                1e-4,
+            ),
+            "`Chromaticity::D50.with_luminance(1)` should match `XyzD50::WHITE_COMPONENTS`"
+        );
+
+        assert!(
+            almost_equal::<ProphotoRgb>(
+                XyzD65::convert_absolute::<ProphotoRgb>(
+                    Chromaticity::D50.with_luminance(1.).components
+                ),
+                ProphotoRgb::WHITE_COMPONENTS,
+                1e-4,
+            ),
+            "`Chromaticity::D50.with_luminance(1)` converted without chromatic adaptation to ProPhoto RGB should match `ProphotoRgb::WHITE_COMPONENTS` (which has a D50 reference white)"
+        );
+    }
 }
