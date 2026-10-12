@@ -19,6 +19,8 @@ This release has an [MSRV][] of 1.86.
 
 - `AlphaColor::<Srgb>::from_hex` and `OpaqueColor::<Srgb>::from_hex`, which can be used to convert const colors from an in-editor color picker. ([#217][] by [@l0uisgrange][] and [@DJMcNab][])
 - Add a `const` `DynamicColor::new` constructor for convenience, taking a color space tag and color components, and setting default `Flags`. ([#219][] by [@tomcur][])
+- `Chromaticity::with_luminance`, which can be used to convert CIE xy chromaticities to colors. ([#224][] by [@tomcur][])
+- Add `Chromaticity::try_from_kelvin` to approximate CIE xy chromaticities on the Planckian locus from color temperatures. ([#225][] by [@waywardmonkeys][])
 
 ### Changed
 
@@ -239,6 +241,8 @@ This is the initial release.
 [#217]: https://github.com/linebender/color/pull/217
 [#218]: https://github.com/linebender/color/pull/218
 [#219]: https://github.com/linebender/color/pull/219
+[#224]: https://github.com/linebender/color/pull/224
+[#225]: https://github.com/linebender/color/pull/225
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.3...HEAD
 [0.3.3]: https://github.com/linebender/color/releases/tag/v0.3.3
