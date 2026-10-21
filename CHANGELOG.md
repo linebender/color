@@ -27,6 +27,7 @@ This release has an [MSRV][] of 1.86.
 ### Fixed
 
 - Parse the named colors spelled grey (`grey`, `darkgrey`, `dimgrey`, …). ([#231][] by [@lehni][])
+- Parse legacy `hsl()` with whitespace before its commas. ([#232][] by [@lehni][])
 
 ## [0.3.3][] (2026-05-05)
 
@@ -245,6 +246,7 @@ This is the initial release.
 [#218]: https://github.com/linebender/color/pull/218
 [#219]: https://github.com/linebender/color/pull/219
 [#231]: https://github.com/linebender/color/pull/231
+[#232]: https://github.com/linebender/color/pull/232
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.3...HEAD
 [0.3.3]: https://github.com/linebender/color/releases/tag/v0.3.3

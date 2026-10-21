@@ -429,6 +429,7 @@ impl<'a> Parser<'a> {
             return Err(ParseError::ExpectedArguments);
         }
         let h = self.angle()?;
+        self.ws();
         let comma = self.ch(b',');
         let mode = if comma { Mode::Legacy } else { Mode::Modern };
         let s = self.scaled_component(1., 1.)?.map(|x| x.max(0.));
@@ -732,6 +733,16 @@ mod tests {
         assert_close_color(lgy, parse_color("rgb(250, 250, 210)").unwrap());
         let transparent = parse_color("transparent").unwrap();
         assert_close_color(transparent, parse_color("rgba(0, 0, 0, 0)").unwrap());
+    }
+
+    #[test]
+    fn legacy_hsl_with_whitespace_before_commas() {
+        let green = parse_color("hsl(120, 100%, 50%)").unwrap();
+        assert_close_color(green, parse_color("hsl( 120 , 100% , 50% )").unwrap());
+        assert_close_color(
+            green,
+            parse_color("hsla( 120.0 , 100.0% , 50.0% , 1 )").unwrap(),
+        );
     }
 
     #[test]
