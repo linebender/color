@@ -24,6 +24,10 @@ This release has an [MSRV][] of 1.86.
 
 - `Flags::set_missing`, `Flags::discard_name`, `Flags::set_named_color_space`, and `Missing::insert` are now `const` thanks to the MSRV update. ([#218][] by [@DJMcNab][])
 
+### Fixed
+
+- Parse the named colors spelled grey (`grey`, `darkgrey`, `dimgrey`, …). ([#231][] by [@lehni][])
+
 ## [0.3.3][] (2026-05-05)
 
 This release has an [MSRV][] of 1.82.
@@ -178,6 +182,7 @@ This is the initial release.
 [@DJMcNab]: https://github.com/DJMcNab
 [@l0uisgrange]: https://github.com/l0uisgrange
 [@LaurenzV]: https://github.com/LaurenzV
+[@lehni]: https://github.com/lehni
 [@MightyBurger]: https://github.com/MightyBurger
 [@raphlinus]: https://github.com/raphlinus
 [@sagudev]: https://github.com/sagudev
@@ -239,6 +244,7 @@ This is the initial release.
 [#217]: https://github.com/linebender/color/pull/217
 [#218]: https://github.com/linebender/color/pull/218
 [#219]: https://github.com/linebender/color/pull/219
+[#231]: https://github.com/linebender/color/pull/231
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.3...HEAD
 [0.3.3]: https://github.com/linebender/color/releases/tag/v0.3.3
