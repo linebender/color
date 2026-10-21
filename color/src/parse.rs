@@ -87,6 +87,26 @@ enum Value<'a> {
     Dimension(f64, &'a str),
 }
 
+/// A color component as written.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum Component {
+    Number(f64),
+    Percent(f64),
+    None,
+}
+
+impl Component {
+    /// The component's value: a number times `scale`, a percentage times `pct_scale`, or no
+    /// value for `none`.
+    fn scaled(self, scale: f64, pct_scale: f64) -> Option<f64> {
+        match self {
+            Self::Number(n) => Some(n * scale),
+            Self::Percent(n) => Some(n * pct_scale),
+            Self::None => None,
+        }
+    }
+}
+
 /// Whether or not we are parsing modern or legacy mode syntax.
 #[derive(Clone, Copy, Debug, PartialEq)]
 enum Mode {
@@ -295,15 +315,19 @@ impl<'a> Parser<'a> {
     }
 
     /// Parse a color component.
-    fn scaled_component(&mut self, scale: f64, pct_scale: f64) -> Result<Option<f64>, ParseError> {
+    fn component(&mut self) -> Result<Component, ParseError> {
         self.ws();
-        let value = self.value();
-        match value {
-            Some(Value::Number(n)) => Ok(Some(n * scale)),
-            Some(Value::Percent(n)) => Ok(Some(n * pct_scale)),
-            Some(Value::Symbol(s)) if s.eq_ignore_ascii_case("none") => Ok(None),
+        match self.value() {
+            Some(Value::Number(n)) => Ok(Component::Number(n)),
+            Some(Value::Percent(n)) => Ok(Component::Percent(n)),
+            Some(Value::Symbol(s)) if s.eq_ignore_ascii_case("none") => Ok(Component::None),
             _ => Err(ParseError::UnknownColorComponent),
         }
+    }
+
+    /// Parse a color component, scaled as [`Component::scaled`] scales it.
+    fn scaled_component(&mut self, scale: f64, pct_scale: f64) -> Result<Option<f64>, ParseError> {
+        Ok(self.component()?.scaled(scale, pct_scale))
     }
 
     fn angle(&mut self) -> Result<Option<f64>, ParseError> {
@@ -345,21 +369,22 @@ impl<'a> Parser<'a> {
         if !self.raw_ch(b'(') {
             return Err(ParseError::ExpectedArguments);
         }
-        // TODO: in legacy mode, be stricter about not mixing numbers
-        // and percentages, and disallowing "none"
-        let r = self
-            .scaled_component(1. / 255., 0.01)?
-            .map(|x| x.clamp(0., 1.));
+        let r = self.component()?;
         self.ws();
         let comma = self.ch(b',');
         let mode = if comma { Mode::Legacy } else { Mode::Modern };
-        let g = self
-            .scaled_component(1. / 255., 0.01)?
-            .map(|x| x.clamp(0., 1.));
+        let g = self.component()?;
         self.optional_comma(comma)?;
-        let b = self
-            .scaled_component(1. / 255., 0.01)?
-            .map(|x| x.clamp(0., 1.));
+        let b = self.component()?;
+        // The legacy syntax takes numbers or percentages, not both, and no `none`.
+        let all = |kind: fn(&Component) -> bool| [r, g, b].iter().all(kind);
+        if mode == Mode::Legacy
+            && !all(|c| matches!(c, Component::Number(_)))
+            && !all(|c| matches!(c, Component::Percent(_)))
+        {
+            return Err(ParseError::UnknownColorComponent);
+        }
+        let [r, g, b] = [r, g, b].map(|c| c.scaled(1. / 255., 0.01).map(|x| x.clamp(0., 1.)));
         let alpha = self.alpha(mode)?;
         self.ws();
         if !self.ch(b')') {
@@ -384,7 +409,12 @@ impl<'a> Parser<'a> {
     fn alpha(&mut self, mode: Mode) -> Result<Option<f64>, ParseError> {
         self.ws();
         if self.ch(mode.alpha_separator()) {
-            Ok(self.scaled_component(1., 0.01)?.map(|a| a.clamp(0., 1.)))
+            let alpha = self.component()?;
+            // The legacy syntax has no `none`.
+            if mode == Mode::Legacy && alpha == Component::None {
+                return Err(ParseError::UnknownColorComponent);
+            }
+            Ok(alpha.scaled(1., 0.01).map(|a| a.clamp(0., 1.)))
         } else {
             Ok(Some(1.0))
         }
@@ -431,9 +461,19 @@ impl<'a> Parser<'a> {
         let h = self.angle()?;
         let comma = self.ch(b',');
         let mode = if comma { Mode::Legacy } else { Mode::Modern };
-        let s = self.scaled_component(1., 1.)?.map(|x| x.max(0.));
+        let s = self.component()?;
         self.optional_comma(comma)?;
-        let l = self.scaled_component(1., 1.)?;
+        let l = self.component()?;
+        // The legacy syntax takes percentages for saturation and lightness, and no `none`.
+        if mode == Mode::Legacy
+            && (h.is_none()
+                || !matches!(s, Component::Percent(_))
+                || !matches!(l, Component::Percent(_)))
+        {
+            return Err(ParseError::UnknownColorComponent);
+        }
+        let s = s.scaled(1., 1.).map(|x| x.max(0.));
+        let l = l.scaled(1., 1.);
         let alpha = self.alpha(mode)?;
         self.ws();
         if !self.ch(b')') {
@@ -794,6 +834,11 @@ mod tests {
             ("/ 110%", Ok(Some(1.)), Mode::Modern),
             ("", Ok(Some(1.)), Mode::Legacy),
             ("/ none", Ok(None), Mode::Modern),
+            (
+                ", none",
+                Err(ParseError::UnknownColorComponent),
+                Mode::Legacy,
+            ),
         ] {
             let mut parser = Parser::new(alpha);
             let result = parser.alpha(mode);
@@ -801,6 +846,34 @@ mod tests {
                 result, expected,
                 "Failed parsing specified alpha `{alpha}`. Expected: `{expected:?}`. Got: `{result:?}`."
             );
+        }
+    }
+
+    #[test]
+    fn legacy_syntax() {
+        for valid in [
+            "rgb(255, 0, 0)",
+            "rgb(100%, 0%, 0%)",
+            "rgba(255, 0, 0, 50%)",
+            "hsl(0, 100%, 50%)",
+            "hsla(0deg, 100%, 50%, 0.5)",
+            // The modern syntax mixes them, and takes `none`:
+            "rgb(100% 0 none)",
+            "hsl(none 100 50 / none)",
+        ] {
+            assert!(parse_color(valid).is_ok(), "{valid}");
+        }
+        for invalid in [
+            "rgb(100%, 0, 0)",
+            "rgba(255, 0%, 0, 1)",
+            "rgb(none, 0, 0)",
+            "rgb(255, 0, 0, none)",
+            "hsl(0, 0, 50%)",
+            "hsl(0, 100%, 0)",
+            "hsla(0, 0, 50%, 1)",
+            "hsl(none, 100%, 50%)",
+        ] {
+            assert_err(invalid, ParseError::UnknownColorComponent);
         }
     }
 
