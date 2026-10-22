@@ -51,7 +51,7 @@ use crate::floatfuncs::FloatFuncs;
 /// ///
 /// /// See https://www.color.org/chardata/rgb/BT709.xalter.
 /// #[derive(Clone, Copy, Debug)]
-/// pub struct Rec709;
+/// pub enum Rec709 {}
 ///
 /// impl ColorSpace for Rec709 {
 ///     const IS_LINEAR: bool = false;
@@ -319,7 +319,7 @@ impl ColorSpaceLayout {
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-sRGB-linear
 #[derive(Clone, Copy, Debug)]
-pub struct LinearSrgb;
+pub enum LinearSrgb {}
 
 impl ColorSpace for LinearSrgb {
     const IS_LINEAR: bool = true;
@@ -369,7 +369,7 @@ impl From<LinearSrgb> for ColorSpaceTag {
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-sRGB
 #[derive(Clone, Copy, Debug)]
-pub struct Srgb;
+pub enum Srgb {}
 
 fn srgb_to_lin(x: f32) -> f32 {
     if x.abs() <= 0.04045 {
@@ -440,7 +440,7 @@ impl From<Srgb> for ColorSpaceTag {
 /// [icc]: https://www.color.org/chardata/rgb/DisplayP3.xalter
 /// [smpte]: https://pub.smpte.org/doc/eg432-1/20101110-pub/eg0432-1-2010.pdf
 #[derive(Clone, Copy, Debug)]
-pub struct DisplayP3;
+pub enum DisplayP3 {}
 
 impl ColorSpace for DisplayP3 {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::DisplayP3);
@@ -491,7 +491,7 @@ impl From<DisplayP3> for ColorSpaceTag {
 /// [icc]: https://www.color.org/chardata/rgb/adobergb.xalter
 /// [adobe]: https://www.adobe.com/digitalimag/adobergb.html
 #[derive(Clone, Copy, Debug)]
-pub struct A98Rgb;
+pub enum A98Rgb {}
 
 impl ColorSpace for A98Rgb {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::A98Rgb);
@@ -574,7 +574,7 @@ impl From<A98Rgb> for ColorSpaceTag {
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-prophoto-rgb
 /// [icc]: https://www.color.org/chardata/rgb/rommrgb.xalter
 #[derive(Clone, Copy, Debug)]
-pub struct ProphotoRgb;
+pub enum ProphotoRgb {}
 
 impl ProphotoRgb {
     fn transfer_to_linear(x: f32) -> f32 {
@@ -701,7 +701,7 @@ impl From<ProphotoRgb> for ColorSpaceTag {
 /// [icc]: https://www.color.org/chardata/rgb/BT2020.xalter
 /// [itu]: https://www.itu.int/rec/R-REC-BT.2020/en
 #[derive(Clone, Copy, Debug)]
-pub struct Rec2020;
+pub enum Rec2020 {}
 
 impl Rec2020 {
     // These are the parameters of the transfer function defined in the Rec. 2020 specification.
@@ -818,7 +818,7 @@ impl From<Rec2020> for ColorSpaceTag {
 /// [smpte]: https://pub.smpte.org/doc/st2065-1/20200909-pub/st2065-1-2021.pdf
 /// [aceswp]: https://docs.acescentral.com/tb/white-point
 #[derive(Clone, Copy, Debug)]
-pub struct Aces2065_1;
+pub enum Aces2065_1 {}
 
 impl ColorSpace for Aces2065_1 {
     const IS_LINEAR: bool = true;
@@ -926,7 +926,7 @@ impl From<Aces2065_1> for ColorSpaceTag {
 /// [acescg]: https://docs.acescentral.com/specifications/acescg/
 /// [aceswp]: https://docs.acescentral.com/tb/white-point
 #[derive(Clone, Copy, Debug)]
-pub struct AcesCg;
+pub enum AcesCg {}
 
 impl ColorSpace for AcesCg {
     const IS_LINEAR: bool = true;
@@ -1031,7 +1031,7 @@ impl From<AcesCg> for ColorSpaceTag {
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#predefined-xyz
 /// [css-chromatic-adaptation]: https://www.w3.org/TR/css-color-4/#color-conversion
 #[derive(Clone, Copy, Debug)]
-pub struct XyzD50;
+pub enum XyzD50 {}
 
 impl ColorSpace for XyzD50 {
     const IS_LINEAR: bool = true;
@@ -1123,7 +1123,7 @@ impl From<XyzD50> for ColorSpaceTag {
 /// [css-chromatic-adaptation]: https://www.w3.org/TR/css-color-4/#color-conversion
 /// [wikipedia-cie]: https://en.wikipedia.org/wiki/CIE_1931_color_space
 #[derive(Clone, Copy, Debug)]
-pub struct XyzD65;
+pub enum XyzD65 {}
 
 impl ColorSpace for XyzD65 {
     const IS_LINEAR: bool = true;
@@ -1189,7 +1189,7 @@ impl From<XyzD65> for ColorSpaceTag {
 /// [bjorn]: https://bottosson.github.io/posts/oklab/
 /// [CIELAB]: Lab
 #[derive(Clone, Copy, Debug)]
-pub struct Oklab;
+pub enum Oklab {}
 
 // Matrices taken from [Oklab] blog post, precision reduced to f32
 //
@@ -1285,7 +1285,7 @@ fn lch_to_lab([l, c, h]: [f32; 3]) -> [f32; 3] {
 ///   exceeding 0.5; and
 /// - `h` - the hue angle in degrees.
 #[derive(Clone, Copy, Debug)]
-pub struct Oklch;
+pub enum Oklch {}
 
 impl ColorSpace for Oklch {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Oklch);
@@ -1358,7 +1358,7 @@ impl From<Oklch> for ColorSpaceTag {
 /// [FreieFarbe]: https://freiefarbe.de/en/
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#cie-lab
 #[derive(Clone, Copy, Debug)]
-pub struct Lab;
+pub enum Lab {}
 
 // Matrices computed from CSS Color 4 spec, then used `cargo clippy --fix`
 // to reduce precision to f32 and add underscores.
@@ -1452,7 +1452,7 @@ impl From<Lab> for ColorSpaceTag {
 ///
 /// See [`Oklch`] for a similar color space but with better hue linearity.
 #[derive(Clone, Copy, Debug)]
-pub struct Lch;
+pub enum Lch {}
 
 impl ColorSpace for Lch {
     const TAG: Option<ColorSpaceTag> = Some(ColorSpaceTag::Lch);
@@ -1510,7 +1510,7 @@ impl From<Lch> for ColorSpaceTag {
 ///
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#the-hsl-notation
 #[derive(Clone, Copy, Debug)]
-pub struct Hsl;
+pub enum Hsl {}
 
 /// Convert HSL to RGB.
 ///
@@ -1632,7 +1632,7 @@ impl From<Hsl> for ColorSpaceTag {
 /// [css-sec]: https://www.w3.org/TR/css-color-4/#the-hwb-notation
 /// [HWB–A More Intuitive Hue-Based Color Model]: http://alvyray.com/Papers/CG/HWB_JGTv208.pdf
 #[derive(Clone, Copy, Debug)]
-pub struct Hwb;
+pub enum Hwb {}
 
 /// Convert HWB to RGB.
 ///
