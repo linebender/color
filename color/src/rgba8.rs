@@ -139,10 +139,41 @@ impl From<Rgba8> for AlphaColor<Srgb> {
 /// it is efficient and convenient, even if limited in accuracy and
 /// gamut.
 ///
-/// This is not meant to be a general purpose color type and is
-/// intended for use with [`PremulColor::to_rgba8`].
-///
 /// For a non-pre-multiplied packed representation, see [`Rgba8`].
+///
+/// This is not meant to be a general purpose color type and is
+/// intended for use with [`PremulColor::to_rgba8`]. While the methods
+/// surrounding this type treat it as premultiplied sRGB, you may
+/// want to store colors premultiplied in linear light and then
+/// sRGB-encoded, for example for `*_SRGB` textures that assume
+/// linear premultiplication.
+///
+/// You can use something like the following to achieve that.
+///
+/// ```
+/// # use color::{AlphaColor, ColorSpace, DisplayP3, LinearSrgb, PremulColor, PremulRgba8, Rgba8, Srgb};
+/// let srgba = AlphaColor::<Srgb>::from(Rgba8::from_u8_array([255, 255, 128, 128]));
+/// let [r, g, b, a] = srgba.convert::<LinearSrgb>().premultiply().components;
+/// let [r, g, b] = Srgb::from_linear_srgb([r, g, b]);
+///
+/// // Note that these are now not premultiplied sRGB colors in this crate's sense.
+/// assert_eq!(
+///     PremulColor::<Srgb>::new([r, g, b, a]).to_rgba8(),
+///     PremulRgba8 { r: 188, g: 188, b: 93, a: 128 }
+/// );
+///
+/// /// If you want to encode a rectangular RGB color space other than sRGB with linear premultiplication,
+/// /// you have to round to bytes manually. This function only makes sense for rectangular RGB color spaces.
+/// fn premul_linear_encoded<CS: ColorSpace>(color: AlphaColor<impl ColorSpace>) -> [u8; 4] {
+///     // It does not matter in which linear color space we premultiply, as linear RGB color spaces
+///     // are just a matrix multiply removed from each other.
+///     let [r, g, b, a] = color.convert::<LinearSrgb>().premultiply().components;
+///     let [r, g, b] = CS::from_linear_srgb([r, g, b]);
+///     [r, g, b, a].map(|x| (x * 255. + 0.5) as u8)
+/// }
+///
+/// assert_eq!(premul_linear_encoded::<DisplayP3>(srgba), [188, 188, 106, 128]);
+/// ```
 ///
 /// [`PremulColor::to_rgba8`]: crate::PremulColor::to_rgba8
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
