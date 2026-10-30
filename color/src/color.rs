@@ -67,7 +67,11 @@ pub struct AlphaColor<CS> {
 ///
 /// Following the convention of CSS Color 4, in cylindrical color spaces
 /// the hue channel is not premultiplied. If it were, interpolation would
-/// give undesirable results.
+/// give undesirable results. All other components are premultiplied as `CS`
+/// stores them. In particular, this makes no distinction between linear and
+/// non-linear color spaces. For [`Srgb`], for example, the gamma-encoded
+/// components are premultiplied directly by `alpha`; premultiply in linear
+/// light using [`LinearSrgb`](crate::LinearSrgb).
 ///
 /// See [`AlphaColor`] for a color type without alpha premultiplication.
 ///
