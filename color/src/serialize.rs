@@ -75,6 +75,65 @@ fn write_legacy_function(
     write!(f, ")")
 }
 
+/// Write a component that CSS requires to be a percentage, unless it is `none`.
+fn write_percentage_component(color: &DynamicColor, ix: usize, f: &mut Formatter<'_>) -> Result {
+    write_scaled_component(color, ix, f, 1.0)?;
+    if !color.flags.missing().contains(ix) {
+        write!(f, "%")?;
+    }
+    Ok(())
+}
+
+/// `hsl()` / `hsla()`.
+///
+/// The comma-separated legacy form requires `%` on saturation and lightness.
+/// `none` is not allowed there, so a missing component uses the modern form.
+fn write_hsl(color: &DynamicColor, f: &mut Formatter<'_>) -> Result {
+    let missing = color.flags.missing();
+    let modern = missing.contains(0) || missing.contains(1) || missing.contains(2);
+    if modern {
+        write!(f, "hsl(")?;
+        write_scaled_component(color, 0, f, 1.0)?;
+        write!(f, " ")?;
+        write_percentage_component(color, 1, f)?;
+        write!(f, " ")?;
+        write_percentage_component(color, 2, f)?;
+        if color.components[3] < 1.0 {
+            write!(f, " / ")?;
+            write_scaled_component(color, 3, f, 1.0)?;
+        }
+        return write!(f, ")");
+    }
+
+    let opt_a = if color.components[3] < 1.0 { "a" } else { "" };
+    write!(f, "hsl{opt_a}(")?;
+    write_scaled_component(color, 0, f, 1.0)?;
+    write!(f, ", ")?;
+    write_percentage_component(color, 1, f)?;
+    write!(f, ", ")?;
+    write_percentage_component(color, 2, f)?;
+    if color.components[3] < 1.0 {
+        write!(f, ", ")?;
+        write_scaled_component(color, 3, f, 1.0)?;
+    }
+    write!(f, ")")
+}
+
+/// `hwb()`. Whiteness and blackness are percentages in CSS Color 4.
+fn write_hwb(color: &DynamicColor, f: &mut Formatter<'_>) -> Result {
+    write!(f, "hwb(")?;
+    write_scaled_component(color, 0, f, 1.0)?;
+    write!(f, " ")?;
+    write_percentage_component(color, 1, f)?;
+    write!(f, " ")?;
+    write_percentage_component(color, 2, f)?;
+    if color.components[3] < 1.0 {
+        write!(f, " / ")?;
+        write_scaled_component(color, 3, f, 1.0)?;
+    }
+    write!(f, ")")
+}
+
 impl core::fmt::Display for DynamicColor {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         if let Some(color_name) = self.flags.color_name() {
@@ -97,8 +156,8 @@ impl core::fmt::Display for DynamicColor {
             ColorSpaceTag::Rec2020 => write_color_function(self, "rec2020", f),
             ColorSpaceTag::Aces2065_1 => write_color_function(self, "--aces2065-1", f),
             ColorSpaceTag::AcesCg => write_color_function(self, "--acescg", f),
-            ColorSpaceTag::Hsl => write_legacy_function(self, "hsl", 1.0, f),
-            ColorSpaceTag::Hwb => write_modern_function(self, "hwb", f),
+            ColorSpaceTag::Hsl => write_hsl(self, f),
+            ColorSpaceTag::Hwb => write_hwb(self, f),
             ColorSpaceTag::XyzD50 => write_color_function(self, "xyz-d50", f),
             ColorSpaceTag::XyzD65 => write_color_function(self, "xyz-d65", f),
             ColorSpaceTag::Lab => write_modern_function(self, "lab", f),
@@ -152,7 +211,7 @@ impl core::fmt::UpperHex for Rgba8 {
 mod tests {
     extern crate alloc;
 
-    use crate::{AlphaColor, DynamicColor, Hsl, Oklab, Srgb, XyzD65, parse_color};
+    use crate::{AlphaColor, DynamicColor, Hsl, Hwb, Missing, Oklab, Srgb, XyzD65, parse_color};
     use alloc::format;
 
     #[test]
@@ -228,7 +287,15 @@ mod tests {
             // Perhaps this should actually serialize to `rgb(...)`.
             (
                 DynamicColor::from_alpha_color(AlphaColor::<Hsl>::new([120., 50., 25., 1.])),
-                "hsl(120, 50, 25)",
+                "hsl(120, 50%, 25%)",
+            ),
+            (
+                DynamicColor::from_alpha_color(AlphaColor::<Hsl>::new([70., 8., 15., 0.5])),
+                "hsla(70, 8%, 15%, 0.5)",
+            ),
+            (
+                DynamicColor::from_alpha_color(AlphaColor::<Hwb>::new([120., 30., 50., 1.])),
+                "hwb(120 30% 50%)",
             ),
         ] {
             let result = format!("{color}");
@@ -237,6 +304,16 @@ mod tests {
                 "Failed serializing specified color `{color}`. Expected: `{expected}`. Got: `{result}`."
             );
         }
+    }
+
+    #[test]
+    fn hsl_missing_component_uses_modern_syntax() {
+        let mut color =
+            DynamicColor::from_alpha_color(AlphaColor::<Hsl>::new([120., 50., 25., 1.]));
+        let mut missing = Missing::EMPTY;
+        missing.insert(1);
+        color.flags.set_missing(missing);
+        assert_eq!(format!("{color}"), "hsl(120 none 25%)");
     }
 
     #[test]

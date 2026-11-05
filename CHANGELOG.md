@@ -27,6 +27,7 @@ This release has an [MSRV][] of 1.86.
 ### Fixed
 
 - Parse the named colors spelled grey (`grey`, `darkgrey`, `dimgrey`, …). ([#231][] by [@lehni][])
+- Serialize `hsl()` / `hsla()` saturation and lightness, and `hwb()` whiteness and blackness, with the `%` unit CSS Color 4 requires.
 
 ## [0.3.3][] (2026-05-05)
 
