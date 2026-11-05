@@ -27,7 +27,7 @@ This release has an [MSRV][] of 1.86.
 ### Fixed
 
 - Parse the named colors spelled grey (`grey`, `darkgrey`, `dimgrey`, …). ([#231][] by [@lehni][])
-- Serialize `hsl()` / `hsla()` saturation and lightness, and `hwb()` whiteness and blackness, with the `%` unit CSS Color 4 requires.
+- Serialize `hsl()` / `hsla()` saturation and lightness, and `hwb()` whiteness and blackness, with the `%` unit CSS Color 4 requires. ([#237][] by [@mamicicekel][])
 
 ## [0.3.3][] (2026-05-05)
 
@@ -184,6 +184,7 @@ This is the initial release.
 [@l0uisgrange]: https://github.com/l0uisgrange
 [@LaurenzV]: https://github.com/LaurenzV
 [@lehni]: https://github.com/lehni
+[@mamicicekel]: https://github.com/mamicicekel
 [@MightyBurger]: https://github.com/MightyBurger
 [@raphlinus]: https://github.com/raphlinus
 [@sagudev]: https://github.com/sagudev
@@ -246,6 +247,7 @@ This is the initial release.
 [#218]: https://github.com/linebender/color/pull/218
 [#219]: https://github.com/linebender/color/pull/219
 [#231]: https://github.com/linebender/color/pull/231
+[#237]: https://github.com/linebender/color/pull/237
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.3...HEAD
 [0.3.3]: https://github.com/linebender/color/releases/tag/v0.3.3
