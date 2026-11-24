@@ -2,7 +2,7 @@
 
 # Color Operations
 
-**TODO: Add tagline**
+**Color operation helpers built on the Color crate**
 
 [![Linebender Zulip, #color channel](https://img.shields.io/badge/Linebender-%23color-blue?logo=Zulip)](https://xi.zulipchat.com/#narrow/channel/466849-color)
 [![dependency status](https://deps.rs/repo/github/linebender/color/status.svg)](https://deps.rs/repo/github/linebender/color)
@@ -13,7 +13,29 @@
 
 </div>
 
-The Color Operations library provides functionality for ...
+The Color Operations library provides constructors for common color transforms. Per-component
+operations are built on `ComponentTransfer` and `TransferFunction`; channel-mixing operations are
+built on `ColorMatrix`; mixed pipelines can store either as `ColorOperation`. Callers choose the
+working color space and decide when to convert, clip, or gamut-map colors. Common operations are
+associated constructors, such as `ComponentTransfer::opacity`, `ColorMatrix::grayscale`, and
+`ColorMatrix::hue_rotate`.
+
+Operations can be applied directly to `AlphaColor`, `PremulColor`, and `DynamicColor`.
+Matrices can be exchanged as row-major 4x5 rows or flattened row-major `[f32; 20]` values.
+
+Constructors use arguments as provided. This crate does not apply CSS or SVG shorthand clamping;
+callers implementing those specifications should clamp at the API boundary:
+
+```rust
+use color_operations::ColorMatrix;
+
+let amount: f32 = 0.75;
+let flat = ColorMatrix::sepia(amount.clamp(0.0, 1.0)).to_flattened();
+assert_eq!(flat.len(), 20);
+```
+
+The `std` feature is enabled by default. For `no_std` builds, disable default features and enable
+the `libm` feature.
 
 ## Minimum supported Rust Version (MSRV)
 
