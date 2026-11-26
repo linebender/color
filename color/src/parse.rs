@@ -525,7 +525,7 @@ pub fn parse_color_prefix(s: &str) -> Result<(usize, DynamicColor), ParseError> 
                 .lab(100.0, 1.25, ColorSpaceTag::Lab)
                 .map(set_from_named_color_space),
             "lch" => parser
-                .lch(100.0, 1.25, ColorSpaceTag::Lch)
+                .lch(100.0, 1.5, ColorSpaceTag::Lch)
                 .map(set_from_named_color_space),
             "oklab" => parser
                 .lab(1.0, 0.004, ColorSpaceTag::Oklab)
@@ -744,6 +744,30 @@ mod tests {
             parse_color("#f00fa").unwrap_err(),
             ParseError::WrongNumberOfHexDigits
         );
+    }
+
+    #[test]
+    fn lab_lch_percentage_reference_ranges() {
+        // CSS Color 4 percentage reference ranges (§ lab(), lch(), oklab(), oklch()):
+        // Lab a/b: 100% = 125; LCH Chroma: 100% = 150;
+        // Oklab a/b: 100% = 0.4; Oklch Chroma: 100% = 0.4.
+        let lab = parse_color("lab(50% 100% 100%)").unwrap();
+        assert!((lab.components[1] - 125.0).abs() < 1e-4);
+        assert!((lab.components[2] - 125.0).abs() < 1e-4);
+
+        let lch = parse_color("lch(50% 100% 40)").unwrap();
+        assert!(
+            (lch.components[1] - 150.0).abs() < 1e-4,
+            "lch chroma 100% should map to 150, got {}",
+            lch.components[1]
+        );
+
+        let oklab = parse_color("oklab(50% 100% 100%)").unwrap();
+        assert!((oklab.components[1] - 0.4).abs() < 1e-6);
+        assert!((oklab.components[2] - 0.4).abs() < 1e-6);
+
+        let oklch = parse_color("oklch(50% 100% 40)").unwrap();
+        assert!((oklch.components[1] - 0.4).abs() < 1e-6);
     }
 
     #[test]
