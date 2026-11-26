@@ -27,7 +27,7 @@ This release has an [MSRV][] of 1.86.
 ### Fixed
 
 - Parse the named colors spelled grey (`grey`, `darkgrey`, `dimgrey`, …). ([#231][] by [@lehni][])
-- `lch()` chroma percentages now use the correct reference range: `100%` maps to `150`, matching CSS Color 4 (previously `125`, the `lab()` a/b range). ([#PR][] by [@amalsaidov][])
+- `lch()` chroma percentages now use the correct reference range: `100%` maps to `150`, matching CSS Color 4 (previously `125`, the `lab()` a/b range). ([#238][] by [@amalsaidov][])
 
 ## [0.3.3][] (2026-05-05)
 
@@ -247,7 +247,7 @@ This is the initial release.
 [#218]: https://github.com/linebender/color/pull/218
 [#219]: https://github.com/linebender/color/pull/219
 [#231]: https://github.com/linebender/color/pull/231
-[#PR]: https://github.com/linebender/color/pull/PR
+[#238]: https://github.com/linebender/color/pull/238
 
 [Unreleased]: https://github.com/linebender/color/compare/v0.3.3...HEAD
 [0.3.3]: https://github.com/linebender/color/releases/tag/v0.3.3
